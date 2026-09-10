@@ -4,12 +4,13 @@ Laboratorio ejecutable de ORB de cinco minutos + RVOL para investigación intrad
 con riesgo Decimal, simulación persistente, backtesting e interfaz local en español.
 **Exclusivamente virtual. No existe trading real ni promoción automática.**
 
-Fase 2 completada en el proyecto existente: base preservada, 420 pruebas y 16/16 gates
-locales aprobados (90,61% de cobertura). La comprobación HTTP del panel pasó; Chrome no
-arrancó en esta fase y su verificación visual no se declara reproducida.
+Fase 3 completada dentro del alcance disponible: base original y Fase 2 conservadas
+en commits distintos; correcciones contractuales con 435 pruebas y 16/16 gates
+locales aprobados (90,65% de cobertura). La comprobación HTTP del panel pasó; Chrome
+no inició la depuración local y su verificación visual sigue NOT_REPRODUCED.
 **Todas las mutaciones externas están deshabilitadas, incluso cierres y stops Demo.**
 La reconciliación conserva exposición observada separada de la contabilidad pendiente;
-el contrato externo de cierre todavía no permite resolver todos los estados/comisiones.
+lookup v2 aclara estados y exposición, pero siguen pendientes garantías contables de cierre.
 eToro permanece NOT_CONFIGURED; datos SYNTHETIC_ONLY; investigación BLOCKED_DATA.
 Los mocks no acreditan conexión. No hubo ninguna lectura de cuenta ni orden externa.
 
@@ -52,13 +53,17 @@ consulta identidad mínima y portafolio virtual; sin claves devuelve BLOCKED, ex
 Ni un preflight aprobado ni una autorización anterior habilitan escrituras en esta fase.
 `uv run python scripts/verify_import.py` prueba importación/validación/replay con 20
 warmups y una evaluación sintéticos, cálculo independiente y perturbación futura.
-La [auditoría de datos](docs/DATA_PROVIDER_AUDIT.md) recoge carencias eToro y solo dos
-alternativas públicas, sin contrataciones ni muestras reales obtenidas.
+La [auditoría de datos](docs/DATA_PROVIDER_AUDIT.md) recoge carencias eToro y las dos
+alternativas ya revisadas. El intento de descarga pública falló con WinError 10061;
+el candidato encontrado solo contiene hasta cuatro registros según su generador.
+Sin muestra real auditada, cálculo ORH/ORL/RVOL real ni shadow observado.
 
-Git sigue en main sin commits ni remoto: GIT_IDENTITY_BLOCKED. El índice conserva la
-base de 123 archivos; el incremento está en working tree. Huellas y referencia local
-en [phase2-baseline.json](docs/phase2-baseline.json); procedimiento de identidad auténtica
-en [versionado](docs/GIT_WORKFLOW.md). Staging no equivale a historial.
+Git local ya versionado, identidad verificada y sin remoto/publicación. Base A
+`6af05f1b16b8e3488a5cd959dc0e7f889b258fd6`: 358 pruebas aisladas; Fase 2 B
+`ef8bf5564f6e15bd04ae084c18cd63dd27ba380b`: 420; correcciones C
+`b51506a97771d04a5edfb45d46e8fac4c31f307f`: 435. La documentación posterior
+comparte el código de C. Árboles, comandos y evidencia por versión en
+[versionado](docs/GIT_WORKFLOW.md) y [verificación](docs/VERIFICATION.md).
 
 Verificación local:
 

@@ -1,33 +1,31 @@
-# Estado — fase 2, 2026-09-10
+# Estado — fase 3, 2026-09-10
 
 | Dimensión | Estado | Evidencia / límite |
 |---|---|---|
-| software_local | VERIFIED (suite y HTTP) | 420 pruebas, 16/16 gates; verificación visual Chrome falló al arrancar |
-| close_reconciliation | BLOCKED externo / parte local CONTRACT_TESTED | Trazabilidad, parciales, recuperación y exposición observada probadas; enum v1, respuesta perdida sin ID y contabilidad final sin garantías |
-| etoro_demo_read | NOT_CONFIGURED | Preflight local exit 2; ninguna lectura de cuenta |
-| etoro_demo_write | NOT_TESTED | Ninguna escritura externa ejecutada |
-| market_data | SYNTHETIC_ONLY | 26.910 barras; importación separada de 8.190 barras / 21 sesiones |
-| research | BLOCKED_DATA | Replay sintético; sin muestra real, shadow observado ni rentabilidad validada |
-| external_mutations | DISABLED | Sin bypass por configuración o permiso anterior; simulaciones solo en transporte mock |
-| Git | GIT_IDENTITY_BLOCKED | main, 0 commits, sin remoto; índice original de 123 archivos, incremento sin commit |
+| software_local | VERIFIED | C: 435 pruebas, 16/16 gates, cobertura 90,650293%; sin fallos ni skips |
+| reconciliación contractual | DOCUMENTED / CONTRACT_TESTED / BLOCKED por campo | Matriz en ETORO_API_AUDIT: lookup v2 aclara estados y exposición; faltan garantías contables de cierres |
+| reconciliación externa observada | NOT_OBSERVED | Ningún cierre ni lectura de órdenes de cuenta ejecutados |
+| etoro_demo_read | NOT_CONFIGURED | Preflight real del proceso salió 2: ambas claves ausentes |
+| etoro_demo_write | NOT_TESTED | Ninguna mutación externa ejecutada |
+| market_data | SYNTHETIC_ONLY / BLOCKED_DATA | Sin muestra real descargada; acceso público falló con WinError 10061; candidato limitado a cuatro registros |
+| research | BLOCKED_DATA | Sin ORH/ORL/RVOL reales, replay causal real, shadow observado o rentabilidad validada |
+| external_mutations | DISABLED | Guardas de red, CLI y panel conservadas; ni configuración ni permiso anterior habilitan envíos |
+| panel_http | VERIFIED | Suite HTTP local aprobada |
+| panel_visual | NOT_REPRODUCED | Único intento Chrome salió 1: no arrancó depuración; token retirado |
+| Git | VERSIONED_LOCAL | A, B y C conservados; rama feat/phase3-readonly-evidence, sin remoto ni publicación |
 
-Base reproducida: 358 pruebas/16 gates/90,432663% a las 16:35:45 UTC. Regresión final:
-420 pruebas (0 fallos, 0 skips, 7 warnings), 16 gates, 90,610987% a las 17:08:10 UTC.
-Riesgo 100%, transporte 99,20%, autorización 98,40%, ejecutor 95,31%, estados 100%,
-persistencia 95,27%. Ruff/formato/mypy/build y recorrido HTTP aprobados.
+A: `6af05f1b16b8e3488a5cd959dc0e7f889b258fd6`, base original de 123 archivos:
+358 pruebas en instalación aislada. B: `ef8bf5564f6e15bd04ae084c18cd63dd27ba380b`,
+los 33 modificados y seis nuevos de Fase 2: 420 pruebas, importación sintética y
+paquete offline aprobados. C: `b51506a97771d04a5edfb45d46e8fac4c31f307f`,
+correcciones puntuales de Fase 3: 435 pruebas. El incremento documental posterior
+comparte exactamente el código de C; no se le atribuye otra ejecución de la suite.
 
-El simulador conserva 4 órdenes y 0 posiciones; run actual 08d4d7a5962b5470f99f.
-La revisión de cantidad observada no inventa precio, comisiones ni efectivo. Un 404,
-ACK o portafolio vacío no demuestra flat. Toda ambigüedad material pausa entradas.
+La identidad Git efectiva ya está configurada y se comprobó antes de los commits.
+No volver a pedir nombre/correo. El índice original se conservó antes del primer
+git add. No se borraron cambios, no hubo push ni se habilitaron mutaciones externas.
 
-Disponibilidad sintética: +200 ms. ORH/ORL/RVOL calculados independientemente desde
-CSV y prueba de futuro alterado aprobados. No se alteraron reglas, calentamiento,
-presupuesto ni TTL. Auditoría pública limitada a eToro, Alpaca y Databento; sin compras.
-
-Chrome: verificación visual NO_REPRODUCIDA (exit 1, depuración local no arrancó).
-No se elevó permiso ni se modificó sandbox/TLS. La captura anterior no es evidencia
-actual. No quedan servidor ni token de esta comprobación. Solo auto-revisión del agente.
-
-Evidencia y omisiones: [VERIFICATION](docs/VERIFICATION.md), [base preservada](docs/phase2-baseline.json),
-runtime/verification.json, phase2-preflight.json, import-evidence.json y coverage.json.
-Continuidad y bloqueos externos: [HANDOFF](HANDOFF.md), [TASKS](TASKS.md).
+Se detiene la ampliación del producto: quedan acceso Demo Read propio, datos
+autorizados suficientes y aclaraciones del bróker. Responsables y acciones mínimas
+en [HANDOFF](HANDOFF.md); comandos, huellas y versiones en
+[VERIFICATION](docs/VERIFICATION.md). Las 435 pruebas son evidencia local.

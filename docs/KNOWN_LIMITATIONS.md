@@ -1,5 +1,13 @@
 # Limitaciones verificables
 
+Fase 3 prevalece sobre el antecedente siguiente: 435 pruebas / 16 gates locales;
+identidad Git resuelta y capas A/B/C versionadas. Lookup v2 sí describe aperturas,
+cierres, estados y exposición. Faltan garantías contables de cierre, no todo el
+contrato de reconciliación. Ya no se infiere exposición restante de units v1.
+Demo Read NOT_CONFIGURED; muestra pública no descargada (WinError 10061) y candidata
+insuficiente (limit=4). Sin datos reales auditados ni shadow. Chrome no reproducido,
+HTTP verificado. Matriz y responsables en ETORO_API_AUDIT y HANDOFF.
+
 Actualización fase 2: 420 pruebas/16 gates locales aprobados; Chrome no inició su
 depuración local y la verificación visual de esta fase no está reproducida. Todas
 las mutaciones externas permanecen DISABLED. Las siguientes carencias externas

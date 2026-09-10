@@ -1,5 +1,98 @@
 # Evidencia de verificación local
 
+## Fase 3 — versiones realmente comprobadas
+
+Verificaciones ejecutadas en Windows con Python 3.12.12 y uv 0.12.12, lock congelado
+sin cambios. Las suites retiran credenciales, bloquean sockets externos en tests y
+mantienen ORDER_SUBMISSION_ENABLED=false. Un resultado mock no acredita conexión.
+
+| Capa | Commit / árbol | Verificación observada | Evidencia local preservada |
+|---|---|---|---|
+| A: índice original, 123 archivos | 6af05f1b16b8e3488a5cd959dc0e7f889b258fd6 / 457998f3c919c0ff03d1c3bf1afcd1930e6bcf02 | 2026-09-10T19:25:47.993500Z; 358 passed, 0 failed/skipped, 82,875 s; 16/16 gates; 90,432663% | runtime/phase3/baseline-A/runtime/verification.json, coverage.json, test-results.xml, import-binding.json |
+| B: recuperación íntegra de Fase 2 | ef8bf5564f6e15bd04ae084c18cd63dd27ba380b / f8e132b821babcd96d42d9128978e6cb75450a51 | 2026-09-10T19:29:24.460889Z; 420 passed, 0 failed/skipped, 62,155 s; 16/16 gates; 90,610987% | runtime/phase3/B-verification.json, B-coverage.json, B-test-results.xml |
+| C: correcciones contractuales de Fase 3 | b51506a97771d04a5edfb45d46e8fac4c31f307f / 2cd8ee28a1b196d75518fec08536bb30cc7a752f | 2026-09-10T19:35:03.850966Z; 435 passed, 0 failed/skipped, 68,335 s; 16/16 gates; 90,650293% | runtime/phase3/C-verification.json, C-coverage.json, C-test-results.xml |
+
+Cada suite se ejecutó antes del commit indicado sobre esos archivos de código.
+Se conservaron las siete advertencias de dependencias, sin ocultarlas con skips.
+La huella de código B coincide con la comprobada al final de Fase 2:
+`75c12a9e7e320fff518d04dd10f26ad7c00557781d8ae0090ac6bbaf1a7d7e47`.
+Huella C: `adab286382ca6fdb8ef98491a6ae65a0b7e69fdc209a5eb712a07176e550b373`.
+Lock SHA-256: `d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f`.
+Código estable durante las baterías B/C. El commit documental posterior comparte
+todo el código de C: sus 435 pruebas son evidencia heredada de C, no una nueva suite.
+La documentación auditada estaba en edición durante la batería C y no forma parte
+de su huella de código; no se atribuye el contenido documental de aquel build al
+árbol completo de C. El paquete final debe identificarse por su propio SHA.
+
+### Aislación de A y preservación
+
+Antes de git add: coincidencia de los 123 blobs con index_sha256 del manifiesto
+original, SHA del ZIP original confirmado, scanner sin secretos. Los 129 archivos
+de B se copiaron y hashearon por separado. Se revisaron también los blobs staged
+de B y se confirmó igualdad con los archivos revisados tras CRLF→LF de Git.
+Los hashes de bytes originales se conservan sin normalizar en
+runtime/phase3/layers-before-commits.json y phase2-B-reviewed.zip.
+
+A se exportó desde el índice a runtime/phase3/baseline-A; uv sync --project sobre
+esa carpeta, --frozen --offline, creó su propia .venv (52 paquetes, exit 0).
+El módulo cargado fue exactamente
+`runtime/phase3/baseline-A/src/intraday_etoro_lab/__init__.py`, con el Python de
+`runtime/phase3/baseline-A/.venv/Scripts/python.exe`. Se ejecutó el verify.py de A
+sin editarlo mediante runtime/phase3/run_baseline.py. El arnés únicamente fija
+ubicación de uv/caché/Python; no cambia gates, pruebas ni expectativas. Git se leyó
+con GIT_WORK_TREE=A y una copia del índice original; scanner: 123 candidatos reales,
+cero hallazgos. No repositorio anidado ni importación editable del código B.
+Se verificó que los bytes exportados A y los archivos de trabajo B siguieran intactos.
+
+### Comandos y códigos de salida
+
+| Comando / comprobación | A | B | C |
+|---|---|---|---|
+| scripts/verify.py (A a través del arnés aislado) | 0 | 0 | 0 |
+| uv sync --frozen --offline | 0 | 0 | 0 |
+| python -m ruff check . / format --check . | 0 / 0 | 0 / 0 | 0 / 0 |
+| python -m mypy src | 0 | 0 | 0 |
+| python -m pytest -q --cov=intraday_etoro_lab --cov-branch --cov-report=json:runtime/coverage.json --junitxml=runtime/test-results.xml | 0 | 0 | 0 |
+| scripts/check_coverage.py / scripts/scan_secrets.py | 0 / 0 | 0 / 0 | 0 / 0 |
+| bot doctor / data validate / demo-offline / backtest | 0 cada uno | 0 cada uno | 0 cada uno |
+| bot etoro preflight --read-only (caso negativo con claves retiradas) | 2 esperado | 2 esperado | 2 esperado |
+| bot run --mode etoro_demo / --mode live | 2 / 2 esperados | 2 / 2 esperados | 2 / 2 esperados |
+| uv build --offline / node --check src/intraday_etoro_lab/ui/app.js | 0 / 0 | 0 / 0 | 0 / 0 |
+
+Cada registro verification.json contiene los comandos reales, stdout/stderr y exit.
+En B/C también inicio/fin UTC y huella por check. La batería focalizada previa de
+170 tests del bróker salió 0 antes de añadir los cuatro casos finales de ejecución
+sin fills; no se confunde ese paso intermedio con las 435 pruebas del código final.
+
+Adicionales de B ejecutados desde .venv/Scripts/python.exe:
+
+- scripts/verify_import.py: exit 0; 8.190 barras sintéticas, 21 sesiones, cálculo
+  CSV independiente ORH=100,70, ORL=99,80, RVOL=3 y perturbación futura PASS. Raw sin
+  cambios. Configuración runtime/import-checks/b4621007b7ed44a6805295fc2c7e72c8/replay.yaml;
+  registro runtime/phase3/B-import-evidence.json. No se añadió generador en Fase 3.
+- scripts/verify_package.py: exit 0; instalación nueva offline de 52 paquetes y
+  demo de cuatro órdenes/cero posiciones. Extraído en
+  runtime/package-checks/4488758252694cba8e1869e1898c1645/intraday_etoro_lab-0.1.0;
+  registro runtime/phase3/B-package-evidence.json. Esta comprobación pertenece a B.
+
+### Evidencia externa y panel, separada
+
+| Recorrido | Versión y comando | Resultado |
+|---|---|---|
+| Configuración Demo real del proceso | B preservada; .\\scripts\\uv.ps1 run bot etoro preflight --read-only; 2026-09-10T19:24:54Z | Exit 2, NOT_CONFIGURED, CREDENTIALS_MISSING_OR_INVALID. Ambas claves ausentes; sin petición de cuenta. runtime/phase3/preflight.json |
+| Catálogo/OpenAPI | API v1.375.0 / catálogo 1.19.1; tags → rutas Demo → cuatro specs | DOCUMENTED; no prueba cuenta local ni usa execute-read/write del conector. Matriz y preguntas no enviadas en ETORO_API_AUDIT |
+| Muestra pública | urllib con timeout, sin claves; NVDA XNAS.ITCH de Databento y metadatos | URLError; diagnóstico WinError 10061. Cero bytes de mercado, sin muestra/importación real. Fuente candidata limit=4 insuficiente. Registros data-access.json y data-transport-diagnostic.json en runtime/phase3 |
+| HTTP | Suites A/B/C, tests/test_e2e_http.py y test_config_api.py | VERIFIED: autenticación, comandos locales, informe, recuperación y bloqueo Demo |
+| Visual | C, UI idéntica a B; python scripts/verify_ui.py con Chrome instalado | Exit 1, 2026-09-10T19:33:13Z, Local browser debugging did not start. NOT_REPRODUCED. runtime/phase3/browser-evidence.json; token retirado, servidor finalizado |
+| Mutaciones externas | C, transport spy con permisos previos; guardas preservadas | DISABLED / NOT_TESTED externamente. Ningún envío, cancelación, cierre o modificación de stops de cuenta |
+
+No se deshabilitó seguridad ni se cerraron sesiones personales para probar Chrome.
+La única excepción revisada al permiso de escritura del entorno fue para los
+metadatos Git autorizados; no cambió permisos del sistema. No hubo rechazo de
+revisión automática, publicación, compras, acceso real ni revisión independiente.
+
+Las secciones siguientes son evidencia histórica de sus fases, no el estado actual.
+
 ## Fase 2 — evidencia actual
 
 Base reproducida antes del producto: **2026-09-10T16:35:45.658225+00:00**, 358 pruebas,

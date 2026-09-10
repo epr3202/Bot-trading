@@ -1,5 +1,69 @@
 # Auditoría de proveedores
 
+## Fase 3 — acceso real intentado y bloqueos precisos
+
+2026-09-10: configs/offline.yaml sigue usando fixtures. Al inspeccionar únicamente
+presencia en el proceso, ETORO_API_KEY/ETORO_USER_KEY, APCA_API_KEY_ID/
+APCA_API_SECRET_KEY y DATABENTO_API_KEY estaban ausentes; no había archivos en
+data/raw ni .env del proyecto. No se buscaron secretos en perfiles, conectores u
+otros proyectos. [Alpaca bars](https://docs.alpaca.markets/us/reference/stockbars)
+requiere autenticación; no se hizo una petición con claves ficticias ni se adquirió
+acceso. Las tarifas de la sección Fase 2 son una referencia histórica, no una oferta
+revalidada o autorización de gasto en esta fase.
+
+La búsqueda acotada en la fuente oficial Databento localizó
+[XNAS.ITCH/test_data.ohlcv-1m.dbn.zst](https://github.com/databento/databento-python/tree/main/tests/data/XNAS.ITCH).
+Su [generador publicado](https://raw.githubusercontent.com/databento/databento-python/main/tests/data/generator.py)
+descarga históricos NVDA desde 2020-12-28 con **limit=4**. Esto acredita la procedencia
+de la muestra de prueba publicada, no 21 sesiones completas. EQUS.MINI usa QQQ,
+un ETF fuera del universo de acciones comunes. La
+[licencia del repositorio](https://raw.githubusercontent.com/databento/databento-python/main/LICENSE)
+es Apache-2.0; no se extrapoló a redistribución de un feed comercial completo.
+
+Se intentó descargar el archivo público NVDA, su generador y la licencia desde
+raw.githubusercontent.com, sin autenticación, con timeout. Las tres descargas
+fallaron con URLError; un diagnóstico acotado del primer recurso identificó
+**ConnectionRefusedError / WinError 10061**. No se cambiaron proxy, TLS, firewall,
+sandbox ni permisos para sortearlo. No se obtuvo ningún byte de mercado ni SHA
+de muestra; la carpeta data/raw/phase3-databento quedó vacía. Evidencia local:
+runtime/phase3/data-access.json y data-transport-diagnostic.json. La consulta web
+de documentación no se presenta como descarga desde el bot.
+
+Resultado: **BLOCKED_DATA / SYNTHETIC_ONLY** en el laboratorio. Ingestión real,
+validación del archivo, ORH/ORL/RVOL reales y replay real: **NOT_EXECUTED**. La muestra
+candidata también sería INSUFFICIENT_HISTORY según su límite publicado, incluso
+resuelto el transporte. No se añadió parser DBN, SDK, proveedor, generador ni
+infraestructura para disimular este bloqueo. El importador CSV/Parquet existente
+sigue siendo el recorrido previsto para un archivo autorizado suficiente.
+
+Requisito mínimo: un CSV/Parquet licenciado de una acción común identificable,
+21 sesiones regulares consecutivas y completas (20 previas más una evaluación),
+OHLCV 1Min y volumen en acciones comparable de un mismo feed, ajustes documentados,
+calendario/zona y procedencia con checksum. Es un universo actual acotado, no
+punto-en-el-tiempo; seguirían pendientes supervivencia y selección histórica.
+
+| Evidencia temporal | Tratamiento exigido |
+|---|---|
+| Evento de mercado | Inicio/fin del intervalo y zona horaria de la barra |
+| Publicación / primera versión | Valor del proveedor solo si está acreditado; en otro caso desconocido |
+| Primera recepción del recolector | Observación real registrada; nunca inferida del evento |
+| Descarga de un histórico | acquired_at actual; no demuestra recepción en la sesión histórica |
+| Disponibilidad para replay | Supuesto identificado y separado; +200 ms pertenece exclusivamente al fixture |
+
+Un histórico real sin primera recepción sigue siendo **real**. Con datos finales
+suficientes se puede calcular ORH=max(high de los primeros cinco minutos),
+ORL=min(low) y RVOL=volumen de esos cinco minutos / media de la misma ventana en
+las 20 sesiones anteriores, independientemente del motor, sin validar latencia
+ni ejecución causal. Mantener desconocidos y no sortear el gate observed de v0.1.
+Sin esos archivos no se calculó una cifra real. La aritmética 100,70/99,80/3
+comprobada de nuevo en B es sintética. No hubo shadow ni sesión futura programada.
+
+Responsable del desbloqueo: propietario del acceso/dataset. Acción mínima:
+proporcionar localmente un CSV/Parquet autorizado con el manifiesto anterior, o
+configurar acceso propio ya licenciado y disponible sin gasto adicional. Si hay
+menos sesiones, validar lo que exista y mantener INSUFFICIENT_HISTORY; si solo
+hay barras finales, separar cálculo exploratorio del replay causal bloqueado.
+
 ## Incremento de fase 2 — 2026-09-10
 
 Proveedor configurado comprobado: fixtures en configs/offline.yaml. No hay fuente

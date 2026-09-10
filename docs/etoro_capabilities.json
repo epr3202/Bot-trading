@@ -129,5 +129,24 @@
     "external_write": "NOT_TESTED",
     "close_contract": "BLOCKED: internal status enum, lost order ID and final accounting guarantees missing",
     "tested_locally": "tests/test_phase2_broker.py; tests/test_close_reconciliation.py"
+  },
+  "phase3": {
+    "api_version": "v1.375.0",
+    "catalog_version": "1.19.1",
+    "lookup_actions": [
+      "open",
+      "close"
+    ],
+    "lookup_exactly_one_identifier": true,
+    "v2_status_enum": "DOCUMENTED_CONTRACT_TESTED",
+    "v1_status_enum": "BLOCKED_UNDOCUMENTED",
+    "v1_remaining_inference": "DISABLED_UNPROVEN_CUMULATIVE_SEMANTICS",
+    "close_accounting": "BLOCKED_FILL_ID_COST_FINALITY_CORRELATION",
+    "account_read": "NOT_CONFIGURED",
+    "external_reconciliation": "NOT_OBSERVED",
+    "external_mutations": "DISABLED",
+    "external_write": "NOT_TESTED",
+    "audit": "docs/ETORO_API_AUDIT.md",
+    "code_commit": "b51506a97771d04a5edfb45d46e8fac4c31f307f"
   }
 }

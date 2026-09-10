@@ -4,9 +4,16 @@ Fase 2: toda gestión externa, incluso salidas/stops/cancelaciones Demo, está
 DESHABILITADA. La tabla de incidentes describe comportamiento del simulador y requisitos
 de una futura sesión; no autoriza operar posiciones existentes del usuario.
 
-Para lectura propia, generar en eToro Settings → Trading → API Key Management una
-clave con Environment Demo y permiso Read, según
+Para lectura propia se necesitan dos valores distintos: **ETORO_API_KEY identifica
+la aplicación** y **ETORO_USER_KEY identifica al usuario**. Generar en eToro
+Settings → Trading → API Key Management una clave con Environment Demo y permiso
+Read proporciona la clave de usuario, según
 [autenticación oficial](https://api-portal.etoro.com/core/getting-started/authentication).
+Ese procedimiento no obtiene automáticamente la clave de aplicación. Si falta,
+solicitarla mediante el acceso propio de desarrollador/eToro o confirmar su
+provisión con soporte; no sustituirla por la clave de usuario, ejemplos públicos
+o credenciales de un conector. La guía consultada no documenta un botón adicional
+inequívoco para emitir la clave de aplicación: ese paso queda pendiente del titular.
 El programa usa exactamente ETORO_API_KEY y ETORO_USER_KEY del proceso; no carga .env
 automáticamente ni hereda un conector de ChatGPT. Nunca pegar las claves en el chat.
 Este bloque de PowerShell pide los valores sin eco ni incluirlos en el historial:
@@ -31,6 +38,13 @@ reduce la respuesta y no guarda CID, perfil ni portafolio. 401 significa fallo d
 autenticación; 403 bloquea el permiso; 429 respeta Retry-After/cuota sin fallback.
 Un éxito no arma, no prueba escritura, datos OHLCV, elegibilidad ni cash utilizable.
 No ejecutar un POST de prueba: el transporte de fase 2 lo bloqueará.
+
+Fase 3: este recorrido se ejecutó una vez con el entorno real disponible y devolvió
+NOT_CONFIGURED, salida 2. Ambas claves faltan. No repetir hasta cambiar realmente
+la configuración del proceso que lanza el bot. El bloque anterior es para uso local
+del titular; no enviar secretos al agente. Configuración Git ya verificada: no
+volver a solicitar nombre/correo. Contratos pendientes y borrador de soporte no
+enviado en ETORO_API_AUDIT; requisitos de datos en DATA_PROVIDER_AUDIT.
 
 Recorrido de datos disponible ahora:
 `.\scripts\uv.ps1 run python scripts/verify_import.py` produce un YAML único cuya

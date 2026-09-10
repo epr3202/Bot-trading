@@ -1,5 +1,12 @@
 # Plan de pruebas
 
+Fase 3 verifica solo riesgos encontrados: identificadores mutuamente excluyentes
+de lookup, action de cierre frente a apertura, status.id estrictamente entero,
+estados 3/5/9/10 sin fill y no inferir exposición de una cantidad de cierre v1.
+Se reutilizan test_phase2_broker.py y test_etoro_adapter.py, sin archivos de tests
+nuevos. C: 435 pruebas/16 gates; no se impuso un objetivo de recuento.
+La prueba visual Chrome falló de nuevo en su único intento; HTTP sigue verificado.
+
 Fase 2 añade test_phase2_broker.py (red bloqueada con autorización previa, cuota
 compartida, correlación de cierres y lecturas fallidas), test_close_reconciliation.py
 (crash/timeout antes/después, parciales, contabilidad, snapshots, flat y propiedad) y

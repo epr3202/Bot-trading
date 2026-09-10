@@ -1,5 +1,17 @@
 # Cambios
 
+## Fase 3 — 2026-09-10
+
+- Identidad efectiva verificada; índice original preservado en A (358 pruebas),
+  incremento existente en B (420) y correcciones puntuales en C (435 / 16 gates).
+- Lookup exige un identificador y acción/estado compatibles; estados parcialmente
+  terminales no pierden evidencia de fills. Cierre v1 no infiere exposición restante.
+- Matriz contractual por campo, idempotencia por versión y borrador de soporte no enviado.
+- Preflight real NOT_CONFIGURED; descarga pública falló con WinError 10061. Sin
+  datos reales auditados, nuevas dependencias, compras o mutaciones externas.
+- Panel HTTP verificado; único intento visual Chrome NOT_REPRODUCED.
+- Historial local y documentos actualizados; sin remoto, push ni cambios del sistema.
+
 ## Fase 2 — 2026-09-10, sin commit por identidad pendiente
 
 - Base existente preservada/reproducida; 420 pruebas y 16 gates locales aprobados.

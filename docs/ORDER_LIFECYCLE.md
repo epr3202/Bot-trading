@@ -41,12 +41,20 @@ recuperable sigue UNKNOWN; no consulta un ticker parecido ni reenvía. El histor
 se revisó, pero no garantiza que orderId sea el cierre ni define atribución de fees
 o identidad estable de ejecuciones parciales: no se incorporó como solución ficticia.
 
-Una fila v1 documenta unidades cerradas y occurred; permite registrar exposición
-observada si es única y trazable. Varias filas de la misma posición carecen de garantía
-acumulativa y se bloquean. statusID sigue sin enum público; TODOS sus números conservan
+Fase 3 corrige la inferencia anterior: una fila v1 documenta unidades cerradas y
+occurred, pero no garantiza acumulación ni exposición restante. No se calcula
+remainingUnits restando esa fila a la cantidad solicitada, que podría ser solo
+una parte de la posición. La observación de exposición procede del campo explícito
+remainingUnits de lookup v2. Varias filas v1 carecen de garantía acumulativa y se
+bloquean. statusID sigue sin enum público; TODOS sus números conservan
 UNKNOWN. rate/proceeds no certifican comisiones ni contabilidad final. El lookup v2
 de apertura aporta state=open/closed, remainingUnits y lastUpdate; openingData.units
 sigue siendo entrada, jamás se contabiliza como cierre.
+
+Lookup v2 contempla action=open/close; el normalizador de entradas exige open y
+status.id entero. Estados 3/5/9/10 sin cantidad ejecutada verificable se bloquean;
+9/10 mantienen fills y el remanente terminal. Cierres v2 sin contrato contable final
+no se convierten artificialmente en entradas. Ver matriz de Fase 3 en ETORO_API_AUDIT.
 
 Position conserva `units` contables, `observed_units`, `observed_at` y
 `accounting_complete`. Cero observado con libro pendiente conserva capital/riesgo y

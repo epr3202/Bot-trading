@@ -1,79 +1,66 @@
-# Continuidad — fase 2
+# Continuidad — fase 3
 
-Proyecto existente: C:/Users/epulgare/Nueva carpeta/Bot 3. Se conservó arquitectura,
-Python 3.12.12, uv 0.12.12, lockfile, presupuesto y estrategia ORB_RVOL_v0.1.
-No se repitió bootstrap ni se publicaron archivos. No se usaron subagentes en esta
-fase: revisión propia del agente, sin auditoría independiente ficticia.
+Proyecto existente C:/Users/epulgare/Nueva carpeta/Bot 3. Se mantuvieron Python
+3.12.12, uv 0.12.12, uv.lock, ORB_RVOL_v0.1, 20 warmups, presupuesto, riesgo y TTL.
+No hubo nuevo repositorio, migración de API, proveedor nuevo ni revisión independiente.
+Revisión propia del agente; no se delegó esta fase.
 
-Base original preservada antes de modificar producto: docs/phase2-baseline.json
-contiene hashes de 123 archivos del índice y working tree, versiones, pytest y lock.
-runtime/phase2-baseline/reviewed-source.zip conserva bytes revisados sin privados;
-SHA del manifiesto 96ac15232483b818eb9b4b88dac33d244f4ff1978d7453d311aa83194a0fe077.
-El manifiesto no se incluye en su propio hash. Git main tiene 0 commits, sin remoto
-ni identidad auténtica. índice original intacto; cambios de fase en working tree y
-archivos nuevos sin staging. No equiparar la copia local o el índice con un commit.
+Las dos capas ya están versionadas. Base A en main:
+`6af05f1b16b8e3488a5cd959dc0e7f889b258fd6` (123 archivos idénticos al índice
+original y su manifiesto, 358 pruebas en instalación aislada).
+B en recovery/phase2-reviewed:
+`ef8bf5564f6e15bd04ae084c18cd63dd27ba380b` (33 modificados + seis nuevos,
+420 pruebas, importación y paquete offline).
+C en feat/phase3-readonly-evidence:
+`b51506a97771d04a5edfb45d46e8fac4c31f307f` (435 pruebas/16 gates).
+La documentación de fase 2 que menciona identidad pendiente queda conservada en B
+como historia; el bloqueo fue resuelto por el usuario. No volver a solicitarlo.
 
-Verificación de base reproducida: 358 pruebas/16 gates/90,43%. Regresión de incremento
-final 2026-09-10T17:08:10.046894+00:00: 420 pruebas/16 gates/90,61%, sin skips ni fallos,
-7 warnings visibles. Huella 75c12a9e7e320fff518d04dd10f26ad7c00557781d8ae0090ac6bbaf1a7d7e47.
-Riesgo 100%, transporte 99,20%, autorización 98,40%, ejecutor 95,31%, persistencia
-95,27%. docs/VERIFICATION conserva fallos intermedios y comandos/omisiones exactos.
+Fase 3 corrigió riesgos concretos: lookup exige exactamente un identificador;
+una respuesta action=close no se contabiliza como apertura; status.id debe ser
+entero y los estados 3/5/9/10 requieren evidencia de cantidad ejecutada. Los estados
+9/10 conservan fills aunque su remanente sea terminal. El detalle v1 de cierre ya
+no permite inferir remainingUnits a partir de la cantidad solicitada. La exposición
+explícita del lookup de apertura continúa separada del libro, caja y PnL.
 
-Cambios: GuardedTransport bloquea toda mutación externa incluso con permisos viejos;
-POST de coste/elegibilidad también limitado a mock en esta fase. Solo el mock exacto
-recibe escrituras contractuales; nunca pasa por un cliente HTTP/mount de red. Cuota
-conservadora global y por grupos, cinco plazas reservadas para reconciliar.
+Lookup v2 sí documenta action=open/close, IDs de cuenta/orden/posición y estado.
+OpeningData sigue siendo apertura; no existe closingData en el esquema consultado.
+No extrapolar el enum v2 a statusID v1. Matriz de campos, diferencias guía/OpenAPI,
+idempotencia por versión y preguntas de soporte NO ENVIADAS en ETORO_API_AUDIT.
+La normalización contable de cierres y recuperación legacy sin ID siguen bloqueadas.
 
-EtoroDemoAdapter._query_close ya correlaciona cuenta, intención, orden, posición
-propia e instrumento. Lookup v2 de apertura observa remainingUnits/state/lastUpdate;
-v1 de cierre observa unidades cerradas/occurred cuando son Únicas y coherentes.
-Position separa units contables de observed_units/observed_at/accounting_complete.
-Cero observado sin libro final no libera efectivo, riesgo ni permite otra venta.
-La estructura JSON del esquema SQLite 1 sigue legible con defaults de campos nuevos.
+| Bloqueo | Responsable | Evidencia pendiente | Acción mínima |
+|---|---|---|---|
+| X01 Demo Read NOT_CONFIGURED | Titular de cuenta/aplicación | Clave de aplicación y clave de usuario Demo Read en el proceso; identidad/scopes/portfolio verificados por el bot | Configurarlas localmente según OPERATIONS_RUNBOOK y ejecutar el preflight existente una vez tras el cambio; no pegar secretos |
+| X02 BLOCKED_DATA | Titular del acceso/dataset | CSV/Parquet autorizado, 21 sesiones completas, volumen comparable, ajustes/procedencia/tiempos; o acceso ya licenciado sin gasto | Aportar el archivo y manifiesto localmente; el candidato público de cuatro registros es insuficiente y su descarga falló con WinError 10061 |
+| X04 Contabilidad externa BLOCKED | Soporte eToro y responsable de integración | Enlace v1→lookup, enum legacy, fills estables/revisiones, costes/moneda y completitud histórica | Obtener aclaraciones contractuales; revisar ejemplos redactados de operaciones existentes solo con acceso autorizado; no crear operaciones de prueba |
+| Visual NOT_REPRODUCED | Responsable del entorno local | Arranque de depuración Chrome y captura actual | Investigar en un entorno permitido; esta fase agotó su único intento sin cambiar seguridad ni cerrar sesiones personales |
+| X03 Mutaciones DISABLED | Futuro alcance explícito del usuario | Todos los gates operativos y autorización separados | No activar nada al resolver lectura o datos |
+| X05 CI remoto/publicación | Usuario, si lo solicita en otro alcance | Destino y autorización explícitos | Ninguna acción ahora |
 
-Límite X04 aún abierto: v1 statusID no tiene enum público; perdida de respuesta sin
-orderId no ofrece lookup por referencia garantizado; filas múltiples no tienen IDs
-estables/acumulación especificada; rate/proceeds no certifican fees/taxes finales.
-El historial v1 expone orderId y fees sin atribución suficiente a cada cierre/fill;
-v3 solo admite aperturas. No se migró API ni se añadió una ruta de historial ficticia.
-Estado externo de reconciliación BLOCKED; pruebas locales CONTRACT_TESTED. No abrir
-ni cerrar posiciones del usuario para investigar esas ambigüedades.
+Preflight real del proceso: 2026-09-10T19:24:54Z, exit 2; ETORO_API_KEY y
+ETORO_USER_KEY ausentes, sin .env. Ninguna consulta de cuenta. Las suites también
+ejercitan el caso negativo con credenciales retiradas; no equivalen a reintentos de
+la configuración real. El conector solo aportó catálogo/OpenAPI.
 
-El ejecutor/persistencia ahora bloquean falso flat ante consulta fallida, revisiones
-de precio acumulado sin cantidad y observaciones atrasadas/contradictorias. Comisiones
-tardías de cierre actualizan también PnL de posición. Stop/horario/manual comparten
-la intención propia. Tests inyectan aceptación sin fill, antes/después de timeout,
-crash tras persistir/antes de respuesta, parcial/restante, duplicados/reordenados,
-rechazo, 404, cuenta/posición ajena y exposición cerrada con libro pendiente.
+La búsqueda pública de datos fue acotada a los proveedores ya auditados. No se
+adquirieron servicios, créditos ni suscripciones. No hay archivo real validado ni
+ORH/ORL/RVOL real calculado. Un histórico final real no es sintético por carecer de
+recepción histórica: puede permitir aritmética exploratoria, pero no sortear el
+gate observed del motor ni demostrar latencia. Sin shadow ni tarea futura.
 
-Datos: provider=fixtures; 26.910 barras, 20 warmups/3 evaluaciones, +200 ms sintéticos.
-Importador conserva IDs, exige coherencia de synthetic/volume, cobertura con zona y
-acquired_at para historical_download; impide backdating. Datos reales sin evidencia
-observed no generan decisiones. El esquema no certifica licencia/recepción/universo.
-Informes de datos reales y sintéticos no comparten directorio. No hay muestra real.
+Panel HTTP aprobado; Chrome salió 1 a las 19:33:13Z por depuración no iniciada.
+Servidor de comprobación cerrado y token retirado. No usar captura del bootstrap
+como verificación actual. Las guardas de mutación siguen cubiertas por tests con
+transporte espía, incluidos permisos antiguos: ninguna solicitud de escritura
+llega a la red. La consulta del bróker no está conectada al runner operativo.
 
-Recorrido nuevo probado: .\scripts\uv.ps1 run python scripts/verify_import.py.
-Genera un directorio único y YAML registrado en runtime/import-evidence.json, luego
-invoca los comandos existentes data validate y backtest. 8.190 barras/21 sesiones;
-cálculo CSV independiente ORH=100,70 ORL=99,80 RVOL=3 y futuro alterado invariantes.
-Salida en reports/runs/synthetic-import, sin shadow real observado. No hay bucle
-futuro programado. No rebajar 20 sesiones, TTL, umbrales o costes para obtener señales.
+Evidencia local ignorada: runtime/phase3 (A aislada, B/C suites, huellas de capas,
+preflight, descarga fallida y navegador). Evidencia portable y matriz Git en
+docs/VERIFICATION.md y docs/GIT_WORKFLOW.md. El commit documental posterior a C
+no cambia software. Consultar `git log --format=fuller` y `git status --short`
+para el historial y estado reales. Sin remotos, publicación o mutación de cuenta.
 
-X01: no ETORO_API_KEY/ETORO_USER_KEY en proceso ni .env del proyecto; preflight exit 2
-CREDENTIALS_MISSING_OR_INVALID, NOT_CONFIGURED. Ninguna cuenta leída, ningún write.
-Procedimiento Demo Read sin eco en docs/OPERATIONS_RUNBOOK.md. No extraer claves de
-ChatGPT, otro conector o proyecto; preflight aprobado nunca arma esta fase.
-X02: candles hasta 1000 sin fecha/cursor ni volumen/finalidad/ajustes demostrados.
-Alpaca y Databento auditados documentalmente; capacidades reales, licencia y acceso
-siguen pendientes. No adquirir planes o crear cuentas comerciales para desbloquear.
-X03: TODAS las mutaciones externas DISABLED, incluso salidas; escritura NOT_TESTED.
-
-Panel: HTTP/sintaxis JS pasan, dimensiones y unidades contables/observadas visibles,
-controles Demo deshabilitados. Chrome exit 1: depuración local no arrancó; no elevar
-permisos para salvarlo. Captura del bootstrap histórica, no reutilizable como evidencia
-actual. Servidor/token de verificación retirados. No hay servicios instalados.
-
-Única acción inmediata del usuario: configurar nombre/correo Git auténticos localmente
-siguiendo docs/GIT_WORKFLOW.md. Después revisar el índice preservado y crear baseline
-real antes de rama/commits coherentes del incremento. No global, no remoto, no push.
-Los demás bloqueos constan arriba para la siguiente fase, sin preguntas repetidas.
+Criterio de parada alcanzado: capas preservadas, revisión contractual focalizada
+agotada y recorridos externos posibles intentados. No abrir otra ronda de motores,
+fixtures o interfaz para sustituir las dependencias anteriores.

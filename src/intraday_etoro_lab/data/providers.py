@@ -88,6 +88,8 @@ class FixtureProvider:
             coverage_end=max(bar.end_time for bar in bars),
             rows=len(bars),
             availability_evidence="Synthetic final bars become available 200ms after close",
+            availability_kind="synthetic",
+            feed_id="synthetic-v1",
             quality=("SYNTHETIC — NO EVIDENCE OF PROFITABILITY", "NO_POINT_IN_TIME_UNIVERSE"),
         )
         return DataBundle(instruments, tuple(bars), manifest, days[20:])

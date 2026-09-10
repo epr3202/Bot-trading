@@ -222,6 +222,14 @@ class StateStore:
         if uniqueness_key is None:
             raise ValueError("Close requires owned position identifier")
         with self.transaction():
+            if intent.kind == "close":
+                position = self.position(uniqueness_key)
+                if (
+                    intent.symbol != position.symbol
+                    or intent.units > position.units
+                    or not position.accounting_complete
+                ):
+                    raise LifecycleError("CLOSE_EXCEEDS_RECONCILED_OWNERSHIP")
             row = self.connection.execute(
                 "SELECT payload FROM intents WHERE strategy=? AND version=? AND session_id=? "
                 "AND uniqueness_key=? AND kind=?",
@@ -365,12 +373,15 @@ class StateStore:
                 raise LifecycleError("CUMULATIVE_COST_REGRESSION")
             cost_delta = update.cumulative_cost - old_cost
             delta = update.filled_units - intent.filled_units
+            if delta == 0 and intent.filled_units and update.average_price != intent.average_price:
+                raise LifecycleError("CUMULATIVE_PRICE_REVISION_REQUIRES_ACCOUNTING")
             updated = intent.model_copy(
                 update={
                     "state": update.state,
                     "broker_order_id": update.broker_order_id,
                     "filled_units": update.filled_units,
                     "average_price": update.average_price,
+                    "cumulative_cost": update.cumulative_cost,
                 }
             )
             self._save_intent(updated)
@@ -386,6 +397,17 @@ class StateStore:
                     self.audit("INCIDENT_LATE_FILL", intent.intent_id)
             elif cost_delta:
                 self._add_pnl(intent.session_id, -cost_delta)
+                if intent.kind == "close" and intent.position_id:
+                    position = self.position(intent.position_id)
+                    self._save_position(
+                        position.model_copy(
+                            update={
+                                "realized_pnl": position.realized_pnl - cost_delta,
+                            }
+                        )
+                    )
+            if update.remaining_units is not None:
+                self._observe_remaining(intent, update, now)
             self.connection.execute(
                 "INSERT INTO broker_costs VALUES(?,?) ON CONFLICT(intent_id) "
                 "DO UPDATE SET total=excluded.total",
@@ -412,6 +434,46 @@ class StateStore:
                 )
             self.audit("BROKER_RECONCILED", intent.intent_id, update.state)
         return updated
+
+    def _observe_remaining(self, intent: OrderIntent, update: BrokerOrder, now: datetime) -> None:
+        """Evidence of exposure is separate from booked fills/cash; called atomically."""
+        if not update.position_id or update.observed_at is None:
+            raise LifecycleError("POSITION_OBSERVATION_INCOMPLETE")
+        position = self.position(update.position_id)
+        if (intent.kind == "entry" and position.owner_intent_id != intent.intent_id) or (
+            intent.kind == "close" and intent.position_id != position.position_id
+        ):
+            raise LifecycleError("OBSERVATION_OWNERSHIP_MISMATCH")
+        stamp = update.observed_at
+        if stamp.tzinfo is None or now.tzinfo is None or stamp > now:
+            raise LifecycleError("POSITION_OBSERVATION_TIME_INVALID")
+        if position.observed_at is not None and stamp < position.observed_at:
+            raise LifecycleError("POSITION_SNAPSHOT_STALE")
+        if position.observed_at == stamp and position.observed_units != update.remaining_units:
+            raise LifecycleError("POSITION_SNAPSHOT_CONFLICT")
+        assert update.remaining_units is not None
+        if update.remaining_units > position.units:
+            raise LifecycleError("POSITION_EXPOSURE_INCONSISTENT")
+        if (
+            position.observed_units is not None
+            and update.remaining_units > position.observed_units
+            and self.intent(position.owner_intent_id).state == OrderState.FILLED
+        ):
+            raise LifecycleError("POSITION_EXPOSURE_REGRESSION")
+        complete = position.units == update.remaining_units
+        self._save_position(
+            position.model_copy(
+                update={
+                    "observed_units": update.remaining_units,
+                    "observed_at": stamp,
+                    "accounting_complete": complete,
+                }
+            )
+        )
+        if not complete:
+            self.pause(intent.session_id)
+            self.set_meta("reconciliation_ok", "false")
+            self.audit("EXPOSURE_OBSERVED_ACCOUNTING_PENDING", intent.intent_id)
 
     def _apply_fill(
         self,
@@ -460,6 +522,8 @@ class StateStore:
                     "units": existing.units - delta,
                     "realized_pnl": existing.realized_pnl + pnl,
                     "mark_price": price,
+                    "accounting_complete": existing.observed_units is None
+                    or existing.observed_units == existing.units - delta,
                 }
             )
         self._save_position(position)

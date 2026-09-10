@@ -206,6 +206,8 @@ class Executor:
                 self.store.audit("RECONCILIATION_FAILED", intent.intent_id)
         if any(i.state == OrderState.UNKNOWN for i in self.store.intents()):
             clean = False
+        if any(not p.accounting_complete for p in self.store.positions(open_only=False)):
+            clean = False
         self.store.set_meta("reconciliation_ok", str(clean).lower())
         if not clean:
             self.store.pause(self.session_id)
@@ -245,6 +247,10 @@ class Executor:
             if old.kind == "close" and old.position_id == position_id:
                 return old
         if position.units <= 0:
+            return None
+        if not position.accounting_complete:
+            self.pause_entries()
+            self.store.audit("CLOSE_BLOCKED_ACCOUNTING_PENDING", position.owner_intent_id)
             return None
         if any(
             i.kind == "entry"
@@ -288,9 +294,11 @@ class Executor:
         self.cancel_pending_entries()
         for position in self.store.positions():
             self.close_owned(position.position_id)
-        self.reconcile()
-        flat = not self.store.positions() and not any(
-            i.state in ACTIVE_STATES for i in self.store.intents()
+        reconciled = self.reconcile()
+        flat = (
+            reconciled
+            and not self.store.positions()
+            and not any(i.state in ACTIVE_STATES for i in self.store.intents())
         )
         self.store.audit("FLAT_CONFIRMED" if flat else "RESIDUAL_EXPOSURE")
         return flat

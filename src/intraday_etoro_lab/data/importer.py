@@ -82,6 +82,11 @@ def import_market_data(path: Path, manifest_path: Path) -> DataBundle:
         raw = {str(key): value for key, value in record.items()}
         instrument = Instrument.model_validate(
             {key: raw[key] for key in ("symbol", "exchange", "currency", "asset_class")}
+            | {
+                key: raw[key]
+                for key in ("stable_id", "broker_id")
+                if raw.get(key) not in (None, "")
+            }
         )
         if instrument.symbol in instruments and instruments[instrument.symbol] != instrument:
             raise ValueError("AMBIGUOUS_INSTRUMENT: symbol maps to multiple instruments")
@@ -108,6 +113,10 @@ def import_market_data(path: Path, manifest_path: Path) -> DataBundle:
         raise ValueError("MANIFEST_ROW_COUNT_MISMATCH")
     if any(bar.source != manifest.source for bar in bars):
         raise ValueError("MANIFEST_SOURCE_MISMATCH")
+    if manifest.availability_kind == "historical_download":
+        assert manifest.acquired_at is not None
+        if any(bar.received_at < manifest.acquired_at for bar in bars):
+            raise ValueError("HISTORICAL_AVAILABILITY_BACKDATED")
     if (
         min(bar.event_time for bar in bars) != manifest.coverage_start
         or max(bar.end_time for bar in bars) != manifest.coverage_end
@@ -119,3 +128,42 @@ def import_market_data(path: Path, manifest_path: Path) -> DataBundle:
     )
     days = sorted({bar.session_date for bar in bars})
     return DataBundle(tuple(instruments.values()), tuple(bars), manifest, tuple(days[20:]))
+
+
+def audit_bundle(bundle: DataBundle) -> dict[str, Any]:
+    """Measured dataset characteristics; declarations do not certify economics."""
+    manifest = bundle.manifest
+    delays = [(bar.available_at - bar.end_time).total_seconds() for bar in bundle.bars]
+    issues = quality_issues(bundle.bars)
+    blockers = []
+    if manifest.synthetic:
+        blockers.append("BLOCKED_EXTERNAL_DATA")
+    elif manifest.availability_kind != "observed":
+        blockers.append("OBSERVED_AVAILABILITY_REQUIRED")
+    if manifest.volume_kind not in {"consolidated_shares", "synthetic_shares"}:
+        blockers.append("VOLUME_BASE_UNVERIFIED_FOR_V01")
+    if not bundle.evaluation_sessions:
+        blockers.append("INSUFFICIENT_WARMUP_AND_EVALUATION")
+    return {
+        "source": manifest.source,
+        "synthetic": manifest.synthetic,
+        "market_data": "SYNTHETIC_ONLY" if manifest.synthetic else "BLOCKED",
+        "validation": "LOCAL_CONTRACT_VALID",
+        "quality_issues": issues,
+        "availability_kind": manifest.availability_kind,
+        "availability_evidence_status": "SYNTHETIC"
+        if manifest.synthetic
+        else "DECLARED_NOT_CERTIFIED",
+        "volume_kind": manifest.volume_kind,
+        "feed_id": manifest.feed_id,
+        "rows": len(bundle.bars),
+        "symbols": len(bundle.instruments),
+        "sessions": len({bar.session_date for bar in bundle.bars}),
+        "evaluation_sessions": [day.isoformat() for day in bundle.evaluation_sessions],
+        "availability_delay_seconds": {"min": min(delays), "max": max(delays)},
+        "exploration": "SYNTHETIC_REPLAY_ONLY" if manifest.synthetic else "AUDIT_REQUIRED",
+        "research": "BLOCKED_DATA" if manifest.synthetic else "NOT_VALIDATED",
+        "point_in_time_universe": manifest.point_in_time_universe,
+        "blockers": blockers,
+        "external_mutations": "DISABLED",
+    }

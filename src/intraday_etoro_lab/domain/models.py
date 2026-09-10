@@ -80,17 +80,43 @@ class Signal(FrozenModel):
 
 class DataManifest(FrozenModel):
     schema_version: str = "1"
-    source: str
+    source: str = Field(min_length=1)
     synthetic: bool
     volume_kind: Literal["synthetic_shares", "consolidated_shares", "venue_shares", "unknown"]
     adjustments: Literal["unadjusted", "split_adjusted", "unknown"]
-    license: str
-    provenance: str
+    license: str = Field(min_length=1)
+    provenance: str = Field(min_length=1)
     sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     coverage_start: datetime
     coverage_end: datetime
     rows: int = Field(gt=0)
     calendar: str = "XNYS"
     point_in_time_universe: bool = False
-    availability_evidence: str
+    availability_evidence: str = Field(min_length=1)
+    availability_kind: Literal["synthetic", "observed", "historical_download", "unknown"] = (
+        "unknown"
+    )
+    acquired_at: datetime | None = None
+    feed_id: str | None = None
     quality: tuple[str, ...] = ()
+
+    @field_validator("coverage_start", "coverage_end", "acquired_at")
+    @classmethod
+    def manifest_time(cls, value: datetime | None) -> datetime | None:
+        if value is not None:
+            if value.tzinfo is None or value.utcoffset() is None:
+                raise ValueError("MANIFEST_TIMEZONE_REQUIRED")
+            return value.astimezone(UTC)
+        return value
+
+    @model_validator(mode="after")
+    def consistent_evidence(self) -> Self:
+        if self.coverage_start >= self.coverage_end:
+            raise ValueError("MANIFEST_COVERAGE_INVALID")
+        if (self.volume_kind == "synthetic_shares") != self.synthetic:
+            raise ValueError("SYNTHETIC_VOLUME_LABEL_MISMATCH")
+        if not self.synthetic and self.availability_kind == "synthetic":
+            raise ValueError("REAL_DATA_WITH_SYNTHETIC_AVAILABILITY")
+        if self.availability_kind == "historical_download" and self.acquired_at is None:
+            raise ValueError("HISTORICAL_DOWNLOAD_TIME_REQUIRED")
+        return self

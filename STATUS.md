@@ -1,37 +1,33 @@
-# Estado verificado — 2026-09-10
+# Estado — fase 2, 2026-09-10
 
-| Dimensión | Estado | Evidencia / alcance |
+| Dimensión | Estado | Evidencia / límite |
 |---|---|---|
-| Software | **LOCAL_VERIFIED** | 358 pruebas, 16/16 gates locales, lint/formato/tipos/build, HTTP y navegador |
-| Bróker | **NOT_CONFIGURED** | Contratos oficiales y mocks; cero lecturas de cuenta o escrituras de trading |
-| Datos | **SYNTHETIC_ONLY** | 26.910 barras, 20 warmups + 3 sesiones, importador CSV/Parquet probado |
-| Investigación | **RESEARCH_BLOCKED_DATA** | Motor/estadísticas reproducibles, sin históricos aptos ni validación de ventaja |
-| Git | **STAGED / COMMITS_BLOCKED_IDENTITY** | 123 archivos preparados en main, sin identidad, commits ni remoto |
+| software_local | VERIFIED (suite y HTTP) | 420 pruebas, 16/16 gates; verificación visual Chrome falló al arrancar |
+| close_reconciliation | BLOCKED externo / parte local CONTRACT_TESTED | Trazabilidad, parciales, recuperación y exposición observada probadas; enum v1, respuesta perdida sin ID y contabilidad final sin garantías |
+| etoro_demo_read | NOT_CONFIGURED | Preflight local exit 2; ninguna lectura de cuenta |
+| etoro_demo_write | NOT_TESTED | Ninguna escritura externa ejecutada |
+| market_data | SYNTHETIC_ONLY | 26.910 barras; importación separada de 8.190 barras / 21 sesiones |
+| research | BLOCKED_DATA | Replay sintético; sin muestra real, shadow observado ni rentabilidad validada |
+| external_mutations | DISABLED | Sin bypass por configuración o permiso anterior; simulaciones solo en transporte mock |
+| Git | GIT_IDENTITY_BLOCKED | main, 0 commits, sin remoto; índice original de 123 archivos, incremento sin commit |
 
-Implementado y probado: configuración estricta, calendario, ORB/RVOL, riesgo Decimal,
-reservas, máquina de estados, SQLite, exclusión de doble proceso, fills parciales,
-UNKNOWN, reconciliación local, propiedad, protección, backups/restauración, simulador,
-replay, métricas/bootstrap, informes, API autenticada y panel español.
-Adaptador eToro y autorización temporal implementados a nivel contractual y pruebas mock.
+Base reproducida: 358 pruebas/16 gates/90,432663% a las 16:35:45 UTC. Regresión final:
+420 pruebas (0 fallos, 0 skips, 7 warnings), 16 gates, 90,610987% a las 17:08:10 UTC.
+Riesgo 100%, transporte 99,20%, autorización 98,40%, ejecutor 95,31%, estados 100%,
+persistencia 95,27%. Ruff/formato/mypy/build y recorrido HTTP aprobados.
 
-Prueba final en entorno CI=true, credenciales retiradas: **358 passed, 0 failed, 0 skipped**,
-7 warnings de dependencias, salida 0. Cobertura total de líneas+ramas **90,43%**;
-riesgo **100%**, transporte **99,12%**, autorización **98,40%**, ejecutor **94,52%**,
-estados **100%**, persistencia **96,34%**. Mypy: 33 archivos fuente sin errores.
-Formato/lint y scanner de secretos: aprobados. Las advertencias no se ocultaron.
+El simulador conserva 4 órdenes y 0 posiciones; run actual 08d4d7a5962b5470f99f.
+La revisión de cantidad observada no inventa precio, comisiones ni efectivo. Un 404,
+ACK o portafolio vacío no demuestra flat. Toda ambigüedad material pausa entradas.
 
-`demo-offline`: cuatro órdenes locales, cero posiciones abiertas; reinicio/repetición
-no duplican órdenes ni PnL. Run ID **42ff34b0e40a7f44e861**. El PnL del simulador de
-ciclo de vida es un ejemplo artificial distinto del replay, no rendimiento de cuenta.
-Paquete instalado en un entorno nuevo con 52 paquetes desde caché, recorrido offline
-reproducido. Chrome autenticado: OFFLINE, cuatro órdenes; captura en runtime/dashboard.png.
-El navegador y el servidor de verificación terminaron; no quedan servicios instalados.
+Disponibilidad sintética: +200 ms. ORH/ORL/RVOL calculados independientemente desde
+CSV y prueba de futuro alterado aprobados. No se alteraron reglas, calentamiento,
+presupuesto ni TTL. Auditoría pública limitada a eToro, Alpaca y Databento; sin compras.
 
-Pendiente externo: claves propias Demo y lectura autorizada, fuente OHLCV/volumen
-compatible, elegibilidad/precisión/costes/protección de cuenta y reconciliación completa
-de cierres v1. `run --mode etoro_demo`, armado y cierre Demo quedan BLOCKED. No hay
-ejecutor conectado, trading real, publicación GitHub ni certificación Demo implícita.
+Chrome: verificación visual NO_REPRODUCIDA (exit 1, depuración local no arrancó).
+No se elevó permiso ni se modificó sandbox/TLS. La captura anterior no es evidencia
+actual. No quedan servidor ni token de esta comprobación. Solo auto-revisión del agente.
 
-Evidencia: [resumen versionado](docs/VERIFICATION.md), runtime/verification.json,
-runtime/test-results.xml, runtime/coverage.json, runtime/package-evidence.json,
-runtime/browser-evidence.json y reports/runs/. Consultar HANDOFF/TASKS para continuar.
+Evidencia y omisiones: [VERIFICATION](docs/VERIFICATION.md), [base preservada](docs/phase2-baseline.json),
+runtime/verification.json, phase2-preflight.json, import-evidence.json y coverage.json.
+Continuidad y bloqueos externos: [HANDOFF](HANDOFF.md), [TASKS](TASKS.md).

@@ -83,6 +83,9 @@ class ORBStrategy:
         usable_volume = bundle.manifest.volume_kind in ("synthetic_shares", "consolidated_shares")
         for instrument in sorted(bundle.instruments, key=lambda item: item.symbol):
             symbol = instrument.symbol
+            if not bundle.manifest.synthetic and bundle.manifest.availability_kind != "observed":
+                reject(symbol, "OBSERVED_AVAILABILITY_REQUIRED")
+                continue
             if (
                 instrument.asset_class != "common_stock"
                 or instrument.currency != "USD"

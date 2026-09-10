@@ -4,10 +4,14 @@ Laboratorio ejecutable de ORB de cinco minutos + RVOL para investigación intrad
 con riesgo Decimal, simulación persistente, backtesting e interfaz local en español.
 **Exclusivamente virtual. No existe trading real ni promoción automática.**
 
-El recorrido local está probado. La integración de cuenta eToro no está configurada
-ni verificada; su sesión automática sigue BLOCKED hasta validar datos, elegibilidad,
-protección y reconciliación de cierres. El adaptador usa contratos oficiales y mocks,
-lo que no acredita una conexión. No se enviaron órdenes externas durante el bootstrap.
+Fase 2 completada en el proyecto existente: base preservada, 420 pruebas y 16/16 gates
+locales aprobados (90,61% de cobertura). La comprobación HTTP del panel pasó; Chrome no
+arrancó en esta fase y su verificación visual no se declara reproducida.
+**Todas las mutaciones externas están deshabilitadas, incluso cierres y stops Demo.**
+La reconciliación conserva exposición observada separada de la contabilidad pendiente;
+el contrato externo de cierre todavía no permite resolver todos los estados/comisiones.
+eToro permanece NOT_CONFIGURED; datos SYNTHETIC_ONLY; investigación BLOCKED_DATA.
+Los mocks no acreditan conexión. No hubo ninguna lectura de cuenta ni orden externa.
 
 Para instalar y recorrer una sesión desde la raíz:
 
@@ -42,11 +46,19 @@ informe existente. Cada resultado lleva manifiesto, hashes, fuente/calendario, s
 modelo de ejecución y revisión de código. `experiments.jsonl` conserva todas las ejecuciones.
 CSV/Parquet requiere esquema y manifiesto: [contratos](docs/DATA_CONTRACTS.md).
 
-Para continuar con Demo, primero resolver [bloqueos](docs/KNOWN_LIMITATIONS.md). Con
-claves propias emitidas para Demo y autorización de lectura, `uv run bot etoro preflight
---read-only` consulta identidad mínima y portafolio virtual. Sin claves devuelve BLOCKED.
-`arm-demo --confirm DEMO_ONLY --budget 10000` no sustituye los gates ni habilita el runner
-pendiente. No se extraen claves del conector eToro de esta conversación.
+Para lectura eToro, seguir la [configuración segura](docs/OPERATIONS_RUNBOOK.md) de
+ETORO_API_KEY y ETORO_USER_KEY propias, Demo Read. `uv run bot etoro preflight --read-only`
+consulta identidad mínima y portafolio virtual; sin claves devuelve BLOCKED, exit 2.
+Ni un preflight aprobado ni una autorización anterior habilitan escrituras en esta fase.
+`uv run python scripts/verify_import.py` prueba importación/validación/replay con 20
+warmups y una evaluación sintéticos, cálculo independiente y perturbación futura.
+La [auditoría de datos](docs/DATA_PROVIDER_AUDIT.md) recoge carencias eToro y solo dos
+alternativas públicas, sin contrataciones ni muestras reales obtenidas.
+
+Git sigue en main sin commits ni remoto: GIT_IDENTITY_BLOCKED. El índice conserva la
+base de 123 archivos; el incremento está en working tree. Huellas y referencia local
+en [phase2-baseline.json](docs/phase2-baseline.json); procedimiento de identidad auténtica
+en [versionado](docs/GIT_WORKFLOW.md). Staging no equivale a historial.
 
 Verificación local:
 

@@ -1,5 +1,13 @@
 # Plan de pruebas
 
+Fase 2 añade test_phase2_broker.py (red bloqueada con autorización previa, cuota
+compartida, correlación de cierres y lecturas fallidas), test_close_reconciliation.py
+(crash/timeout antes/después, parciales, contabilidad, snapshots, flat y propiedad) y
+test_import_phase2.py (manifiesto, backdating, identidad y separación de informes).
+scripts/verify_import.py realiza CSV → CLI validate → replay con cálculo independiente.
+No prueban escritura externa ni rentabilidad. VERIFICATION recoge también el fallo
+vigente de arranque Chrome; no se sustituye por una captura antigua.
+
 `uv run pytest --cov=intraday_etoro_lab --cov-branch --cov-report=json:runtime/coverage.json`
 ejecuta pruebas offline y mocks. `uv run ruff check .`, `uv run ruff format --check .`,
 `uv run mypy src`, `uv run python scripts/scan_secrets.py` y `uv build --offline`

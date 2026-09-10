@@ -144,13 +144,17 @@ class QuotaBudget:
         now = self.clock()
         if now < self.blocked_until:
             raise BrokerBlocked("RATE_LIMIT_RETRY_AFTER_PENDING")
-        uses = self._uses[route.pool]
-        while uses and uses[0] <= now - 60:
-            uses.popleft()
-        limit = route.quota if priority else route.quota - 5
-        if len(uses) >= limit:
-            raise BrokerBlocked("RATE_LIMIT_RESERVED_CAPACITY")
-        uses.append(now)
+        # Conservatively cap all authenticated reads together as well as each
+        # documented dedicated group. Different pool names cannot multiply quota.
+        budgets = ((self._uses["_all"], 60), (self._uses[route.pool], route.quota))
+        for uses, maximum in budgets:
+            while uses and uses[0] <= now - 60:
+                uses.popleft()
+            limit = maximum if priority else maximum - 5
+            if len(uses) >= limit:
+                raise BrokerBlocked("RATE_LIMIT_RESERVED_CAPACITY")
+        for uses, _ in budgets:
+            uses.append(now)
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -196,6 +200,10 @@ class GuardedTransport:
         self.now = now
         self.sleeper = sleeper
         self.quota = quota or QuotaBudget()
+        # Phase 2 is read-only on every network transport. Only the exact in-memory
+        # httpx mock used by contract tests may exercise the existing mutation guards.
+        # No configuration, environment variable or old authorization bypasses this.
+        self._contract_transport = transport if type(transport) is httpx.MockTransport else None
         self._client = httpx.Client(
             transport=transport, timeout=10, follow_redirects=False, trust_env=False
         )
@@ -218,6 +226,7 @@ class GuardedTransport:
         if method == "GET" and body is not None:
             raise BrokerBlocked("GET_BODY_FORBIDDEN")
         if route.mutation:
+            self.require_contract_transport()
             if self.mode != "etoro_demo" or os.getenv("CI", "").lower() in {"1", "true", "yes"}:
                 raise BrokerBlocked("MUTATION_DISABLED_IN_THIS_MODE")
             if self.authorization is None or permit is None or permit.purpose != route.purpose:
@@ -237,24 +246,39 @@ class GuardedTransport:
         except (ValueError, AttributeError):
             raise BrokerBlocked("REQUEST_ID_MUST_BE_UUID") from None
         payload = _json_bytes(dict(body)) if body is not None else None
+        if method == "POST" and not route.mutation:
+            # Cost/eligibility are documented read semantics, but this phase has
+            # authorized only GET diagnostics on the actual account.
+            self.require_contract_transport()
         for attempt in range(1 if route.mutation else 3):
             self.quota.take(
                 route, priority or (permit is not None and permit.purpose == "management")
             )
             try:
-                response = self._client.request(
-                    method,
-                    ORIGIN + path,
-                    params=params,
-                    content=payload,
-                    headers={
-                        "x-api-key": self.credentials.api_key,
-                        "x-user-key": self.credentials.user_key,
-                        "x-request-id": reference,
-                        "Content-Type": "application/json",
-                    },
-                    follow_redirects=False,
-                )
+                headers = {
+                    "x-api-key": self.credentials.api_key,
+                    "x-user-key": self.credentials.user_key,
+                    "x-request-id": reference,
+                    "Content-Type": "application/json",
+                }
+                if route.mutation or method == "POST":
+                    # Dispatch directly to the pinned mock, never through mounts,
+                    # proxies or a replaceable network client.
+                    assert self._contract_transport is not None
+                    request = httpx.Request(
+                        method, ORIGIN + path, params=params, content=payload, headers=headers
+                    )
+                    response = self._contract_transport.handle_request(request)
+                    response.read()
+                else:
+                    response = self._client.request(
+                        method,
+                        ORIGIN + path,
+                        params=params,
+                        content=payload,
+                        headers=headers,
+                        follow_redirects=False,
+                    )
             except httpx.TransportError:
                 if route.mutation:
                     raise SubmissionUnknown("SUBMISSION_UNKNOWN_RECONCILE_NO_RETRY") from None
@@ -283,6 +307,10 @@ class GuardedTransport:
                 raise BrokerBlocked("INVALID_ETORO_RESPONSE")
             return document
         raise BrokerBlocked("ETORO_READ_UNAVAILABLE")
+
+    def require_contract_transport(self) -> None:
+        if type(self._contract_transport) is not httpx.MockTransport:
+            raise BrokerBlocked("EXTERNAL_MUTATIONS_DISABLED_PHASE2")
 
     def _retry_after(self, response: httpx.Response) -> float:
         value = response.headers.get("Retry-After", "60")

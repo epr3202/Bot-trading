@@ -1,5 +1,17 @@
 # Cambios
 
+## Fase 2 — 2026-09-10, sin commit por identidad pendiente
+
+- Base existente preservada/reproducida; 420 pruebas y 16 gates locales aprobados.
+- Mutaciones externas deshabilitadas aun con permisos previos; cuotas compartidas.
+- Cierres correlacionados con posiciones propias; exposición observada separada de
+  contabilidad. Enum v1, respuesta perdida sin ID y costes finales siguen bloqueados.
+- Fallos inyectados de timeout/crash/parcial/duplicados/snapshots; flat exige reconciliar.
+- Manifiesto e importación preservan identidad y disponibilidad; copia sintética de
+  20 warmups/una evaluación con aritmética independiente y futuros perturbados.
+- Mismo panel con dimensiones separadas. HTTP aprobado; Chrome no arrancó su
+  depuración local en esta fase. Ninguna lectura de cuenta ni escritura externa.
+
 ## 0.1.0 — bootstrap local, 2026-09-10
 
 - Entorno Python/uv aislado, lockfile, validación de modos y configuración YAML.

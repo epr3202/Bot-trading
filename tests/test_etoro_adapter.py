@@ -365,8 +365,9 @@ def test_native_protection_updates_require_broker_confirmation(monkeypatch):
 def test_legacy_close_status_never_guessed():
     closing = intent(kind="close", position_id="8", broker_order_id="9")
     adapter, _, calls, _, _ = build_adapter(order_intent=closing)
-    assert adapter.query(closing.intent_id) is None
-    assert calls[0].url.path == "/api/v1/trading/info/demo/close-orders/9"
+    with pytest.raises(BrokerBlocked, match="OWNERSHIP_UNPROVEN"):
+        adapter.query(closing.intent_id)
+    assert not calls  # Phase 2 verifies persisted ownership even before close reads.
 
 
 @pytest.mark.parametrize("malformed", [False, True])

@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
@@ -94,11 +94,25 @@ class EtoroDemoAdapter:
         intent_loader: Callable[[str], OrderIntent | None],
         position_loader: Callable[[str], Position | None],
         entry_review: Callable[[OrderIntent], EntryReview] | None = None,
+        read_evidence: PreflightEvidence | None = None,
     ) -> None:
         self.transport = transport
         self.intent_loader = intent_loader
         self.position_loader = position_loader
         self.entry_review = entry_review
+        self.read_evidence = read_evidence
+
+    def _account_id(self) -> int:
+        evidence = self.read_evidence
+        if evidence is not None:
+            if evidence.credential_fingerprint != self.transport.credentials.fingerprint:
+                raise BrokerBlocked("READ_IDENTITY_CREDENTIAL_MISMATCH")
+            return evidence.account_id
+        # Existing contract fixtures also bind an account through authorization.
+        authorization = self.transport.authorization
+        if authorization is None or authorization.account_id is None:
+            raise BrokerBlocked("ORDER_ACCOUNT_UNVERIFIED")
+        return authorization.account_id
 
     def _persisted(self, intent: OrderIntent) -> None:
         saved = self.intent_loader(intent.intent_id)
@@ -108,6 +122,7 @@ class EtoroDemoAdapter:
             raise BrokerBlocked("INTENT_DEMO_SESSION_MISMATCH")
 
     def _authorization(self, management: bool = False) -> Any:
+        self.transport.require_contract_transport()
         authorization = self.transport.authorization
         if authorization is None:
             raise BrokerBlocked("DEMO_NOT_ARMED")
@@ -246,16 +261,7 @@ class EtoroDemoAdapter:
         if intent is None or intent.mode != "etoro_demo":
             raise BrokerBlocked("ORDER_OWNERSHIP_UNPROVEN")
         if intent.kind == "close":
-            # The selected v1 close contract does not promise v2 reference lookup
-            # or describe the meaning of its statusID values. Preserve UNKNOWN;
-            # never reuse openingData units as units closed, or invent status enums.
-            if intent.broker_order_id is not None:
-                self.transport.request(
-                    "GET",
-                    f"/api/v1/trading/info/demo/close-orders/{intent.broker_order_id}",
-                    priority=True,
-                )
-            return None
+            return self._query_close(intent)
         try:
             document = self.transport.request(
                 "GET", LOOKUP, params={"referenceId": intent_id}, priority=True
@@ -264,9 +270,10 @@ class EtoroDemoAdapter:
             if exc.status == 404:
                 return None  # Not evidence that a timed-out submission was rejected.
             raise
-        authorization = self.transport.authorization
-        if authorization is None or document.get("accountId") != authorization.account_id:
+        if document.get("accountId") != self._account_id():
             raise BrokerBlocked("ORDER_ACCOUNT_UNVERIFIED")
+        if intent.broker_order_id and str(document.get("orderId")) != intent.broker_order_id:
+            raise BrokerBlocked("ORDER_IDENTITY_MISMATCH")
         try:
             state = _STATUSES.get(document["status"]["id"], OrderState.UNKNOWN)
             executions = document["positionExecutions"]
@@ -283,6 +290,20 @@ class EtoroDemoAdapter:
             protection = bool(
                 execution and Decimal(str(execution["stopLossRate"])) >= intent.stop_price
             )
+            remaining, observed_at = None, None
+            if execution and "remainingUnits" in execution:
+                remaining = Decimal(str(execution["remainingUnits"]))
+                observed_at = datetime.fromisoformat(document["lastUpdate"].replace("Z", "+00:00"))
+                if (
+                    not remaining.is_finite()
+                    or not 0 <= remaining <= units
+                    or execution["state"] not in {"open", "closed"}
+                    or (execution["state"] == "closed") != (remaining == 0)
+                    or observed_at.tzinfo is None
+                    or observed_at > self.transport.now()
+                    or observed_at < intent.created_at
+                ):
+                    raise ValueError
             if units and (
                 document["asset"]["settlementType"] != "real"
                 or document["asset"]["leverage"] != 1
@@ -298,9 +319,104 @@ class EtoroDemoAdapter:
                 position_id=str(execution["positionId"]) if execution else None,
                 protected=protection,
                 cumulative_cost=fees,
+                remaining_units=remaining,
+                observed_at=observed_at,
             )
         except (KeyError, TypeError, ValueError, ArithmeticError):
             raise BrokerBlocked("ORDER_SCHEMA_UNVERIFIED") from None
+
+    def _query_close(self, intent: OrderIntent) -> BrokerOrder | None:
+        # No reference lookup guarantee for v1: response lost with no order ID
+        # cannot be repaired by ticker/amount/history matching or another sale.
+        if intent.broker_order_id is None:
+            return None
+        if not intent.position_id:
+            raise BrokerBlocked("CLOSE_REQUIRES_POSITION")
+        position = self.position_loader(intent.position_id)
+        if position is None or position.mode != "etoro_demo":
+            raise BrokerBlocked("POSITION_OWNERSHIP_UNPROVEN")
+        opening = self.intent_loader(position.owner_intent_id)
+        if (
+            opening is None
+            or opening.kind != "entry"
+            or opening.mode != "etoro_demo"
+            or opening.broker_order_id is None
+            or opening.filled_units <= 0
+        ):
+            raise BrokerBlocked("POSITION_OWNERSHIP_UNPROVEN")
+        try:
+            document = self.transport.request(
+                "GET",
+                f"/api/v1/trading/info/demo/close-orders/{intent.broker_order_id}",
+                priority=True,
+            )
+        except BrokerHTTPError as exc:
+            if exc.status == 404:
+                return None
+            raise
+        snapshot = self.transport.request(
+            "GET",
+            LOOKUP,
+            params={"orderId": opening.broker_order_id},
+            priority=True,
+        )
+        try:
+            if (
+                document["CID"] != self._account_id()
+                or snapshot["accountId"] != self._account_id()
+                or str(document["orderID"]) != intent.broker_order_id
+                or str(snapshot["orderId"]) != opening.broker_order_id
+                or document["instrumentID"] != snapshot["asset"]["instrumentId"]
+                or document.get("referenceID") not in {None, intent.intent_id}
+                or type(document["statusID"]) is not int
+            ):
+                raise ValueError
+            executions = snapshot["positionExecutions"]
+            if len(executions) != 1 or str(executions[0]["positionId"]) != intent.position_id:
+                raise ValueError
+            request_at = datetime.fromisoformat(document["requestOccurred"].replace("Z", "+00:00"))
+            if (
+                request_at.tzinfo is None
+                or not intent.created_at <= request_at <= self.transport.now()
+            ):
+                raise ValueError
+            rows = document.get("positions")
+            remaining, occurred = None, None
+            if rows:
+                # No execution IDs or cumulative semantics for repeated position
+                # rows are specified. A single documented row can prove quantity;
+                # multiple rows require a stronger broker contract.
+                if len(rows) != 1 or str(rows[0]["positionID"]) != intent.position_id:
+                    raise ValueError
+                row = rows[0]
+                if row.get("units") is not None and row.get("occurred") is not None:
+                    units = Decimal(str(row["units"]))
+                    occurred = datetime.fromisoformat(row["occurred"].replace("Z", "+00:00"))
+                    if (
+                        not units.is_finite()
+                        or not 0 < units <= intent.units
+                        or occurred.tzinfo is None
+                        or not request_at <= occurred <= self.transport.now()
+                    ):
+                        raise ValueError
+                    remaining = intent.units - units
+            elif rows is not None and not isinstance(rows, list):
+                raise ValueError
+            # statusID has no documented enum and fees/taxes have no finality
+            # contract here. Keep the order UNKNOWN and the cash ledger unchanged.
+            return BrokerOrder(
+                broker_order_id=intent.broker_order_id,
+                intent_id=intent.intent_id,
+                state=OrderState.UNKNOWN,
+                position_id=intent.position_id,
+                filled_units=intent.filled_units,
+                average_price=intent.average_price,
+                cumulative_cost=intent.cumulative_cost,
+                remaining_units=remaining,
+                observed_at=occurred,
+            )
+        except (KeyError, TypeError, ValueError, ArithmeticError):
+            raise BrokerBlocked("CLOSE_CORRELATION_OR_SCHEMA_UNVERIFIED") from None
 
     def cancel(self, intent: OrderIntent) -> BrokerOrder:
         permit = self._authorization(management=True)

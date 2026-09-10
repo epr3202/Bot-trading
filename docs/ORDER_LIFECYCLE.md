@@ -29,9 +29,35 @@ Cerrar cancela primero entradas parciales propias, verifica cantidad y crea una 
 intención de salida por posición. UNKNOWN de cierre exige reconciliar, nunca otra venta
 para forzar el resultado. Si no queda exposición ni estados activos puede informarse flat.
 
-Demo: apertura/lookup/cancelación v2 documentadas; cierre v1 y protección v2 tienen
-contratos separados. Los enums de cierre v1 y la recuperación por referencia tras
-respuesta perdida no están suficientemente documentados; el adaptador conserva
-incertidumbre. El runner Demo permanece bloqueado hasta resolver esa gestión de sesión.
-La caducidad del permiso de entrada no caduca automáticamente el permiso de gestión,
-pero ambos dependen de identidad Demo, credenciales y propiedad comprobadas.
+Fase 2: apertura/lookup/cancelación v2, cierre v1 y protección v2 conservan contratos
+separados. Todo envío conectado está deshabilitado en GuardedTransport, incluso con
+un permiso anterior. Los escenarios de gestión solo despachan a httpx.MockTransport
+exacto, sin pasar por un cliente de red. Pausar no elimina la exposición existente.
+
+`EtoroDemoAdapter._query_close` correlaciona CID Demo, ID de orden persistido, posición,
+intención de apertura, orden de apertura e instrumento. Valida referenceID si aparece;
+su ausencia no se sustituye por el identificador de trazas. Un cierre sin orderId
+recuperable sigue UNKNOWN; no consulta un ticker parecido ni reenvía. El historial v1
+se revisó, pero no garantiza que orderId sea el cierre ni define atribución de fees
+o identidad estable de ejecuciones parciales: no se incorporó como solución ficticia.
+
+Una fila v1 documenta unidades cerradas y occurred; permite registrar exposición
+observada si es única y trazable. Varias filas de la misma posición carecen de garantía
+acumulativa y se bloquean. statusID sigue sin enum público; TODOS sus números conservan
+UNKNOWN. rate/proceeds no certifican comisiones ni contabilidad final. El lookup v2
+de apertura aporta state=open/closed, remainingUnits y lastUpdate; openingData.units
+sigue siendo entrada, jamás se contabiliza como cierre.
+
+Position conserva `units` contables, `observed_units`, `observed_at` y
+`accounting_complete`. Cero observado con libro pendiente conserva capital/riesgo y
+bloquea nuevas entradas y otra salida. No inventa precio, ingreso ni comisión. Los
+campos nuevos tienen defaults para leer los JSON del esquema SQLite 1 existente.
+Snapshots antiguos, contradictorios o incrementos inesperados de exposición abortan
+la transacción. La ausencia en un portafolio/404 no aporta ninguna observación.
+
+Fills acumulados confirmados por el contrato local actualizan unidades, precio medio,
+PnL y comisiones en una transacción, incluyendo costes tardíos sin nuevo fill. La
+revisión de precio acumulado sin cambio de cantidad queda bloqueada para revisión
+contable; no se descarta silenciosamente. Stop y cierre horario/manual comparten la
+misma intención persistida por posición. La reconciliación fallida impide FLAT_CONFIRMED
+incluso si el libro local ya muestra cero. El runner externo continúa BLOCKED.

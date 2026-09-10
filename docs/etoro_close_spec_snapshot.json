@@ -1,4 +1,121 @@
 {
+  "phase2_review": {
+  "reviewed_at_utc": "2026-09-10 16:49:27 UTC",
+  "api_version": "v1.375.0",
+  "catalog_version": "1.19.1",
+  "external_account_calls": 0,
+  "external_mutations": "DISABLED",
+  "lookup_position_contract": {
+    "type": "object",
+    "description": "Details of a position execution resulting from the order.",
+    "properties": {
+      "positionId": {
+        "type": "integer",
+        "format": "int64",
+        "description": "The unique identifier of the executed position."
+      },
+      "state": {
+        "type": "string",
+        "description": "The current state of the position. Possible values: open, closed."
+      },
+      "investedAmountCurrency": {
+        "type": "number",
+        "format": "double",
+        "description": "The invested amount in the account currency."
+      },
+      "initialExposureAccountCurrency": {
+        "type": "number",
+        "format": "double",
+        "description": "The initial exposure in the account currency."
+      },
+      "initialExposureAssetCurrency": {
+        "type": "number",
+        "format": "double",
+        "description": "The initial exposure in the asset currency."
+      },
+      "addedFunds": {
+        "type": "number",
+        "format": "double",
+        "description": "Additional funds added to the position."
+      },
+      "marginAccountCurrency": {
+        "type": "number",
+        "format": "double",
+        "description": "Margin held in the account currency."
+      },
+      "marginAssetCurrency": {
+        "type": "number",
+        "format": "double",
+        "description": "Margin held in the asset currency."
+      },
+      "remainingUnits": {
+        "type": "number",
+        "format": "double",
+        "description": "Remaining units in the position."
+      },
+      "remainingContracts": {
+        "type": "number",
+        "format": "double",
+        "nullable": true,
+        "description": "Remaining contracts in the position."
+      },
+      "stopLossRate": {
+        "type": "number",
+        "format": "double",
+        "nullable": true,
+        "description": "The stop-loss rate for the position."
+      },
+      "takeProfitRate": {
+        "type": "number",
+        "format": "double",
+        "nullable": true,
+        "description": "The take-profit rate for the position."
+      },
+      "openingData": {
+        "$ref": "#/components/schemas/GetOrderInfoOpeningData"
+      }
+    }
+  },
+  "history_review": {
+    "route": "/api/v1/trading/info/trade/demo/history",
+    "parameters": [
+      "minDate",
+      "page",
+      "pageSize"
+    ],
+    "response_fields": [
+      "netProfit",
+      "closeRate",
+      "closeTimestamp",
+      "positionId",
+      "instrumentId",
+      "isBuy",
+      "leverage",
+      "openRate",
+      "openTimestamp",
+      "stopLossRate",
+      "takeProfitRate",
+      "trailingStopLoss",
+      "orderId",
+      "socialTradeId",
+      "parentPositionId",
+      "investment",
+      "initialInvestment",
+      "fees",
+      "units"
+    ],
+    "limits": [
+      "orderId is described generically, not guaranteed closing order ID",
+      "fees has no attribution/finality contract for partial closes",
+      "no guaranteed fill identity or stable pagination snapshot; not added to runtime allowlist"
+    ]
+  },
+  "v3_review": {
+    "route": "/api/v3/trading/execution/demo/orders",
+    "close_supported": false,
+    "migration_performed": false
+  }
+},
   "routeId": "getTradingInfoDemoCloseOrdersByOrderId",
   "method": "GET",
   "path": "/api/v1/trading/info/demo/close-orders/{orderId}",

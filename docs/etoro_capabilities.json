@@ -119,5 +119,15 @@
     "Demo session runner and usable equity integration not validated",
     "v1 close reconciliation and timeout reference guarantees unresolved",
     "Instrument fractional precision and effective common-stock eligibility require verified account evidence"
-  ]
+  ],
+  "phase2": {
+    "catalog_rechecked": true,
+    "api_version": "v1.375.0",
+    "catalog_version": "1.19.1",
+    "mutations": "DISABLED",
+    "account_reads": "NOT_CONFIGURED",
+    "external_write": "NOT_TESTED",
+    "close_contract": "BLOCKED: internal status enum, lost order ID and final accounting guarantees missing",
+    "tested_locally": "tests/test_phase2_broker.py; tests/test_close_reconciliation.py"
+  }
 }

@@ -1,5 +1,20 @@
 # Limitaciones verificables
 
+Actualización fase 2: 420 pruebas/16 gates locales aprobados; Chrome no inició su
+depuración local y la verificación visual de esta fase no está reproducida. Todas
+las mutaciones externas permanecen DISABLED. Las siguientes carencias externas
+siguen abiertas, con reconciliación local reforzada en ORDER_LIFECYCLE.
+
+Cierre v1: ya se valida trazabilidad y cantidad observada, pero no hay enum público
+statusID, recuperación garantizada si se pierde orderId ni contrato de comisiones
+finales/identidad de fills múltiples. `units` contables no desaparecen por observar
+cero; se conserva accounting_complete=false y capital inmovilizado hasta evidencia.
+El historial y v3 fueron revisados y no resuelven esos límites documentales.
+
+Manifest: ahora rechaza etiquetas sintéticas incoherentes y recepción anterior a una
+descarga histórica declarada. La procedencia observada sigue siendo una declaración
+que requiere auditoría; no basta pasar el parser para marcar REAL_SAMPLE_AUDITED.
+
 1. Ninguna credencial propia ni lectura/escritura de cuenta fue validada. Los mocks
    no demuestran conexión. La CLI Demo devuelve BLOCKED, sin sustitución sintética.
 2. Falta orquestador de sesión Demo validado, feed OHLCV compatible, sizing con reglas

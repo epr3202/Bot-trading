@@ -57,3 +57,23 @@ Cambios de datos/versiones requieren nuevo checksum y resultado, conservando raw
 No almacenar datos privados en Git. Los fixtures se generan por aritmética versionada
 en código y un descriptor en tests/fixtures, no son datos del mercado. Sin universo
 histórico punto-en-el-tiempo, el sesgo de supervivencia sigue siendo una limitación.
+
+En fase 2 el manifiesto añade availability_kind (synthetic, observed,
+historical_download, unknown), acquired_at y feed_id. Synthetic y synthetic_shares
+deben coincidir. Licencia, procedencia y evidencia no pueden estar vacías; cobertura
+requiere zona horaria y orden temporal. Una descarga histórica necesita acquired_at;
+el importador rechaza received_at anterior a ese momento. No transforma automáticamente
+el timestamp del evento en disponibilidad. Solo la declaración observed puede llegar
+a decisiones reales v0.1, y aún requiere auditar su evidencia fuera del esquema.
+
+stable_id/broker_id opcionales ahora sobreviven a CSV/Parquet; no se inventan cuando
+faltan. Un símbolo idéntico con identidad distinta sigue siendo ambiguo. `data validate`
+conserva los campos del manifiesto y añade audit con sesiones, retrasos medidos,
+calidad, volumen, aptitud y bloqueos. Aprobar el esquema no aprueba los datos externos.
+
+`uv run python scripts/verify_import.py` crea una copia sintética nueva: 8.190 barras,
+20 sesiones previas y una evaluación de SIMA. Comprueba CSV → manifiesto → importador →
+CLI validate → CLI backtest sin cambiar reglas. Calcula ORH/ORL/RVOL independientemente
+desde CSV y perturba barras futuras. Guarda configuración y evidencia en runtime;
+informes en reports/runs/synthetic-import. No es una muestra real ni shadow observado.
+Los informes rechazan mezclar manifiestos synthetic=true/false en un mismo directorio.

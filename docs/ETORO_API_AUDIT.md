@@ -1,5 +1,41 @@
 # Auditoría eToro
 
+## Revisión de fase 2 — 2026-09-10
+
+Catálogo vigente consultado de nuevo: API v1.375.0, catálogo 1.19.1, sin migración.
+Se volvieron a revisar cierre v1, lookup v2, historial Demo v1, envío asíncrono v3
+y candles. La evidencia contractual adicional está en phase2_review dentro de
+etoro_close_spec_snapshot.json. **Ninguna cuenta externa ni escritura se consultó**:
+faltan ETORO_API_KEY/ETORO_USER_KEY en el proceso y no existe .env en el proyecto.
+
+La consulta v1 documenta positions[].units como cantidad cerrada y occurred como
+momento del cierre. Se utiliza solo para exposición observada y trazable; statusID
+es un entero interno sin enum, fees/taxes y finalidad no están definidos allí.
+No se declara FILLED ni se ingresa efectivo a partir de rate/proceeds. Referencia:
+[consulta de cierre](https://api-portal.etoro.com/api-reference/trading--demo/get-close-order-information-and-closed-position-details).
+
+El lookup de la apertura conserva accountId/orderId/positionId y permite leer
+remainingUnits, state y lastUpdate por posición. Cero observado no completa la
+contabilidad de salida. El historial Demo devuelve units/fees/netProfit/orderId,
+pero no define aquí identidad estable de cada fill ni atribución inequívoca del
+orderId al cierre. No se añadió su ruta al transporte ni se inventó una reconciliación
+con esos campos. Ver [historial](https://api-portal.etoro.com/api-reference/trading--demo/list-trading-history).
+
+El endpoint v3 actual admite solo aperturas; action=close y positionIds están
+reservados para soporte futuro. Un 202 solo confirma aceptación. No resuelve el
+cierre v1 y no justifica cambiar el adaptador:
+[contrato v3](https://api-portal.etoro.com/api-reference/trading--demo/submit-an-order-for-asynchronous-processing).
+
+En esta fase todos los métodos de mutación y los POST semánticamente de lectura
+están limitados al transporte mock. Los POST de costes/elegibilidad son lecturas
+documentadas, pero no se autorizaron contra la cuenta en este encargo. La red real
+solo admite GET de la allowlist existente, sin redirects ni proxies heredados.
+La CLI permanece desarmada. Un preflight aprobado solo certifica lectura mínima;
+conectividad, autenticación, identidad Demo, datos y escritura se reportan separados.
+
+La revisión inicial que sigue queda como antecedente contractual del bootstrap;
+su posible activación temporal está subordinada al bloqueo absoluto de esta fase.
+
 Verificación documental: 2026-09-10 15:01:45 UTC. Catálogo MCP oficial API **v1.375.0**,
 skill de catálogo **1.19.1**. Fuentes y esquemas completos en
 `etoro_spec_snapshot.json` y `etoro_close_spec_snapshot.json`, obtenidos mediante

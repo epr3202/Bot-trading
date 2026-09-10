@@ -1,0 +1,663 @@
+{
+  "preserved_at_utc": "2026-09-10T16:31:49.253044+00:00",
+  "branch": "main",
+  "git_identity": "GIT_IDENTITY_BLOCKED",
+  "commits": 0,
+  "python": "3.12.12",
+  "git": "git version 2.52.0.windows.1",
+  "file_count": 123,
+  "manifest_payload_sha256": "96ac15232483b818eb9b4b88dac33d244f4ff1978d7453d311aa83194a0fe077",
+  "archive_sha256": "e5d87370b373f4bd171fc06ca223a168f15fa372a98e46057c2116281e9d3a71",
+  "exclusions": "private runtime, secrets, caches, datasets; manifest does not hash itself",
+  "files": [
+    {
+      "path": ".env.example",
+      "index_sha256": "b3cc49894eed323be02d8248bbed80137321be1f8199060020e1c47f0ee542f6",
+      "worktree_sha256": "b3cc49894eed323be02d8248bbed80137321be1f8199060020e1c47f0ee542f6"
+    },
+    {
+      "path": ".gitattributes",
+      "index_sha256": "ec9ef60d14905228a2750d618190d35e0064afb9f93292a80e644b1443432d3d",
+      "worktree_sha256": "ec9ef60d14905228a2750d618190d35e0064afb9f93292a80e644b1443432d3d"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "index_sha256": "ceafa41292ffb6bf229d1409132cecb893582075e0fe496d941ed7a4ff888e9b",
+      "worktree_sha256": "ceafa41292ffb6bf229d1409132cecb893582075e0fe496d941ed7a4ff888e9b"
+    },
+    {
+      "path": ".gitignore",
+      "index_sha256": "79d1bb60c7d9d32ded7903efc99805f413f7e042522ed818bb693331d93f0b40",
+      "worktree_sha256": "79d1bb60c7d9d32ded7903efc99805f413f7e042522ed818bb693331d93f0b40"
+    },
+    {
+      "path": ".python-version",
+      "index_sha256": "f01d748a75eb195e6fd73201279bfb23f09036ddd360eb3e9ff40ef042acbc8a",
+      "worktree_sha256": "f01d748a75eb195e6fd73201279bfb23f09036ddd360eb3e9ff40ef042acbc8a"
+    },
+    {
+      "path": "AGENTS.md",
+      "index_sha256": "722dd71e9be3ba74db8f61ab698d818cb2a001289ac863d2f38cd3d479d52104",
+      "worktree_sha256": "722dd71e9be3ba74db8f61ab698d818cb2a001289ac863d2f38cd3d479d52104"
+    },
+    {
+      "path": "BOOTSTRAP_SPEC.md",
+      "index_sha256": "76f86d27ea60ebe6ac94191fad66c5fe456dbe4a7069c4338e57e849ed4f7a66",
+      "worktree_sha256": "76f86d27ea60ebe6ac94191fad66c5fe456dbe4a7069c4338e57e849ed4f7a66"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "index_sha256": "8f964ba00a353327594da117e3b23b0219f72df8e46b3e35cdd90618f4aac302",
+      "worktree_sha256": "8f964ba00a353327594da117e3b23b0219f72df8e46b3e35cdd90618f4aac302"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "index_sha256": "d6379000b219ef2de20bc3a15131cb4099490a63c08aa6b18d239a5f7e37e173",
+      "worktree_sha256": "d6379000b219ef2de20bc3a15131cb4099490a63c08aa6b18d239a5f7e37e173"
+    },
+    {
+      "path": "HANDOFF.md",
+      "index_sha256": "f9c506adcaa0bd65b9ff99233a987682f4953f2bd826e784da9db8975ab11e72",
+      "worktree_sha256": "f9c506adcaa0bd65b9ff99233a987682f4953f2bd826e784da9db8975ab11e72"
+    },
+    {
+      "path": "README.md",
+      "index_sha256": "3ff0dfb05dabd6b45d89efac8a2eefa0302522c9a756156c8b4ab80a478b03d0",
+      "worktree_sha256": "3ff0dfb05dabd6b45d89efac8a2eefa0302522c9a756156c8b4ab80a478b03d0"
+    },
+    {
+      "path": "SECURITY.md",
+      "index_sha256": "317046c3eb721e920133dea2ae09a73d4746296cdc5ad1894601caa2d1857b3b",
+      "worktree_sha256": "317046c3eb721e920133dea2ae09a73d4746296cdc5ad1894601caa2d1857b3b"
+    },
+    {
+      "path": "STATUS.md",
+      "index_sha256": "5ec63908fd7152dde3d02bcf49f8a7a55b9823c343035c093dd3f55ec5669679",
+      "worktree_sha256": "5ec63908fd7152dde3d02bcf49f8a7a55b9823c343035c093dd3f55ec5669679"
+    },
+    {
+      "path": "TASKS.md",
+      "index_sha256": "5dcc11ce1227c84dec02be44fec6ef94e35f9c422ba55add517a67b2855cf147",
+      "worktree_sha256": "5dcc11ce1227c84dec02be44fec6ef94e35f9c422ba55add517a67b2855cf147"
+    },
+    {
+      "path": "configs/offline.yaml",
+      "index_sha256": "a50c9024cb91ecfdd68972bc89fe4ab6f24f82ec1148e7abcc13133ded97e9cd",
+      "worktree_sha256": "a50c9024cb91ecfdd68972bc89fe4ab6f24f82ec1148e7abcc13133ded97e9cd"
+    },
+    {
+      "path": "data/README.md",
+      "index_sha256": "2c0b43e777360e8cea1ef2d0c5df8da9aff7f5128c9f04a34da702796827eaae",
+      "worktree_sha256": "2c0b43e777360e8cea1ef2d0c5df8da9aff7f5128c9f04a34da702796827eaae"
+    },
+    {
+      "path": "docs/ACCEPTANCE_CRITERIA.md",
+      "index_sha256": "dcd9157558a16680ef86cbc76c257b6a89be2344fcdcc4e17cab0785febd8e92",
+      "worktree_sha256": "dcd9157558a16680ef86cbc76c257b6a89be2344fcdcc4e17cab0785febd8e92"
+    },
+    {
+      "path": "docs/AGENT_WORKFLOW.md",
+      "index_sha256": "47ac7d83e7d337afe4764af8d3eac01b2372942e4b9afc1704e3065433bd038f",
+      "worktree_sha256": "47ac7d83e7d337afe4764af8d3eac01b2372942e4b9afc1704e3065433bd038f"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "index_sha256": "68b2edd7bd7226ff297d51c7417f6d211613fad0587b4f8643a89441ef8b9e07",
+      "worktree_sha256": "68b2edd7bd7226ff297d51c7417f6d211613fad0587b4f8643a89441ef8b9e07"
+    },
+    {
+      "path": "docs/BACKTEST_PROTOCOL.md",
+      "index_sha256": "53da08d3999443c8ff95a7098b2614d61991202a1a253eff0615b61ed0d8412d",
+      "worktree_sha256": "53da08d3999443c8ff95a7098b2614d61991202a1a253eff0615b61ed0d8412d"
+    },
+    {
+      "path": "docs/CONFIGURATION.md",
+      "index_sha256": "48b4ba6f75663cdc142f06150ae683782456cf16b299926cfffd30bdffdb0242",
+      "worktree_sha256": "2bb00db78f0c570634b8e09899032def6215e4279ede26ff206f5220d6cfcd36"
+    },
+    {
+      "path": "docs/DATA_CONTRACTS.md",
+      "index_sha256": "2b8fb72a83b14c92c00a09ccfda2451547b8d2ba01217d26d6226ff09e7f87d5",
+      "worktree_sha256": "2b8fb72a83b14c92c00a09ccfda2451547b8d2ba01217d26d6226ff09e7f87d5"
+    },
+    {
+      "path": "docs/DATA_PROVIDER_AUDIT.md",
+      "index_sha256": "827703aefd11976adf5e9634edfdbe7ff688476858b98b377f1573861ee11ee6",
+      "worktree_sha256": "827703aefd11976adf5e9634edfdbe7ff688476858b98b377f1573861ee11ee6"
+    },
+    {
+      "path": "docs/ETORO_API_AUDIT.md",
+      "index_sha256": "16511d8f768e8eb6242fbc1863d228f9d7839d0dae22f6d3f1b59c5953b2a363",
+      "worktree_sha256": "16511d8f768e8eb6242fbc1863d228f9d7839d0dae22f6d3f1b59c5953b2a363"
+    },
+    {
+      "path": "docs/EXPERIMENT_REGISTRY.md",
+      "index_sha256": "21868922d105be447cbe97f2c7e995326c9d314edcba5736e0efd406a074647a",
+      "worktree_sha256": "21868922d105be447cbe97f2c7e995326c9d314edcba5736e0efd406a074647a"
+    },
+    {
+      "path": "docs/GIT_WORKFLOW.md",
+      "index_sha256": "e32ed5a8d4ecae9f8da0c51d30f6dc270b563c5ea1995dfc6832bb775d87986d",
+      "worktree_sha256": "e32ed5a8d4ecae9f8da0c51d30f6dc270b563c5ea1995dfc6832bb775d87986d"
+    },
+    {
+      "path": "docs/KNOWN_LIMITATIONS.md",
+      "index_sha256": "b88fd3a0c8c3d86292c93fee82a6583e50bc2229fd597000918667d409ca7007",
+      "worktree_sha256": "b88fd3a0c8c3d86292c93fee82a6583e50bc2229fd597000918667d409ca7007"
+    },
+    {
+      "path": "docs/LOCAL_SETUP.md",
+      "index_sha256": "d26a368e1c7f1ae22118310705fcaf32487237810a6b0efc969aaba25c4977c9",
+      "worktree_sha256": "d26a368e1c7f1ae22118310705fcaf32487237810a6b0efc969aaba25c4977c9"
+    },
+    {
+      "path": "docs/OPERATIONS_RUNBOOK.md",
+      "index_sha256": "6f0786f29ee065624becce07786e6f771de12750e39c2b3a7d263248d0735e90",
+      "worktree_sha256": "6f0786f29ee065624becce07786e6f771de12750e39c2b3a7d263248d0735e90"
+    },
+    {
+      "path": "docs/ORDER_LIFECYCLE.md",
+      "index_sha256": "3df64f5cddd6fb21fc11686801ce4722570738646722158422111e47928f52ad",
+      "worktree_sha256": "3df64f5cddd6fb21fc11686801ce4722570738646722158422111e47928f52ad"
+    },
+    {
+      "path": "docs/RESEARCH_SOURCES.md",
+      "index_sha256": "5891f60bddbdbc3db8edc9a1633e9c2cde37984fe1215d91ff08f9725e476c0e",
+      "worktree_sha256": "5891f60bddbdbc3db8edc9a1633e9c2cde37984fe1215d91ff08f9725e476c0e"
+    },
+    {
+      "path": "docs/RISK_POLICY.md",
+      "index_sha256": "ea651cae54d357ab8266969f0b32d94a08d2c59416778e797f480423f4bd8678",
+      "worktree_sha256": "ea651cae54d357ab8266969f0b32d94a08d2c59416778e797f480423f4bd8678"
+    },
+    {
+      "path": "docs/STRATEGY_SPEC.md",
+      "index_sha256": "c3311121fd33a088f7870c5f903ad2775114d5997b8e200630766519ddceb3a7",
+      "worktree_sha256": "c3311121fd33a088f7870c5f903ad2775114d5997b8e200630766519ddceb3a7"
+    },
+    {
+      "path": "docs/TEST_PLAN.md",
+      "index_sha256": "d1df1b071da5443514d4ef4e856d364514506b7c2268bc49c42bf1142aee015a",
+      "worktree_sha256": "d1df1b071da5443514d4ef4e856d364514506b7c2268bc49c42bf1142aee015a"
+    },
+    {
+      "path": "docs/VERIFICATION.md",
+      "index_sha256": "4b76a60f728a740fdbcc15d3e2770ce49fdfd13c77e5a1a77dc068c5fcbb0b56",
+      "worktree_sha256": "4b76a60f728a740fdbcc15d3e2770ce49fdfd13c77e5a1a77dc068c5fcbb0b56"
+    },
+    {
+      "path": "docs/adr/001-demo-only.md",
+      "index_sha256": "6c98ef205aa2b20ed0eefa44acf148157721620bf36f3c0a09302596015e0493",
+      "worktree_sha256": "6c98ef205aa2b20ed0eefa44acf148157721620bf36f3c0a09302596015e0493"
+    },
+    {
+      "path": "docs/adr/002-data-broker.md",
+      "index_sha256": "862cc15d076b4446fa9f93462e75dc7a9917c2c8cda14d5cf3d655fbe24e7720",
+      "worktree_sha256": "862cc15d076b4446fa9f93462e75dc7a9917c2c8cda14d5cf3d655fbe24e7720"
+    },
+    {
+      "path": "docs/adr/003-strategy-v01.md",
+      "index_sha256": "29dcecf0ac335f7ab076d3f6e63aba58e8c3115b4ab5784e33d6cbcff12299e8",
+      "worktree_sha256": "29dcecf0ac335f7ab076d3f6e63aba58e8c3115b4ab5784e33d6cbcff12299e8"
+    },
+    {
+      "path": "docs/adr/004-single-executor.md",
+      "index_sha256": "22930868929ceb159a172e24b33f81378875838ea392c61d5f4c0aed2e7733b2",
+      "worktree_sha256": "22930868929ceb159a172e24b33f81378875838ea392c61d5f4c0aed2e7733b2"
+    },
+    {
+      "path": "docs/adr/005-order-lifecycle.md",
+      "index_sha256": "9a09ae6b4a0005207cdacaee38c8fcd9aa76e4fb0c42aa33d1a719e7472e2506",
+      "worktree_sha256": "9a09ae6b4a0005207cdacaee38c8fcd9aa76e4fb0c42aa33d1a719e7472e2506"
+    },
+    {
+      "path": "docs/adr/006-arming.md",
+      "index_sha256": "b6a91cd8effdc555804f449d437729f7702f20a0fb0ce2db91d2d22c25503988",
+      "worktree_sha256": "b6a91cd8effdc555804f449d437729f7702f20a0fb0ce2db91d2d22c25503988"
+    },
+    {
+      "path": "docs/adr/007-backtest.md",
+      "index_sha256": "ae471226003d26705e6ac6eb551e3249e6f464a05e0b6529d30c8e54424ee8c1",
+      "worktree_sha256": "ae471226003d26705e6ac6eb551e3249e6f464a05e0b6529d30c8e54424ee8c1"
+    },
+    {
+      "path": "docs/agents/BROKER_ENGINEER.md",
+      "index_sha256": "08383f5d2911ce382f10880dafaec63616f22b1781598d2d919192ef25db0bca",
+      "worktree_sha256": "08383f5d2911ce382f10880dafaec63616f22b1781598d2d919192ef25db0bca"
+    },
+    {
+      "path": "docs/agents/DATA_ENGINEER.md",
+      "index_sha256": "402be34918da419a7aa723653fca33891877fec5a0f5c9bb5ae1c1e531a45fa2",
+      "worktree_sha256": "402be34918da419a7aa723653fca33891877fec5a0f5c9bb5ae1c1e531a45fa2"
+    },
+    {
+      "path": "docs/agents/QA_ENGINEER.md",
+      "index_sha256": "3ecf542418ced0c5a4922e01a28a8074775919433f0233c77b9a33e4e4ed877a",
+      "worktree_sha256": "3ecf542418ced0c5a4922e01a28a8074775919433f0233c77b9a33e4e4ed877a"
+    },
+    {
+      "path": "docs/agents/QUANT_RESEARCHER.md",
+      "index_sha256": "e0b1b45d21f1dd171d1ab500caaa8d48dcbb9adfcbef4f605957a81bfc2e8ea0",
+      "worktree_sha256": "e0b1b45d21f1dd171d1ab500caaa8d48dcbb9adfcbef4f605957a81bfc2e8ea0"
+    },
+    {
+      "path": "docs/agents/RISK_SECURITY_REVIEWER.md",
+      "index_sha256": "720e91fd6027caaf4ac6f5532b567a603e1863dafa6cfe2b9bb43b94adfba3b1",
+      "worktree_sha256": "720e91fd6027caaf4ac6f5532b567a603e1863dafa6cfe2b9bb43b94adfba3b1"
+    },
+    {
+      "path": "docs/agents/SRE_ENGINEER.md",
+      "index_sha256": "4df60dcda111abe2aebc30d1150851cd3711353a7b925c577653fe5d57114a2e",
+      "worktree_sha256": "4df60dcda111abe2aebc30d1150851cd3711353a7b925c577653fe5d57114a2e"
+    },
+    {
+      "path": "docs/agents/TECH_LEAD.md",
+      "index_sha256": "f82baf1a2fa26647a6942b9233d948a7eb9dae06d08c14a2150b1a53e7a5d4cb",
+      "worktree_sha256": "f82baf1a2fa26647a6942b9233d948a7eb9dae06d08c14a2150b1a53e7a5d4cb"
+    },
+    {
+      "path": "docs/agents/UI_ENGINEER.md",
+      "index_sha256": "0b215b46bb240cebc9aa511a968f1f2294e815339bc14ee274524e146dd10176",
+      "worktree_sha256": "0b215b46bb240cebc9aa511a968f1f2294e815339bc14ee274524e146dd10176"
+    },
+    {
+      "path": "docs/config.schema.json",
+      "index_sha256": "f9594a708246bd37c15fec41321ce0f05d7207562a208c76be32dccf04cee397",
+      "worktree_sha256": "37f397baa25d5b779f9952226be3bc727cd146b92067a936dfe546b1adeb4bfb"
+    },
+    {
+      "path": "docs/etoro_capabilities.json",
+      "index_sha256": "31ac152975192b489071e049e384683feafe277bcbb9c86a9229490ac15a5e6e",
+      "worktree_sha256": "afa02267e221c05e58d1db902974afbfb9c13e2858c1370e1fcd2054a4182792"
+    },
+    {
+      "path": "docs/etoro_close_spec_snapshot.json",
+      "index_sha256": "925cf3e0e8d717da0e8ad196373bd889af6361eb9ba15fb12eddf2897296ccfd",
+      "worktree_sha256": "925cf3e0e8d717da0e8ad196373bd889af6361eb9ba15fb12eddf2897296ccfd"
+    },
+    {
+      "path": "docs/etoro_spec_snapshot.json",
+      "index_sha256": "ae99fe513890d34e2a0b2665a410ddf400f0cbe2c5f6b8967309512fbecc6ed2",
+      "worktree_sha256": "ae99fe513890d34e2a0b2665a410ddf400f0cbe2c5f6b8967309512fbecc6ed2"
+    },
+    {
+      "path": "docs/templates/experiment.md",
+      "index_sha256": "c65b429cd712a43e2c3cdef2c9844cedcef48fc49b7c62e34b9fcdab394696d4",
+      "worktree_sha256": "c65b429cd712a43e2c3cdef2c9844cedcef48fc49b7c62e34b9fcdab394696d4"
+    },
+    {
+      "path": "docs/templates/incident.md",
+      "index_sha256": "9aa97698260d4971dab097c70be8843eb5a603e759f6329781d1b91774c656f1",
+      "worktree_sha256": "9aa97698260d4971dab097c70be8843eb5a603e759f6329781d1b91774c656f1"
+    },
+    {
+      "path": "docs/templates/task.md",
+      "index_sha256": "1f579bcd1dbfe78fcb93c4b717e282bbaedb54323e96e12b99ba1b94203ce8b9",
+      "worktree_sha256": "1f579bcd1dbfe78fcb93c4b717e282bbaedb54323e96e12b99ba1b94203ce8b9"
+    },
+    {
+      "path": "pyproject.toml",
+      "index_sha256": "10f45eb8cba648538c5e00b008ae65a7c0da7d4fb64467fab979b189c808b624",
+      "worktree_sha256": "10f45eb8cba648538c5e00b008ae65a7c0da7d4fb64467fab979b189c808b624"
+    },
+    {
+      "path": "reports/README.md",
+      "index_sha256": "bb26ff592d7fd7901764cb923fda140fda1be448eb8d6a091c4bb140a443ad65",
+      "worktree_sha256": "bb26ff592d7fd7901764cb923fda140fda1be448eb8d6a091c4bb140a443ad65"
+    },
+    {
+      "path": "scripts/check_coverage.py",
+      "index_sha256": "3f0177ecda15052dd9fbea79ee802bd2fbff50f36faa020b897fae49fae90cb7",
+      "worktree_sha256": "3f0177ecda15052dd9fbea79ee802bd2fbff50f36faa020b897fae49fae90cb7"
+    },
+    {
+      "path": "scripts/check_dashboard.mjs",
+      "index_sha256": "7ebc3db9e9d37176143c01299180d56cef0242e9739aaa2a5ed4ad6b5d17e910",
+      "worktree_sha256": "7ebc3db9e9d37176143c01299180d56cef0242e9739aaa2a5ed4ad6b5d17e910"
+    },
+    {
+      "path": "scripts/document_config.py",
+      "index_sha256": "2235a68ff514ecb4b5f915ac04905c7733a6151cce5db4e2c0ea0608400d651e",
+      "worktree_sha256": "2235a68ff514ecb4b5f915ac04905c7733a6151cce5db4e2c0ea0608400d651e"
+    },
+    {
+      "path": "scripts/scan_secrets.py",
+      "index_sha256": "171b2404d77c2c2df1b3286ff2f4978c10ff068ace5252fe474494b86eb429b7",
+      "worktree_sha256": "171b2404d77c2c2df1b3286ff2f4978c10ff068ace5252fe474494b86eb429b7"
+    },
+    {
+      "path": "scripts/uv.ps1",
+      "index_sha256": "9171e04b2acd096e7828fba266bd19212c6d97345bb44cefa6a944a0e2fc6f7a",
+      "worktree_sha256": "9171e04b2acd096e7828fba266bd19212c6d97345bb44cefa6a944a0e2fc6f7a"
+    },
+    {
+      "path": "scripts/verify.py",
+      "index_sha256": "4fc1128bd6a68ea3a0f8689e4232fbfe82c9be147d5247738cf0577e7dac41d1",
+      "worktree_sha256": "4fc1128bd6a68ea3a0f8689e4232fbfe82c9be147d5247738cf0577e7dac41d1"
+    },
+    {
+      "path": "scripts/verify_package.py",
+      "index_sha256": "bfef9e5b6f21cec07e33f92503c15e20bb6e7240971c3a1f3be473069a2a3dbf",
+      "worktree_sha256": "bfef9e5b6f21cec07e33f92503c15e20bb6e7240971c3a1f3be473069a2a3dbf"
+    },
+    {
+      "path": "scripts/verify_ui.py",
+      "index_sha256": "a4d78af8eba769f713c4d0200857f262f6d4b82cf6038eeda3bd3e5119c5c537",
+      "worktree_sha256": "a4d78af8eba769f713c4d0200857f262f6d4b82cf6038eeda3bd3e5119c5c537"
+    },
+    {
+      "path": "src/intraday_etoro_lab/__init__.py",
+      "index_sha256": "4952681a8323af204e5b2cc193be8c54afa215509c0d17dcf24fecb996b26b05",
+      "worktree_sha256": "4952681a8323af204e5b2cc193be8c54afa215509c0d17dcf24fecb996b26b05"
+    },
+    {
+      "path": "src/intraday_etoro_lab/api/__init__.py",
+      "index_sha256": "cb27ecd465733e08c984d8f5f6c70f4700a2165e38732eb90b0dc1a5e4ae2eed",
+      "worktree_sha256": "cb27ecd465733e08c984d8f5f6c70f4700a2165e38732eb90b0dc1a5e4ae2eed"
+    },
+    {
+      "path": "src/intraday_etoro_lab/api/app.py",
+      "index_sha256": "c5268cab0a232d830045306c1ff47d7dcc476e3209c6a5ee4604e4f08927f35d",
+      "worktree_sha256": "c5268cab0a232d830045306c1ff47d7dcc476e3209c6a5ee4604e4f08927f35d"
+    },
+    {
+      "path": "src/intraday_etoro_lab/backtesting/AGENTS.md",
+      "index_sha256": "b499c84afac90c9f9c96ec6b0743176cf7343afef80265fa5d16162f6ba3165e",
+      "worktree_sha256": "b499c84afac90c9f9c96ec6b0743176cf7343afef80265fa5d16162f6ba3165e"
+    },
+    {
+      "path": "src/intraday_etoro_lab/backtesting/__init__.py",
+      "index_sha256": "8b8e2bce1aca7b333a69e8b26e8c86e9fab0623d6a577936e13449c1ad13692f",
+      "worktree_sha256": "8b8e2bce1aca7b333a69e8b26e8c86e9fab0623d6a577936e13449c1ad13692f"
+    },
+    {
+      "path": "src/intraday_etoro_lab/backtesting/engine.py",
+      "index_sha256": "6ce6d4dc666d17323589692b680026c8a6b31e335322fe28591d97bd9ef7afb8",
+      "worktree_sha256": "6ce6d4dc666d17323589692b680026c8a6b31e335322fe28591d97bd9ef7afb8"
+    },
+    {
+      "path": "src/intraday_etoro_lab/backtesting/experiments.py",
+      "index_sha256": "7bdc017aaba391468c95befb180d404f64803979e8c94cec3d3ffffaa8ad6484",
+      "worktree_sha256": "7bdc017aaba391468c95befb180d404f64803979e8c94cec3d3ffffaa8ad6484"
+    },
+    {
+      "path": "src/intraday_etoro_lab/backtesting/metrics.py",
+      "index_sha256": "d7692316d271a5f391dd3cf28375bf3ca125321cb510f42f5705468cb0f6d01c",
+      "worktree_sha256": "d7692316d271a5f391dd3cf28375bf3ca125321cb510f42f5705468cb0f6d01c"
+    },
+    {
+      "path": "src/intraday_etoro_lab/brokers/AGENTS.md",
+      "index_sha256": "27ee7ac6f099dbd6d6b232559a09d57df32c4ee6f10ffa41cd5e8c0c0447f700",
+      "worktree_sha256": "27ee7ac6f099dbd6d6b232559a09d57df32c4ee6f10ffa41cd5e8c0c0447f700"
+    },
+    {
+      "path": "src/intraday_etoro_lab/brokers/authorization.py",
+      "index_sha256": "39f5e9baf292603e7efee3bb7a1f3c180fea46c25f8f8ed7c9b915428f23b6e2",
+      "worktree_sha256": "39f5e9baf292603e7efee3bb7a1f3c180fea46c25f8f8ed7c9b915428f23b6e2"
+    },
+    {
+      "path": "src/intraday_etoro_lab/brokers/etoro_demo.py",
+      "index_sha256": "9917c1931bdd69ab332b3cb90e3bf2ac4c5379a69908fd1b56e493dbcd25c7ec",
+      "worktree_sha256": "9917c1931bdd69ab332b3cb90e3bf2ac4c5379a69908fd1b56e493dbcd25c7ec"
+    },
+    {
+      "path": "src/intraday_etoro_lab/brokers/market_data.py",
+      "index_sha256": "2d08dbf6d03e8e89868a12ee64173ef9c2dd0122e78e39254e2ac5c247265a03",
+      "worktree_sha256": "2d08dbf6d03e8e89868a12ee64173ef9c2dd0122e78e39254e2ac5c247265a03"
+    },
+    {
+      "path": "src/intraday_etoro_lab/brokers/simulator.py",
+      "index_sha256": "d3cc24c591b20ace00e66f98065c62f240f41505580826bd86c62d69799e2b96",
+      "worktree_sha256": "d3cc24c591b20ace00e66f98065c62f240f41505580826bd86c62d69799e2b96"
+    },
+    {
+      "path": "src/intraday_etoro_lab/brokers/transport.py",
+      "index_sha256": "6b2981f60d8df07168216eea45d6261e6bf173088d81e3274bdd970c55bbddff",
+      "worktree_sha256": "6b2981f60d8df07168216eea45d6261e6bf173088d81e3274bdd970c55bbddff"
+    },
+    {
+      "path": "src/intraday_etoro_lab/cli.py",
+      "index_sha256": "c4c773b0f92ddc6364fc604afa277b992ecd29f3a736416012280a27592fe45e",
+      "worktree_sha256": "c4c773b0f92ddc6364fc604afa277b992ecd29f3a736416012280a27592fe45e"
+    },
+    {
+      "path": "src/intraday_etoro_lab/config.py",
+      "index_sha256": "56e6f7ecdab5a4f65684d8ef2945e4596d478416bb6d619816001b20e18f166b",
+      "worktree_sha256": "56e6f7ecdab5a4f65684d8ef2945e4596d478416bb6d619816001b20e18f166b"
+    },
+    {
+      "path": "src/intraday_etoro_lab/data/AGENTS.md",
+      "index_sha256": "86faf9c380de8f79df72f54ec7dfe359bcc2345e7d30fdd363855fb9899298dc",
+      "worktree_sha256": "86faf9c380de8f79df72f54ec7dfe359bcc2345e7d30fdd363855fb9899298dc"
+    },
+    {
+      "path": "src/intraday_etoro_lab/data/__init__.py",
+      "index_sha256": "3ea0dfa861478836c419bd479d4e9ec09c78eac1909afbafc0f987817e70a3f5",
+      "worktree_sha256": "3ea0dfa861478836c419bd479d4e9ec09c78eac1909afbafc0f987817e70a3f5"
+    },
+    {
+      "path": "src/intraday_etoro_lab/data/calendar.py",
+      "index_sha256": "42a615fb6aeaeba45a5ffac34ef5d91a43c655d61b2776189ac8fa113ea70b68",
+      "worktree_sha256": "42a615fb6aeaeba45a5ffac34ef5d91a43c655d61b2776189ac8fa113ea70b68"
+    },
+    {
+      "path": "src/intraday_etoro_lab/data/importer.py",
+      "index_sha256": "5448722262ddafa31deb6625cde0bb502ddb7dab9f966bfe833afca6fabea413",
+      "worktree_sha256": "5448722262ddafa31deb6625cde0bb502ddb7dab9f966bfe833afca6fabea413"
+    },
+    {
+      "path": "src/intraday_etoro_lab/data/providers.py",
+      "index_sha256": "98a236c231584bc6a24f2ded27c491ae5816e4322b7b4980dbcdf7e56fd0e3f2",
+      "worktree_sha256": "98a236c231584bc6a24f2ded27c491ae5816e4322b7b4980dbcdf7e56fd0e3f2"
+    },
+    {
+      "path": "src/intraday_etoro_lab/domain/__init__.py",
+      "index_sha256": "ea56b63c96deb5f2c6c578e4520f69e6b5567c5eaeb20e912d9fb4295fe22eed",
+      "worktree_sha256": "ea56b63c96deb5f2c6c578e4520f69e6b5567c5eaeb20e912d9fb4295fe22eed"
+    },
+    {
+      "path": "src/intraday_etoro_lab/domain/models.py",
+      "index_sha256": "38d861eda501425a4551eebc5d468a64de44ce408d84906b19626c5304eaa339",
+      "worktree_sha256": "38d861eda501425a4551eebc5d468a64de44ce408d84906b19626c5304eaa339"
+    },
+    {
+      "path": "src/intraday_etoro_lab/execution/AGENTS.md",
+      "index_sha256": "1824d5ec5e106880efa85ebf56a2da4455b2d29e51695cc61727bd1e3cfde660",
+      "worktree_sha256": "1824d5ec5e106880efa85ebf56a2da4455b2d29e51695cc61727bd1e3cfde660"
+    },
+    {
+      "path": "src/intraday_etoro_lab/execution/__init__.py",
+      "index_sha256": "54674bfb6d42eef0875067815f84a46ec58120e5b7eb707c3b9e698176b42313",
+      "worktree_sha256": "54674bfb6d42eef0875067815f84a46ec58120e5b7eb707c3b9e698176b42313"
+    },
+    {
+      "path": "src/intraday_etoro_lab/execution/engine.py",
+      "index_sha256": "ace20b97801bbf1006a5300f8074efa26a65ed41c93413ee6b207aa4f887dd6c",
+      "worktree_sha256": "ace20b97801bbf1006a5300f8074efa26a65ed41c93413ee6b207aa4f887dd6c"
+    },
+    {
+      "path": "src/intraday_etoro_lab/execution/models.py",
+      "index_sha256": "38f6dde79657c1090da34a749c3bb14f22c54ffba209bd797cbfadd8db808192",
+      "worktree_sha256": "38f6dde79657c1090da34a749c3bb14f22c54ffba209bd797cbfadd8db808192"
+    },
+    {
+      "path": "src/intraday_etoro_lab/observability/__init__.py",
+      "index_sha256": "79e4d3abce0c493b8c1ef3775663842a136a9762df3778b64597e38f9a34e14f",
+      "worktree_sha256": "79e4d3abce0c493b8c1ef3775663842a136a9762df3778b64597e38f9a34e14f"
+    },
+    {
+      "path": "src/intraday_etoro_lab/observability/logging.py",
+      "index_sha256": "73d7abb7957062f0c873e036254b50cbd02fc200a56c6689eb456fde5f2e6ba7",
+      "worktree_sha256": "73d7abb7957062f0c873e036254b50cbd02fc200a56c6689eb456fde5f2e6ba7"
+    },
+    {
+      "path": "src/intraday_etoro_lab/persistence/AGENTS.md",
+      "index_sha256": "991a6893f9f6f3217afaf48a004b920001e81c0ca81e36c92d9bcc193ef1e0a2",
+      "worktree_sha256": "991a6893f9f6f3217afaf48a004b920001e81c0ca81e36c92d9bcc193ef1e0a2"
+    },
+    {
+      "path": "src/intraday_etoro_lab/persistence/__init__.py",
+      "index_sha256": "c5c0551ebd14bc70bac0b17d5c77587e39cd643e9b0fba68a0ddaca659fdcaf3",
+      "worktree_sha256": "c5c0551ebd14bc70bac0b17d5c77587e39cd643e9b0fba68a0ddaca659fdcaf3"
+    },
+    {
+      "path": "src/intraday_etoro_lab/persistence/store.py",
+      "index_sha256": "04a5108199388a778bd94aaf23f2d8a3f993d2f73b9567e97bcfb94d35bc5386",
+      "worktree_sha256": "04a5108199388a778bd94aaf23f2d8a3f993d2f73b9567e97bcfb94d35bc5386"
+    },
+    {
+      "path": "src/intraday_etoro_lab/risk/AGENTS.md",
+      "index_sha256": "0fd69d590f7718f00c319fce4dd36506a95077f98629641bec09a1e9e027715d",
+      "worktree_sha256": "0fd69d590f7718f00c319fce4dd36506a95077f98629641bec09a1e9e027715d"
+    },
+    {
+      "path": "src/intraday_etoro_lab/risk/__init__.py",
+      "index_sha256": "8b8dd70816d4c47af5fe8ed3a3b5bfed43ad493f3dfcabac421a779a9d958372",
+      "worktree_sha256": "8b8dd70816d4c47af5fe8ed3a3b5bfed43ad493f3dfcabac421a779a9d958372"
+    },
+    {
+      "path": "src/intraday_etoro_lab/risk/engine.py",
+      "index_sha256": "a3045eb9c8c2ad9b980b2b30999d65a83eb9922dd73b8a0fdf7cf94f72809439",
+      "worktree_sha256": "a3045eb9c8c2ad9b980b2b30999d65a83eb9922dd73b8a0fdf7cf94f72809439"
+    },
+    {
+      "path": "src/intraday_etoro_lab/service.py",
+      "index_sha256": "1626d095a088b2d89ca5c02446462586e0d92878f745786bf110d5fd054a1410",
+      "worktree_sha256": "1626d095a088b2d89ca5c02446462586e0d92878f745786bf110d5fd054a1410"
+    },
+    {
+      "path": "src/intraday_etoro_lab/strategies/__init__.py",
+      "index_sha256": "50875465dbd969cc652e0f710ec6b1f7c1d85f3370f2eb9d95def13e20a7ce30",
+      "worktree_sha256": "50875465dbd969cc652e0f710ec6b1f7c1d85f3370f2eb9d95def13e20a7ce30"
+    },
+    {
+      "path": "src/intraday_etoro_lab/strategies/features.py",
+      "index_sha256": "9e84cb04a696eca282230b8809608ebb1901d2daca654f49b2ac230143c0a98b",
+      "worktree_sha256": "9e84cb04a696eca282230b8809608ebb1901d2daca654f49b2ac230143c0a98b"
+    },
+    {
+      "path": "src/intraday_etoro_lab/strategies/orb.py",
+      "index_sha256": "3e57bd77d07bbe3c2464bac40f964f1e5d801f9d69e2fe0223a1a910d6e5d96c",
+      "worktree_sha256": "3e57bd77d07bbe3c2464bac40f964f1e5d801f9d69e2fe0223a1a910d6e5d96c"
+    },
+    {
+      "path": "src/intraday_etoro_lab/ui/app.js",
+      "index_sha256": "3ed742e7f09c936e6cabd328053b2596636c35362735fd3db740fab63dd85ac0",
+      "worktree_sha256": "3ed742e7f09c936e6cabd328053b2596636c35362735fd3db740fab63dd85ac0"
+    },
+    {
+      "path": "src/intraday_etoro_lab/ui/index.html",
+      "index_sha256": "af143f020f699c5ce3f072e93b15d6c7f55420d4a7e16ab07b240681bc9c69d9",
+      "worktree_sha256": "af143f020f699c5ce3f072e93b15d6c7f55420d4a7e16ab07b240681bc9c69d9"
+    },
+    {
+      "path": "src/intraday_etoro_lab/ui/style.css",
+      "index_sha256": "4e2d72452a1fddd3da694b716ead2cebfd90d4e4516ecf27e5fe360792598896",
+      "worktree_sha256": "4e2d72452a1fddd3da694b716ead2cebfd90d4e4516ecf27e5fe360792598896"
+    },
+    {
+      "path": "tests/conftest.py",
+      "index_sha256": "196b322efe5332a806ff21890791e99436c865cdb0ee55d28700182fc889f058",
+      "worktree_sha256": "196b322efe5332a806ff21890791e99436c865cdb0ee55d28700182fc889f058"
+    },
+    {
+      "path": "tests/conftest_data.py",
+      "index_sha256": "b1eecac286e64e9325f43b7065833c0d883ce179a419c400eb9b920845ae7124",
+      "worktree_sha256": "b1eecac286e64e9325f43b7065833c0d883ce179a419c400eb9b920845ae7124"
+    },
+    {
+      "path": "tests/fixtures/synthetic-v1.json",
+      "index_sha256": "1e3abe63c28cd85974f6286fb036735dcc0b4304fd0a6eb9af95fc9b34eaf439",
+      "worktree_sha256": "1e3abe63c28cd85974f6286fb036735dcc0b4304fd0a6eb9af95fc9b34eaf439"
+    },
+    {
+      "path": "tests/test_backtest_replay.py",
+      "index_sha256": "36208b0eda695e10b5a7eabb0f138037d55a716f40f6ab0fca54a17fb37df998",
+      "worktree_sha256": "36208b0eda695e10b5a7eabb0f138037d55a716f40f6ab0fca54a17fb37df998"
+    },
+    {
+      "path": "tests/test_config_api.py",
+      "index_sha256": "8a56454b9b3a37635f2e69cbbec220d97eabd4fe626dc4adcd5687e303f92559",
+      "worktree_sha256": "8a56454b9b3a37635f2e69cbbec220d97eabd4fe626dc4adcd5687e303f92559"
+    },
+    {
+      "path": "tests/test_data_contracts.py",
+      "index_sha256": "f2d4e535abb66c9437fdac8d4cda2632e4a0f56fccf239228600d75bcbf6dad6",
+      "worktree_sha256": "f2d4e535abb66c9437fdac8d4cda2632e4a0f56fccf239228600d75bcbf6dad6"
+    },
+    {
+      "path": "tests/test_e2e_http.py",
+      "index_sha256": "756629dc7632a6827309431f2e66a1eb81fcb5865187c0cc1953efa453261cd6",
+      "worktree_sha256": "756629dc7632a6827309431f2e66a1eb81fcb5865187c0cc1953efa453261cd6"
+    },
+    {
+      "path": "tests/test_etoro_adapter.py",
+      "index_sha256": "9b26c77f6f822e1c0bfcee31fb54d3df3f4fbb31674545ebbf86ea2cb3af7f8e",
+      "worktree_sha256": "9b26c77f6f822e1c0bfcee31fb54d3df3f4fbb31674545ebbf86ea2cb3af7f8e"
+    },
+    {
+      "path": "tests/test_etoro_transport.py",
+      "index_sha256": "c2669e1b19de515bd8ba495024ae309c5105b2f33d760ce036f676d23919654f",
+      "worktree_sha256": "c2669e1b19de515bd8ba495024ae309c5105b2f33d760ce036f676d23919654f"
+    },
+    {
+      "path": "tests/test_execution_engine.py",
+      "index_sha256": "90e39c487ecc48e60077d5c64aacee3a0bf430ae885235dde9de4efc63ec2e90",
+      "worktree_sha256": "90e39c487ecc48e60077d5c64aacee3a0bf430ae885235dde9de4efc63ec2e90"
+    },
+    {
+      "path": "tests/test_persistence_recovery.py",
+      "index_sha256": "649321c9b41cc986b12b61b11fa2438b5325cd7ae2d09c14df0c4a44b57f1596",
+      "worktree_sha256": "649321c9b41cc986b12b61b11fa2438b5325cd7ae2d09c14df0c4a44b57f1596"
+    },
+    {
+      "path": "tests/test_risk_engine.py",
+      "index_sha256": "505765c26b10ed48fd1f3d8338dc16d08215f01c797a281517a0da1f61b2b14e",
+      "worktree_sha256": "505765c26b10ed48fd1f3d8338dc16d08215f01c797a281517a0da1f61b2b14e"
+    },
+    {
+      "path": "tests/test_strategy_orb.py",
+      "index_sha256": "ceb60a51f93efa7735b462fd814eb979a22ce3246d0582dcb976f14105ea2bfc",
+      "worktree_sha256": "ceb60a51f93efa7735b462fd814eb979a22ce3246d0582dcb976f14105ea2bfc"
+    },
+    {
+      "path": "uv.lock",
+      "index_sha256": "d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f",
+      "worktree_sha256": "d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f"
+    }
+  ],
+  "test_configuration": {
+    "ini_options": {
+      "testpaths": [
+        "tests"
+      ],
+      "addopts": "-ra -p no:cacheprovider",
+      "markers": [
+        "external: explicitly authorized external integration only"
+      ]
+    }
+  },
+  "uv_version": "uv 0.12.12 (c4be69153 2026-09-09 x86_64-pc-windows-msvc)",
+  "environment_versions": {
+    "pytest": "9.1.1",
+    "pytest-cov": "7.1.0",
+    "ruff": "0.16.6",
+    "mypy": "1.20.2",
+    "pydantic": "2.13.5",
+    "httpx": "0.28.1",
+    "pandas": "2.3.3",
+    "numpy": "2.5.3",
+    "exchange-calendars": "4.13.2",
+    "fastapi": "0.141.1",
+    "hatchling": "1.32.0"
+  },
+  "baseline_verification": {
+    "record": "runtime/phase2-baseline/verification.json",
+    "at_utc": "2026-09-10T16:35:45.658225+00:00",
+    "checks_passed": 16,
+    "checks_total": 16,
+    "tests_passed": 358,
+    "coverage_lines_and_branches": 90.43266301035953,
+    "initial_attempt_failures": "Formatting of new preservation helper only; raw product and tests unchanged; attempt1-verification.json retained"
+  }
+}

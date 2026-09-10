@@ -10,6 +10,11 @@
 | Datos históricos | OHLCV negociado, cobertura, procedencia/licencia, disponibilidad, calidad | SYNTHETIC_ONLY en esta entrega |
 | Investigación | protocolo temporal y criterios estadísticos registrados antes del test | RESEARCH_BLOCKED_DATA |
 
+Fase 2: todos los gates locales originales se conservaron; 420 pruebas/16 checks.
+El gate operativo de cierres sigue BLOCKED por contrato externo incompleto, aunque
+su parte local/contractual está probada. Mutaciones externas DISABLED, escritura
+NOT_TESTED. Chrome no se reprodujo en esta fase; pruebas HTTP del panel sí aprobadas.
+
 Una prueba mock satisface el contrato local de transporte, no conexión al bróker.
 OUT_OF_SAMPLE_EVALUATED no implica rentabilidad ni permite dinero real. Ningún gate
 permite promoción automática. Los defectos detectados se registran, no se ocultan con skips.

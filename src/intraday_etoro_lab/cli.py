@@ -19,6 +19,7 @@ from intraday_etoro_lab.brokers.authorization import BrokerBlocked
 from intraday_etoro_lab.brokers.etoro_demo import perform_preflight
 from intraday_etoro_lab.brokers.transport import Credentials, GuardedTransport
 from intraday_etoro_lab.config import AppConfig, Mode, load_config
+from intraday_etoro_lab.data.importer import audit_bundle
 from intraday_etoro_lab.observability.logging import JsonFormatter
 from intraday_etoro_lab.persistence.store import StateStore
 from intraday_etoro_lab.service import OperationService, load_bundle, read_report
@@ -85,6 +86,9 @@ def doctor(config: AppConfig) -> dict[str, Any]:
         "config_hash": config.config_hash,
         "broker": "BLOCKED" if configured else "NOT_CONFIGURED",
         "entries_armed": False,
+        "external_mutations": "DISABLED",
+        "close_reconciliation": "BLOCKED",
+        "etoro_demo_write": "NOT_TESTED",
         "order_submission_enabled": config.order_submission_enabled,
         "data": "SYNTHETIC_ONLY" if config.data.provider == "fixtures" else "IMPORT_NOT_CHECKED",
         "research": "RESEARCH_BLOCKED_DATA",
@@ -199,7 +203,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "doctor":
             emit(doctor(config))
         elif args.command == "data":
-            emit(load_bundle(config).manifest.model_dump(mode="json"))
+            bundle = load_bundle(config)
+            emit(bundle.manifest.model_dump(mode="json") | {"audit": audit_bundle(bundle)})
         elif args.command == "report":
             emit(read_report(args.run_id, config.reports_dir))
         elif args.command == "dashboard":
@@ -221,6 +226,13 @@ def main(argv: list[str] | None = None) -> int:
                         "entries_armed": False,
                         "scope_count": len(evidence.scopes),
                         "writes": 0,
+                        "external_mutations": "DISABLED",
+                        "connectivity": "VERIFIED",
+                        "authentication": "VERIFIED",
+                        "demo_identity": "VERIFIED",
+                        "market_data": "NOT_CHECKED",
+                        "etoro_demo_write": "NOT_TESTED",
+                        "operational_permission": "BLOCKED",
                         "scope": "Identidad mínima y lectura de portafolio virtual",
                     }
                 )
@@ -276,7 +288,27 @@ def main(argv: list[str] | None = None) -> int:
             reason = f"LOCAL_IO_ERROR:{type(exc).__name__}"
         else:
             reason = str(exc)
-        emit({"status": "BLOCKED", "reason": reason, "entries_armed": False})
+        result = {
+            "status": "BLOCKED",
+            "reason": reason,
+            "entries_armed": False,
+            "external_mutations": "DISABLED",
+            "etoro_demo_write": "NOT_TESTED",
+        }
+        if args.command == "etoro":
+            missing = reason == "CREDENTIALS_MISSING_OR_INVALID"
+            http_reached = reason.startswith("ETORO_HTTP_")
+            result.update(
+                {
+                    "etoro_demo_read": "NOT_CONFIGURED" if missing else "BLOCKED",
+                    "connectivity": "VERIFIED" if http_reached else "NOT_CHECKED",
+                    "authentication": "FAILED" if reason == "ETORO_HTTP_401" else "NOT_VERIFIED",
+                    "demo_identity": "NOT_VERIFIED",
+                    "market_data": "NOT_CHECKED",
+                    "operational_permission": "BLOCKED",
+                }
+            )
+        emit(result)
         return 2
 
 

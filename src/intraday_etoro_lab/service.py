@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import html
 import json
+import os
 import re
 import subprocess
 import threading
@@ -52,6 +53,10 @@ def source_revision() -> str:
 
 def save_report(report: BacktestResult, directory: Path) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
+    for existing in directory.glob("[0-9a-f]" * 20 + ".json"):
+        previous = json.loads(existing.read_text(encoding="utf-8"))
+        if previous["data_manifest"]["synthetic"] != report.data_manifest["synthetic"]:
+            raise RuntimeError("REPORT_SOURCE_MIXING_BLOCKED: use a separate reports_dir")
     target = directory / f"{report.run_id}.json"
     payload = report.model_dump_json(indent=2)
     if target.exists():
@@ -300,13 +305,19 @@ class OperationService:
             "costs": str(paid_costs),
             "costs_note": "Comisiones acumuladas del simulador, ya descontadas en PnL",
             "entries_armed": False,
+            "external_mutations": "DISABLED",
+            "etoro_demo_write": "NOT_TESTED",
+            "close_reconciliation": "BLOCKED: contrato externo incompleto",
+            "etoro_demo_read": "BLOCKED"
+            if os.getenv("ETORO_API_KEY") and os.getenv("ETORO_USER_KEY")
+            else "NOT_CONFIGURED",
             "entries_paused": raw["session"]["entries_paused"],
             "broker_status": "NOT_CONFIGURED",
             "readiness": "BLOCKED: Demo sin verificar",
             "data_status": (
                 "SYNTHETIC_ONLY"
-                if self.config.data.provider == "fixtures"
-                else "HISTORICAL_VALIDATED"
+                if self.config.data.provider == "fixtures" or manifest.get("synthetic")
+                else "IMPORT_SCHEMA_VALID"
                 if manifest
                 else "IMPORT_NOT_CHECKED"
             ),

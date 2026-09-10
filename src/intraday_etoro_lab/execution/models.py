@@ -113,6 +113,7 @@ class OrderIntent(BaseModel):
     broker_order_id: str | None = None
     filled_units: Decimal = Decimal("0")
     average_price: Decimal | None = None
+    cumulative_cost: Decimal = Field(default=Decimal("0"), ge=0, allow_inf_nan=False)
 
 
 class BrokerOrder(BaseModel):
@@ -125,6 +126,8 @@ class BrokerOrder(BaseModel):
     position_id: str | None = None
     protected: bool = False
     cumulative_cost: Decimal = Field(default=Decimal("0"), ge=0, allow_inf_nan=False)
+    remaining_units: Decimal | None = Field(default=None, ge=0, allow_inf_nan=False)
+    observed_at: datetime | None = None
 
 
 class Fill(BaseModel):
@@ -152,6 +155,9 @@ class Position(BaseModel):
     mark_price: Decimal | None = None
     planned_risk: Decimal = Decimal("0")
     mode: Literal["offline", "backtest", "shadow", "etoro_demo"]
+    observed_units: Decimal | None = None
+    observed_at: datetime | None = None
+    accounting_complete: bool = True
 
 
 class AuditEvent(BaseModel):

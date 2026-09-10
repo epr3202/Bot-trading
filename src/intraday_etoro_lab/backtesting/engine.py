@@ -365,7 +365,9 @@ def run_backtest(
     return BacktestResult(
         run_id=run_id,
         label=label,
-        research_status="RESEARCH_BLOCKED_DATA" if bundle.manifest.synthetic else "EXPLORATORY",
+        research_status="RESEARCH_BLOCKED_DATA"
+        if bundle.manifest.synthetic or bundle.manifest.availability_kind != "observed"
+        else "EXPLORATORY",
         data_manifest=bundle.manifest.model_dump(mode="json"),
         config_hash=config_hash,
         calendar_version=calendar_version(),

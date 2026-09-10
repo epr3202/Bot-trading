@@ -275,6 +275,10 @@ class EtoroDemoAdapter:
         if intent.broker_order_id and str(document.get("orderId")) != intent.broker_order_id:
             raise BrokerBlocked("ORDER_IDENTITY_MISMATCH")
         try:
+            # Lookup v2 serves both actions. Opening data on a close response
+            # must never be booked as an entry execution.
+            if document["action"] != "open" or type(document["status"]["id"]) is not int:
+                raise ValueError
             state = _STATUSES.get(document["status"]["id"], OrderState.UNKNOWN)
             executions = document["positionExecutions"]
             if len(executions) > 1:
@@ -282,6 +286,8 @@ class EtoroDemoAdapter:
             execution = executions[0] if executions else None
             opening = execution["openingData"] if execution else None
             units = Decimal(str(opening["units"])) if opening else Decimal(0)
+            if document["status"]["id"] in {3, 5, 9, 10} and units <= 0:
+                raise ValueError  # Execution-bearing terminal states cannot mean zero fills.
             fees = (
                 Decimal(str(opening["fees"])) + Decimal(str(opening["taxes"]))
                 if opening
@@ -381,7 +387,7 @@ class EtoroDemoAdapter:
             ):
                 raise ValueError
             rows = document.get("positions")
-            remaining, occurred = None, None
+            occurred = None
             if rows:
                 # No execution IDs or cumulative semantics for repeated position
                 # rows are specified. A single documented row can prove quantity;
@@ -399,7 +405,10 @@ class EtoroDemoAdapter:
                         or not request_at <= occurred <= self.transport.now()
                     ):
                         raise ValueError
-                    remaining = intent.units - units
+                    # Closed units are not a documented cumulative snapshot.
+                    # In particular, intent.units may describe a partial close,
+                    # not the original position size. Observe remaining exposure
+                    # only through the opening lookup's explicit remainingUnits.
             elif rows is not None and not isinstance(rows, list):
                 raise ValueError
             # statusID has no documented enum and fees/taxes have no finality
@@ -412,8 +421,8 @@ class EtoroDemoAdapter:
                 filled_units=intent.filled_units,
                 average_price=intent.average_price,
                 cumulative_cost=intent.cumulative_cost,
-                remaining_units=remaining,
-                observed_at=occurred,
+                remaining_units=None,
+                observed_at=None,
             )
         except (KeyError, TypeError, ValueError, ArithmeticError):
             raise BrokerBlocked("CLOSE_CORRELATION_OR_SCHEMA_UNVERIFIED") from None

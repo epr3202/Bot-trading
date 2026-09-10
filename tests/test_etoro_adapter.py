@@ -107,6 +107,7 @@ def order_response(status=3, protected=True):
     return {
         "accountId": 42,
         "orderId": 7,
+        "action": "open",
         "status": {"id": status},
         "asset": {"instrumentId": 123, "settlementType": "real", "leverage": 1, "side": "long"},
         "positionExecutions": [
@@ -273,6 +274,7 @@ def test_eligibility_blocks_incompatible_entries(case):
     "status,state",
     [
         (1, OrderState.ACKNOWLEDGED),
+        (2, OrderState.ACKNOWLEDGED),
         (3, OrderState.FILLED),
         (4, OrderState.REJECTED),
         (5, OrderState.PARTIALLY_FILLED),

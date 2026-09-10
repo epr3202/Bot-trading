@@ -119,16 +119,58 @@ def setup_close(rows=None, response_status=None):
     return adapter, opening, closing, document, calls, store, positions
 
 
-def test_v1_closed_units_are_evidence_not_final_accounting_or_enum():
+def test_v1_closed_units_are_not_remaining_exposure_or_final_accounting():
     adapter, _, closing, doc, calls, _, _ = setup_close()
     update = adapter.query(closing.intent_id)
     assert update.state == OrderState.UNKNOWN
-    assert update.remaining_units == 0 and update.observed_at == NOW
+    assert update.remaining_units is None and update.observed_at is None
     assert update.filled_units == 0 and update.average_price is None
     assert update.cumulative_cost == 0  # no guessed fee or booked proceeds
     assert all(call.method == "GET" for call in calls)
     doc["positions"][0]["units"] = 1
-    assert adapter.query(closing.intent_id).remaining_units == 1
+    assert adapter.query(closing.intent_id).remaining_units is None
+
+
+def test_partial_close_does_not_infer_flat_from_requested_units():
+    adapter, opening, closing, _, _, intents, positions = setup_close()
+    intents[opening.intent_id] = opening.model_copy(update={"units": D(10), "filled_units": D(10)})
+    positions["8"] = positions["8"].model_copy(update={"units": D(10)})
+    update = adapter.query(closing.intent_id)  # request and v1 row both say 2 units
+    assert update.remaining_units is None  # neither zero nor an inferred eight
+    assert update.state == OrderState.UNKNOWN and update.filled_units == 0
+
+
+@pytest.mark.parametrize(
+    "params",
+    [None, {}, {"orderId": 7, "referenceId": "ref"}, {"orderId": None}, {"referenceId": ""}],
+)
+def test_lookup_invalid_identifier_combination_never_reaches_transport(params):
+    adapter, _, calls, _, _ = build_adapter()
+    with pytest.raises(BrokerBlocked, match="EXACTLY_ONE_IDENTIFIER"):
+        adapter.transport.request("GET", LOOKUP, params=params)
+    assert calls == []
+
+
+@pytest.mark.parametrize(
+    "change",
+    [{"action": "close"}, {"action": None}, {"status": {"id": True}}, {"status": {"id": "3"}}],
+)
+def test_lookup_close_or_malformed_status_cannot_be_booked_as_entry(change):
+    doc = order_response()
+    doc.update(change)
+    adapter, item, _, _, _ = build_adapter(responses={LOOKUP: doc})
+    with pytest.raises(BrokerBlocked, match="ORDER_SCHEMA_UNVERIFIED"):
+        adapter.query(item.intent_id)
+
+
+@pytest.mark.parametrize("status", [3, 5, 9, 10])
+def test_execution_status_without_fill_evidence_cannot_release_reservations(status):
+    doc = order_response(status)
+    doc["positionExecutions"] = []
+    adapter, item, _, intents, _ = build_adapter(responses={LOOKUP: doc})
+    with pytest.raises(BrokerBlocked, match="ORDER_SCHEMA_UNVERIFIED"):
+        adapter.query(item.intent_id)
+    assert intents[item.intent_id].state == OrderState.SUBMITTING
 
 
 @pytest.mark.parametrize("rows", [[], [{"positionID": 8}], [{"positionID": 8, "units": 2}]])

@@ -128,6 +128,10 @@ def allowed_route(method: str, path: str, params: Mapping[str, Any] | None = Non
         if method == route.method and re.fullmatch(route.pattern, path):
             if set(params or {}) - route.query:
                 raise BrokerBlocked("UNDOCUMENTED_QUERY_PARAMETER")
+            if path == LOOKUP:
+                query = params or {}
+                if len(query) != 1 or next(iter(query.values()), None) in (None, ""):
+                    raise BrokerBlocked("LOOKUP_REQUIRES_EXACTLY_ONE_IDENTIFIER")
             return route
     raise BrokerBlocked("ROUTE_NOT_ALLOWED")
 

@@ -1,0 +1,123 @@
+{
+  "verified_at_utc": "2026-09-10T15:01:45Z",
+  "api_version": "v1.375.0",
+  "mcp_skill_version": "1.19.1",
+  "source": "Official eToro MCP get-tags, get-all-routes, get-route-spec; catalog/spec calls only",
+  "routes": [
+    {
+      "routeId": "getMe",
+      "method": "GET",
+      "path": "/api/v1/me",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    },
+    {
+      "routeId": "getTradingInfoDemoPortfolio",
+      "method": "GET",
+      "path": "/api/v1/trading/info/demo/portfolio",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    },
+    {
+      "routeId": "createTradingExecutionDemoOrders",
+      "method": "POST",
+      "path": "/api/v2/trading/execution/demo/orders",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    },
+    {
+      "routeId": "getTradingInfoDemoOrdersLookup",
+      "method": "GET",
+      "path": "/api/v2/trading/info/demo/orders:lookup",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    },
+    {
+      "routeId": "getCostDemo",
+      "method": "POST",
+      "path": "/api/v2/trading/info/demo/costs",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    },
+    {
+      "routeId": "getInstrumentEligibilityDemo",
+      "method": "POST",
+      "path": "/api/v2/trading/info/demo/eligibility",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    },
+    {
+      "routeId": "updateDemoPosition",
+      "method": "PATCH",
+      "path": "/api/v2/trading/demo/positions/{positionId}",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    },
+    {
+      "routeId": "createTradingExecutionDemoMarketCloseOrdersPositionsByPositionId",
+      "method": "POST",
+      "path": "/api/v1/trading/execution/demo/market-close-orders/positions/{positionId}",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    },
+    {
+      "routeId": "deleteTradingExecutionDemoOrdersByOrderId",
+      "method": "DELETE",
+      "path": "/api/v2/trading/execution/demo/orders/{orderId}",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    },
+    {
+      "routeId": "getSecurities",
+      "method": "GET",
+      "path": "/api/v2/market-data/instruments",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    },
+    {
+      "routeId": "getRates",
+      "method": "GET",
+      "path": "/api/v2/market-data/rates",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    },
+    {
+      "routeId": "getMarketDataInstrumentsByInstrumentIdHistoryCandlesByDirectionByIntervalByCandlesCount",
+      "method": "GET",
+      "path": "/api/v1/market-data/instruments/{instrumentId}/history/candles/{direction}/{interval}/{candlesCount}",
+      "documented": true,
+      "demo_read_verified": false,
+      "demo_write_verified": false,
+      "contract_test": "tests/test_etoro_adapter.py; tests/test_etoro_transport.py"
+    }
+  ],
+  "status": "NOT_CONFIGURED",
+  "blockers": [
+    "OHLCV consolidated share volume and history unverified",
+    "Demo session runner and usable equity integration not validated",
+    "v1 close reconciliation and timeout reference guarantees unresolved",
+    "Instrument fractional precision and effective common-stock eligibility require verified account evidence"
+  ]
+}

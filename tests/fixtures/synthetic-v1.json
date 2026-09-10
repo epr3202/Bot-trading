@@ -1,0 +1,10 @@
+{
+  "source": "synthetic-v1",
+  "generator": "intraday_etoro_lab.data.providers.FixtureProvider",
+  "symbols": ["SIMA", "SIMB", "SIMC"],
+  "warmup_sessions": 20,
+  "evaluation_sessions": ["2025-11-20", "2025-11-21", "2025-11-24"],
+  "one_minute_bars": 26910,
+  "label": "SYNTHETIC — NO EVIDENCE OF PROFITABILITY",
+  "network": false
+}

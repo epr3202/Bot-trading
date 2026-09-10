@@ -1,0 +1,368 @@
+{
+  "routeId": "getTradingInfoDemoCloseOrdersByOrderId",
+  "method": "GET",
+  "path": "/api/v1/trading/info/demo/close-orders/{orderId}",
+  "operation": {
+    "tags": [
+      "Trading - Demo"
+    ],
+    "summary": "Get close order information and closed position details",
+    "description": "**Rate limit:** 60 requests per 60 seconds. This is a **shared quota** — the same budget is consumed by a group of related endpoints, so calling any of them reduces what is left for the others (you cannot call each at the full rate independently). Endpoints sharing this quota:\n- `GET /api/v1/trading/info/demo/orders/{orderId}`\n- `GET /api/v2/trading/info/demo/orders:lookup`\n\n---\n\nRetrieves information about a close order, including its execution status and the positions that were closed as a result of the request. Use this to track the outcome of a position-closing order and identify which positions were affected.",
+    "operationId": "getTradingInfoDemoCloseOrdersByOrderId",
+    "security": [
+      {
+        "apiKeyAuth": [],
+        "userKeyAuth": []
+      },
+      {
+        "oauth2": [
+          "etoro-public:demo:read"
+        ]
+      },
+      {
+        "oauth2": [
+          "etoro-public:demo:write"
+        ]
+      },
+      {
+        "oauth2": [
+          "etoro-public:trade.demo:read"
+        ]
+      },
+      {
+        "oauth2": [
+          "etoro-public:trade.demo:write"
+        ]
+      }
+    ],
+    "parameters": [
+      {
+        "name": "x-request-id",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid",
+          "example": "964e45a4-7973-4788-a60d-1f967fc70b2a"
+        },
+        "description": "A unique request identifier."
+      },
+      {
+        "name": "orderId",
+        "in": "path",
+        "required": true,
+        "description": "The unique identifier of the order.",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Close order information retrieved successfully.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OrderForCloseInfoResponse"
+            }
+          }
+        },
+        "headers": {
+          "RateLimit-Limit": {
+            "description": "Maximum number of requests allowed per window. This budget is SHARED across 3 endpoints (it is NOT per-endpoint): a request to any endpoint in the group spends the same budget. See this operation's description for the full list of endpoints sharing it.",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 60
+          },
+          "RateLimit-Remaining": {
+            "description": "Requests remaining in the current window for this quota.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "RateLimit-Reset": {
+            "description": "Seconds until the current window resets.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "RateLimit-Policy": {
+            "description": "Quota policy in the form `<limit>;w=<window-seconds>`.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "60;w=60"
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request. Validation failed.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetails"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized. Invalid or missing authentication.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetails"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Close order not found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetails"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Too Many Requests — the shared rate limit (60 requests / 60s) was exceeded.",
+        "headers": {
+          "RateLimit-Limit": {
+            "description": "Maximum number of requests allowed per window. This budget is SHARED across 3 endpoints (it is NOT per-endpoint): a request to any endpoint in the group spends the same budget. See this operation's description for the full list of endpoints sharing it.",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 60
+          },
+          "RateLimit-Remaining": {
+            "description": "Requests remaining in the current window for this quota.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "RateLimit-Reset": {
+            "description": "Seconds until the current window resets.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "RateLimit-Policy": {
+            "description": "Quota policy in the form `<limit>;w=<window-seconds>`.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "60;w=60"
+          },
+          "Retry-After": {
+            "description": "Seconds to wait before retrying.",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 60
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error."
+      }
+    },
+    "x-ratelimit": {
+      "limit": 60,
+      "window": 60,
+      "shared": true,
+      "defaultPool": false,
+      "sharedWith": [
+        "GET /api/v1/trading/info/demo/orders/{orderId}",
+        "GET /api/v2/trading/info/demo/orders:lookup"
+      ]
+    }
+  },
+  "schemas": {
+    "OrderForCloseInfoResponse": {
+      "type": "object",
+      "description": "Close-order information returned by Admin TAPI, including execution status and the positions affected by the close order.",
+      "required": [
+        "orderID",
+        "CID",
+        "statusID",
+        "orderType",
+        "operationType",
+        "assetCurrencyID",
+        "accountCurrencyID",
+        "instrumentID",
+        "requestOccurred",
+        "proceeds",
+        "externalOperationType"
+      ],
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Correlation token assigned to the request."
+        },
+        "orderID": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Unique identifier of the close order."
+        },
+        "CID": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Customer account identifier associated with the close order."
+        },
+        "statusID": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Current internal status identifier of the close order."
+        },
+        "referenceID": {
+          "type": "string",
+          "nullable": true,
+          "description": "External reference identifier associated with the close order, when available."
+        },
+        "orderType": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Internal order-type identifier."
+        },
+        "closeActionType": {
+          "type": "integer",
+          "format": "int32",
+          "nullable": true,
+          "description": "Internal close-action type, when available."
+        },
+        "operationType": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Internal operation-type identifier."
+        },
+        "errorCode": {
+          "type": "integer",
+          "format": "int32",
+          "nullable": true,
+          "description": "Error code produced while processing the close order, when applicable."
+        },
+        "errorMessage": {
+          "type": "string",
+          "nullable": true,
+          "description": "Error message produced while processing the close order, when applicable."
+        },
+        "assetCurrencyID": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Identifier of the asset currency."
+        },
+        "accountCurrencyID": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Identifier of the account currency."
+        },
+        "instrumentID": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Identifier of the instrument associated with the close order."
+        },
+        "requestOccurred": {
+          "type": "string",
+          "format": "date-time",
+          "description": "UTC timestamp at which the close-order request occurred."
+        },
+        "proceeds": {
+          "type": "number",
+          "format": "decimal",
+          "description": "Total proceeds calculated across the positions affected by the close order."
+        },
+        "externalOperationType": {
+          "type": "integer",
+          "format": "int32",
+          "description": "External operation-type identifier; zero when no external operation is associated."
+        },
+        "externalOperationData": {
+          "type": "string",
+          "nullable": true,
+          "description": "Data associated with the external operation, when available."
+        },
+        "positions": {
+          "type": "array",
+          "description": "Positions affected by the close order.",
+          "items": {
+            "$ref": "#/components/schemas/OrderForClosePositionInfoResponse"
+          }
+        }
+      }
+    },
+    "OrderForClosePositionInfoResponse": {
+      "type": "object",
+      "description": "Execution information for a position affected by a close order.",
+      "required": [
+        "positionID"
+      ],
+      "properties": {
+        "positionID": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Unique identifier of the affected position."
+        },
+        "occurred": {
+          "type": "string",
+          "format": "date-time",
+          "nullable": true,
+          "description": "UTC timestamp at which the position close occurred, when available."
+        },
+        "rate": {
+          "type": "number",
+          "format": "decimal",
+          "nullable": true,
+          "description": "Execution rate for the position close, when available."
+        },
+        "units": {
+          "type": "number",
+          "format": "decimal",
+          "nullable": true,
+          "description": "Number of position units closed, when available."
+        },
+        "conversionRate": {
+          "type": "number",
+          "format": "decimal",
+          "nullable": true,
+          "description": "Currency conversion rate applied to the position close, when available."
+        },
+        "amount": {
+          "type": "number",
+          "format": "decimal",
+          "nullable": true,
+          "description": "Closed amount for the position, when available."
+        }
+      }
+    },
+    "ProblemDetails": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "nullable": true
+        },
+        "title": {
+          "type": "string",
+          "nullable": true
+        },
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "nullable": true
+        },
+        "detail": {
+          "type": "string",
+          "nullable": true
+        },
+        "instance": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "additionalProperties": {}
+    }
+  }
+}

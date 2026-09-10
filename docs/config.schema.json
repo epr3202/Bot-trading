@@ -1,0 +1,539 @@
+{
+  "$defs": {
+    "BacktestConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "starting_capital": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "10000",
+          "title": "Starting Capital"
+        },
+        "latency_ms": {
+          "default": 250,
+          "maximum": 120000,
+          "minimum": 1,
+          "title": "Latency Ms",
+          "type": "integer"
+        },
+        "spread_bps": {
+          "anyOf": [
+            {
+              "maximum": 1000.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "2",
+          "title": "Spread Bps"
+        },
+        "slippage_bps": {
+          "anyOf": [
+            {
+              "maximum": 1000.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "1",
+          "title": "Slippage Bps"
+        },
+        "seed": {
+          "default": 42,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "bootstrap_samples": {
+          "default": 200,
+          "maximum": 10000,
+          "minimum": 10,
+          "title": "Bootstrap Samples",
+          "type": "integer"
+        },
+        "bootstrap_block_sessions": {
+          "default": 2,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Bootstrap Block Sessions",
+          "type": "integer"
+        }
+      },
+      "title": "BacktestConfig",
+      "type": "object"
+    },
+    "CostConfig": {
+      "additionalProperties": false,
+      "description": "USD round-trip reserve; price spread is already present in executable ask/bid.",
+      "properties": {
+        "known": {
+          "default": true,
+          "title": "Known",
+          "type": "boolean"
+        },
+        "fixed_per_side": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0",
+          "title": "Fixed Per Side"
+        },
+        "minimum_per_side": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0",
+          "title": "Minimum Per Side"
+        },
+        "per_unit_per_side": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.005",
+          "title": "Per Unit Per Side"
+        },
+        "notional_rate_per_side": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0",
+          "title": "Notional Rate Per Side"
+        },
+        "slippage_per_unit": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.02",
+          "title": "Slippage Per Unit"
+        },
+        "quadratic_impact": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0",
+          "title": "Quadratic Impact"
+        }
+      },
+      "title": "CostConfig",
+      "type": "object"
+    },
+    "DataConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "default": "fixtures",
+          "enum": [
+            "fixtures",
+            "import"
+          ],
+          "title": "Provider",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "format": "path",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "manifest": {
+          "anyOf": [
+            {
+              "format": "path",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manifest"
+        }
+      },
+      "title": "DataConfig",
+      "type": "object"
+    },
+    "Mode": {
+      "enum": [
+        "offline",
+        "backtest",
+        "shadow",
+        "etoro_demo"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "RiskConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "allocated_capital": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "10000",
+          "title": "Allocated Capital"
+        },
+        "risk_fraction": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 0.001,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.001",
+          "title": "Risk Fraction"
+        },
+        "daily_loss_fraction": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 0.005,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.005",
+          "title": "Daily Loss Fraction"
+        },
+        "max_positions": {
+          "default": 2,
+          "maximum": 2,
+          "minimum": 1,
+          "title": "Max Positions",
+          "type": "integer"
+        },
+        "max_gross_fraction": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "1",
+          "title": "Max Gross Fraction"
+        },
+        "max_position_fraction": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.60",
+          "title": "Max Position Fraction"
+        },
+        "max_spread_fraction": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 0.05,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.003",
+          "title": "Max Spread Fraction"
+        },
+        "max_price_deviation": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 0.05,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.005",
+          "title": "Max Price Deviation"
+        },
+        "max_source_divergence": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 0.05,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.005",
+          "title": "Max Source Divergence"
+        },
+        "max_quote_age_seconds": {
+          "default": 3,
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Max Quote Age Seconds",
+          "type": "integer"
+        },
+        "signal_ttl_seconds": {
+          "default": 10,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Signal Ttl Seconds",
+          "type": "integer"
+        }
+      },
+      "title": "RiskConfig",
+      "type": "object"
+    },
+    "StrategyConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "default": "ORB_RVOL_v0.1",
+          "enum": [
+            "ORB_RVOL_v0.1",
+            "ORB_BASE_v0.1"
+          ],
+          "title": "Version",
+          "type": "string"
+        },
+        "warmup_sessions": {
+          "const": 20,
+          "default": 20,
+          "title": "Warmup Sessions",
+          "type": "integer"
+        },
+        "opening_range_minutes": {
+          "const": 5,
+          "default": 5,
+          "title": "Opening Range Minutes",
+          "type": "integer"
+        },
+        "min_previous_close": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "10",
+          "title": "Min Previous Close"
+        },
+        "min_average_dollar_volume": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "50000000",
+          "title": "Min Average Dollar Volume"
+        },
+        "min_rvol": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "2",
+          "title": "Min Rvol"
+        },
+        "max_selected": {
+          "default": 10,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Selected",
+          "type": "integer"
+        },
+        "entry_window_minutes": {
+          "default": 60,
+          "maximum": 60,
+          "minimum": 6,
+          "title": "Entry Window Minutes",
+          "type": "integer"
+        },
+        "selection_wait_seconds": {
+          "default": 2,
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Selection Wait Seconds",
+          "type": "integer"
+        },
+        "signal_ttl_seconds": {
+          "default": 10,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Signal Ttl Seconds",
+          "type": "integer"
+        },
+        "relative_strength_enabled": {
+          "const": false,
+          "default": false,
+          "title": "Relative Strength Enabled",
+          "type": "boolean"
+        },
+        "regime_enabled": {
+          "const": false,
+          "default": false,
+          "title": "Regime Enabled",
+          "type": "boolean"
+        },
+        "vwap_enabled": {
+          "const": false,
+          "default": false,
+          "title": "Vwap Enabled",
+          "type": "boolean"
+        }
+      },
+      "title": "StrategyConfig",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "mode": {
+      "$ref": "#/$defs/Mode",
+      "default": "offline"
+    },
+    "order_submission_enabled": {
+      "default": false,
+      "title": "Order Submission Enabled",
+      "type": "boolean"
+    },
+    "runtime_dir": {
+      "format": "path",
+      "title": "Runtime Dir",
+      "type": "string"
+    },
+    "reports_dir": {
+      "format": "path",
+      "title": "Reports Dir",
+      "type": "string"
+    },
+    "arm_ttl_seconds": {
+      "default": 300,
+      "exclusiveMinimum": 0,
+      "maximum": 900,
+      "title": "Arm Ttl Seconds",
+      "type": "integer"
+    },
+    "strategy": {
+      "$ref": "#/$defs/StrategyConfig"
+    },
+    "risk": {
+      "$ref": "#/$defs/RiskConfig"
+    },
+    "costs": {
+      "$ref": "#/$defs/CostConfig"
+    },
+    "backtest": {
+      "$ref": "#/$defs/BacktestConfig"
+    },
+    "data": {
+      "$ref": "#/$defs/DataConfig"
+    }
+  },
+  "title": "AppConfig",
+  "type": "object"
+}

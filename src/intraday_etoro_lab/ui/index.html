@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Intraday Lab · Laboratorio virtual</title>
+  <link rel="stylesheet" href="/assets/style.css"><script src="/assets/app.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="/" aria-label="Inicio"><span class="brand-mark">iL</span> intraday<span>lab</span></a>
+  <div class="workspace">ESPACIO DE INVESTIGACIÓN</div>
+  <nav aria-label="Secciones"><a href="#overview" class="active">◈ &nbsp; Centro operativo</a><a href="#selection">▦ &nbsp; Selección y señales</a><a href="#execution">⇄ &nbsp; Ejecución</a><a href="#research">⌁ &nbsp; Investigación</a><a href="#incidents">◎ &nbsp; Incidencias</a></nav>
+  <div class="sidebar-note"><span class="status-dot"></span> Solo capital virtual<p>ORB_RVOL_v0.1<br>Reglas reproducibles.<br>Extensiones desactivadas.</p></div>
+</aside>
+<main id="overview">
+  <header><div class="breadcrumb">Laboratorio / Operación local</div><div class="mode-pill" id="mode">OFFLINE</div></header>
+  <section class="heading"><div><div class="eyebrow">MONITOR DE SESIÓN</div><h1>Centro operativo</h1><p>De la hipótesis a una ejecución que puedes revisar.</p></div><button id="refresh" class="secondary">↻ Actualizar</button></section>
+  <section class="notice"><span>◉</span><div><strong>Entorno virtual · Investigación sin validar</strong><p id="provenance">Los fixtures son sintéticos. Sus resultados no son rendimiento de una cuenta ni evidencia de rentabilidad.</p></div><span class="label">SIN DINERO REAL</span></section>
+  <section id="login" class="login card"><div><h2>Conecta con el ejecutor local</h2><p>Introduce el token de <code>runtime/control-token</code>. Permanece solo en la memoria de esta pestaña.</p></div><form id="login-form"><label for="token">Token de control</label><input id="token" type="password" autocomplete="off" required minlength="32"><button type="submit">Conectar</button></form></section>
+  <p id="feedback" role="status" aria-live="polite">Esperando autenticación local.</p>
+  <section class="stats" aria-label="Riesgo y conexión">
+    <article class="card"><div class="stat-label">PRESUPUESTO VIRTUAL</div><div class="stat-value" id="budget">—</div><div class="stat-note" id="cash">Capital asignado explícitamente</div></article>
+    <article class="card"><div class="stat-label">RESULTADO REALIZADO</div><div class="stat-value" id="pnl">—</div><div class="stat-note">USD netos · simulador local</div></article>
+    <article class="card"><div class="stat-label">EXPOSICIÓN / RESERVAS</div><div class="stat-value" id="exposure">—</div><div class="stat-note" id="risk">Máximo 2 intenciones simultáneas</div></article>
+    <article class="card"><div class="stat-label">NUEVAS ENTRADAS</div><div class="stat-value small" id="armed">DESARMADAS</div><div class="stat-note" id="broker">eToro: sin configurar</div></article>
+  </section>
+  <section class="two-col">
+    <article class="card controls"><div class="section-top"><h2>Controles de sesión</h2><span class="tag">Ejecutor único</span></div><p>Recorre una sesión sintética o inspecciona su apertura y cierre por separado.</p><div class="buttons"><button data-command="demo-offline">▶ Ejecutar sesión offline</button><button class="secondary" data-command="fixture-start">Abrir fixture</button><button class="secondary" data-command="fixture-close">Cerrar fixture</button><button class="secondary" data-command="pause-entries">Pausar entradas</button><button class="secondary" data-command="reconcile">Reconciliar</button><button class="secondary" data-command="cancel-pending-entries">Cancelar pendientes</button></div><details><summary>Operación eToro Demo</summary><p>Requiere preflight y datos verificados. La confirmación no habilita una integración bloqueada.</p><div class="buttons"><button class="secondary" data-command="arm-demo">Activar Demo…</button><button class="danger" data-command="flatten-owned-demo">Cerrar propias Demo…</button></div></details></article>
+    <article class="card"><div class="section-top"><h2>Estado y disponibilidad</h2><span class="tag" id="data-status">SYNTHETIC_ONLY</span></div><dl class="key-values" id="status-detail"><dt>Hora Nueva York</dt><dd id="ny">—</dd><dt>Hora Bogotá</dt><dd id="bogota">—</dd><dt>Sesión</dt><dd id="session">—</dd><dt>Fuente / frescura</dt><dd id="freshness">Sin sesión cargada</dd><dt>Readiness Demo</dt><dd id="readiness">BLOCKED</dd><dt>No realizado / costes</dt><dd id="unrealized">—</dd></dl></article>
+  </section>
+  <section id="selection" class="card"><div class="section-top"><div><h2>Selección de apertura</h2><p>Ranking congelado al recibir el rango de cinco minutos.</p></div><span class="tag">RVOL ≥ 2 · Solo compras</span></div><div class="table-wrap"><table><thead><tr><th>Instrumento</th><th>Ranking</th><th>RVOL</th><th>ORH</th><th>ORL</th><th>Decisión / motivo</th></tr></thead><tbody id="selection-rows"><tr><td colspan="6" class="empty">Ejecuta un fixture para revisar la selección.</td></tr></tbody></table></div></section>
+  <section id="execution" class="two-col"><article class="card"><div class="section-top"><h2>Órdenes</h2><span class="tag" id="order-count">0</span></div><div class="table-wrap"><table><thead><tr><th>Instrumento</th><th>Estado</th><th>Unidades</th><th>Intención</th></tr></thead><tbody id="orders"><tr><td colspan="4" class="empty">Sin órdenes</td></tr></tbody></table></div></article><article class="card"><div class="section-top"><h2>Posiciones propias</h2><span class="tag" id="position-count">0</span></div><div class="table-wrap"><table><thead><tr><th>Instrumento</th><th>Unidades</th><th>Entrada</th><th>Stop</th></tr></thead><tbody id="positions"><tr><td colspan="4" class="empty">Sin exposición abierta</td></tr></tbody></table></div></article></section>
+  <section id="research" class="card"><div class="section-top"><div><h2>Investigación reproducible</h2><p id="research-status">RESEARCH_BLOCKED_DATA · Faltan históricos adecuados.</p></div><button class="secondary" data-command="backtest">Ejecutar backtest</button></div><div id="equity-chart" class="chart"><p>La curva aparecerá al completar un recorrido local.</p></div><div id="report-metrics" class="report-metrics"></div><details><summary>Manifiesto e informe completo</summary><pre id="report-json">Sin informes.</pre></details></section>
+  <section id="incidents" class="card"><div class="section-top"><h2>Incidencias y reconciliación</h2><span class="tag">Auditoría local</span></div><ul id="incident-list"><li>Sin sesión cargada.</li></ul></section>
+  <footer>intraday-etoro-lab <span>Los controles limitan la intención de riesgo; no garantizan un precio de ejecución.</span></footer>
+</main>
+<dialog id="confirmation"><form method="dialog"><h2 id="confirmation-title">Confirmar operación virtual</h2><p id="confirmation-message"></p><label for="confirm-text">Escribe DEMO_ONLY</label><input id="confirm-text" autocomplete="off"><label for="confirm-budget">Presupuesto virtual aceptado (USD, solo activación)</label><input id="confirm-budget" type="number" min="1" step="0.01"><div class="buttons"><button value="cancel" class="secondary">Cancelar</button><button id="confirm-submit" value="confirm">Confirmar</button></div></form></dialog>
+</body></html>

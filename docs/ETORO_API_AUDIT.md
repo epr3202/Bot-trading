@@ -1,5 +1,11 @@
 # Auditoría eToro
 
+Market Data 2026-09-14: catálogo API v1.376.0 / 1.20.0 y siete GET reales de Market
+Data auditados; sin rutas de cuenta/trading. Evidencia de volumen, historia y
+timestamps en [ETORO_MARKET_DATA_VALIDATION](ETORO_MARKET_DATA_VALIDATION.md).
+El hito Demo Read comunicado por el usuario está preservado y no se repitió.
+Los contratos de reconciliación de fases anteriores siguen con sus límites.
+
 Actualización de transporte 2026-09-14: por solicitud del usuario, el cliente de
 red ahora hereda el proxy del entorno y admite la CA corporativa; ver
 OPERATIONS_RUNBOOK. Esto sustituye la restricción histórica «sin proxies

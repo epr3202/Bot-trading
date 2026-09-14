@@ -1,5 +1,56 @@
 # Evidencia de verificación local
 
+## Market Data — 2026-09-14
+
+Hito externo previo aceptado desde la salida comunicada por el usuario:
+DEMO_READ_VERIFIED, connectivity/authentication/demo_identity VERIFIED, writes=0,
+external_mutations=DISABLED. No se repitió preflight externo ni lectura de cuenta.
+Baseline saneado, HEAD e índice/diff previos preservados en
+`runtime/market-audit-20260914T164913/`; gates previos en su carpeta prior-gates.
+
+Evidencia externa nueva: siete GET Market Data mediante MCP, HTTP 200 sin truncar:
+instrumentos AAPL, rates, exchanges, candles asc/desc 1Min/1000, OneDay/30 y
+OneMinute/10. Fuente de adquisición distinta del proceso HTTP de Bot 3, registrada
+explícitamente. Informe completo en [ETORO_MARKET_DATA_VALIDATION](ETORO_MARKET_DATA_VALIDATION.md).
+
+Comprobación real sin red adicional:
+`.\scripts\uv.ps1 run --frozen python scripts/audit_etoro_market_data.py --input data/raw/etoro-market-20260914T164913 --output runtime/market-audit-20260914T164913/final-analysis`
+salió 0. Este exit acredita el análisis, cuyo resultado de aptitud es BLOCKED,
+no calidad suficiente. ORH=334,54; ORL=331,72; volume apertura=1.181.044; RVOL null.
+Importación real de 209 minutos aprobada; motor rechaza
+OBSERVED_AVAILABILITY_REQUIRED. Parser de quote rechaza timestamp sin offset.
+No se afirma paridad numérica, rentabilidad, señal válida ni shadow.
+
+Diez pruebas de auditoría aprobadas con
+`.\scripts\uv.ps1 run --frozen pytest -q tests/test_market_audit.py`;
+son regresiones sintéticas separadas de los datos externos. Se corrigió un problema
+de importación del script en el arnés antes de aprobarlas. Batería final:
+`.\scripts\uv.ps1 run --frozen python scripts/verify.py`, salida 0 a
+2026-09-14T17:02:56.797513Z. **16/16 gates; 453 pruebas, cero errores/fallos/skips,
+82,574s; cobertura total 90,686683% y módulos críticos por encima del 90%.**
+Ruff check/format, mypy, scan de secretos, recorridos offline, bloqueos negativos,
+build offline y sintaxis JS aprobados. Huella de código estable durante checks:
+`4160c8a854c93b76ae078e6d50bb8abb7a6bedda8a4828e6808468cd81e33343`.
+Python 3.12.12 y lock SHA `d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f`
+conservados. Evidencia exacta copiada a `runtime/market-audit-20260914T164913/final-gates/`.
+La documentación se terminó después de los checks; la huella corresponde al código,
+no se atribuye al build una instantánea documental posterior.
+La suite estándar verifica además casos negativos con claves retiradas: no son
+reintentos de credenciales ni consultas de conectividad de la cuenta del usuario.
+
+Manifest local: `runtime/market-audit-20260914T164913/final-analysis/manifest.json`.
+SHA raw principal: `0e453e072905390e7132e34e8614e61c99cff92b9a6dac7e51d33c2e05221290`.
+SHA CSV: `2a869259e2d47376ef466ff5828985b430091e6e5e14396f981d33607fbcae2f`.
+Datos raw y derivados permanecen fuera de Git. Sin nueva conexión a otro proveedor,
+sin compras, publicación ni mutaciones externas. Los estados de las fases siguientes
+son históricos; NOT_CONFIGURED no sustituye el hito actual.
+
+Versionado local: `2d6eec3` conserva soporte de proxy/CA y ocho regresiones de la
+fase previa; el commit de esta auditoría añade el analizador, diez regresiones y
+documentación de evidencia. Solo rutas explícitas revisadas; blobs staged
+comparados con el worktree y escaneados para secretos antes de cada commit.
+Sin cambios de identidad Git, remoto ni publicación.
+
 ## Fase 3 — versiones realmente comprobadas
 
 Verificaciones ejecutadas en Windows con Python 3.12.12 y uv 0.12.12, lock congelado

@@ -1,5 +1,20 @@
 # Auditoría de proveedores
 
+## Market Data real — 2026-09-14
+
+Se obtuvieron siete respuestas HTTP 200 de Market Data eToro mediante MCP y se
+guardaron cuerpos reales inmutables con hashes. Esto supera el estado histórico
+SYNTHETIC_ONLY para disponibilidad de una muestra, pero **no** aprueba ORB/RVOL.
+Resultado: **ETORO_MARKET_DATA_INSUFFICIENT_FOR_RVOL**. AAPL/1001/Nasdaq; 1.000 velas
+de minuto, 209 regulares con intervalo terminado, cero sesiones previas completas.
+Volumen presente y suma coherente, unidades/consolidación desconocidas; 30 datos
+diarios no reconstruyen veinte aperturas de cinco minutos. ORH=334,54 y ORL=331,72
+reales; RVOL no calculable. Quote con timestamp sin offset y 43,076s hasta retorno
+de herramienta; no demuestra frescura operativa. Sin shadow ni mutaciones.
+Informe vigente: [ETORO_MARKET_DATA_VALIDATION](ETORO_MARKET_DATA_VALIDATION.md).
+La opción de otra fuente a través de MarketDataProvider/importador sigue disponible.
+Las secciones siguientes se conservan como historia, no como estado actual.
+
 ## Fase 3 — acceso real intentado y bloqueos precisos
 
 2026-09-10: configs/offline.yaml sigue usando fixtures. Al inspeccionar únicamente

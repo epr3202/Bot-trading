@@ -1,4 +1,37 @@
-# Estado — fase 3, 2026-09-10
+# Estado — Market Data, 2026-09-14
+
+| Dimensión actual | Estado | Evidencia / límite |
+|---|---|---|
+| broker / Demo Read | DEMO_READ_VERIFIED | Hito externo comunicado por el usuario desde Bot 3; connectivity/authentication/demo_identity VERIFIED; no se repitió preflight |
+| acceso Market Data | VERIFIED_VIA_MCP | Siete GET exclusivamente Market Data, HTTP 200; AAPL=1001, Nasdaq, quote y velas reales |
+| Market Data ORB/RVOL | BLOCKED | ETORO_MARKET_DATA_INSUFFICIENT_FOR_RVOL |
+| volumen | UNKNOWN | No nulo y agregación coherente; unidades y consolidación no acreditadas |
+| histórico minuto | INSUFFICIENT | 1.000 velas recientes; 209 minutos regulares completados; 0/20 sesiones previas completas y 0/20 aperturas previas |
+| cálculo independiente real | PARTIAL | AAPL 14/09: ORH 334,54; ORL 331,72; volume apertura 1.181.044; RVOL no calculable |
+| comparación motor | BLOCKED_AS_EXPECTED | OBSERVED_AVAILABILITY_REQUIRED; no candidato, cero señales; no paridad numérica afirmada |
+| shadow | NOT_STARTED_DATA_QUALITY_BLOCKED | Sin sesión ni órdenes externas |
+| seguridad | PRESERVED | entries_armed=false; external_mutations=DISABLED; order_submission_enabled=false; etoro_demo_write=NOT_TESTED |
+| software local | VERIFIED | 453 pruebas sin fallos/skips; 16/16 gates; cobertura 90,686683% |
+
+Muestra inmutable y manifiesto con SHA-256 preservados. Detalle, timestamps, límites
+de cotización y reproducción en [ETORO_MARKET_DATA_VALIDATION](docs/ETORO_MARKET_DATA_VALIDATION.md).
+Pruebas y commits de esta fase en [VERIFICATION](docs/VERIFICATION.md).
+No se cambió estrategia, calentamiento, riesgo, permisos ni adaptador de ejecución.
+X01 histórico queda superado por el hito del usuario; no volver a diagnosticarlo.
+La captura MCP es evidencia externa real separada del proceso HTTP de Bot 3.
+
+## Historia conservada — fases anteriores
+
+Actualización 2026-09-14 solicitada por el usuario: soporte de proxy del entorno
+y CA corporativa como en `oficios.py`, aplicado al cliente externo de eToro.
+TLS sigue obligatorio; no cambian rutas, cuotas, autorizaciones ni mutaciones.
+Verificación final: 443 pruebas sin fallos/skips, 16/16 gates aprobados,
+cobertura total 90,686683%; ocho regresiones nuevas (ver HANDOFF).
+Construcción local del cliente: salida 0, sin solicitudes. En este proceso hay
+variables de proxy, pero no `REQUESTS_CA_BUNDLE`, `SSL_CERT_FILE`, `SSL_CERT_DIR`
+ni `certs/epm-root.cer`. El certificado tampoco está junto al script de referencia.
+Conectividad/TLS externo siguen sin comprobar; no se consultaron cuentas.
+La tabla siguiente conserva la evidencia histórica de fase 3.
 
 | Dimensión | Estado | Evidencia / límite |
 |---|---|---|

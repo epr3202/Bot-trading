@@ -1,4 +1,79 @@
-# Continuidad — fase 3
+# Continuidad — Market Data, 2026-09-14
+
+El usuario confirmó DEMO_READ_VERIFIED desde Bot 3, con conexión, autenticación e
+identidad Demo verificadas y cero escrituras. Hito registrado en baseline.json,
+sin repetir consultas de cuenta. X01 de las secciones históricas está superado;
+no pedir claves ni reiniciar diagnóstico de conectividad.
+
+Esta fase obtuvo siete respuestas HTTP 200 exclusivamente Market Data mediante
+execute_read del conector eToro. La consulta local de instrumentos no pudo iniciarse
+con el contexto de proceso del agente; no se atribuye al bot la captura MCP.
+Datos reales, sin mocks de adquisición: AAPL/1001/Nasdaq, bid/ask, 1.000 minutos
+asc/desc, 30 diarios y repetición de 10 minutos. No se consultó elegibilidad, cuenta,
+portafolio ni otra ruta de trading. No se cambió la allowlist del transporte.
+
+Resultado: ETORO_MARKET_DATA_INSUFFICIENT_FOR_RVOL. Volumen de unidades desconocidas;
+0/20 sesiones previas completas, 0/20 aperturas históricas. La ventana regular actual
+no tiene huecos entre minutos ya cerrados, pero el histórico requerido no cabe en
+el contrato de 1.000 velas sin fecha/cursor. ORH=334,54, ORL=331,72 y volume de
+apertura=1.181.044 calculados independientemente sobre AAPL 2026-09-14. RVOL y
+comparación numérica con el motor bloqueados; este rechaza con
+OBSERVED_AVAILABILITY_REQUIRED, sin alterar ninguna regla ni falsear disponibilidad.
+
+Raw: data/raw/etoro-market-20260914T164913. Informe/CSV/manifiestos y hashes:
+runtime/market-audit-20260914T164913/final-analysis. Cuerpos raw inmutables, revisiones
+separadas y sin datos privados en Git. `scripts/audit_etoro_market_data.py` reproduce
+el análisis sin red; requiere directorio de salida nuevo. Diez regresiones nuevas
+cubren exclusión de vela abierta, huecos/duplicados, denominador sin hoy, OHLC,
+zonas y cierre temprano. Estado de gates en VERIFICATION.
+
+Batería final: 453 pruebas sin fallos/skips, 16/16 gates, cobertura 90,686683%.
+Huella estable y lock intacto; evidencia final en final-gates dentro de la carpeta
+de auditoría. Commit local `2d6eec3` conserva el cambio previo de proxy/CA; el commit
+de auditoría contiene este informe y el analizador sin red. No hay publicación.
+
+Shadow NO INICIADO. Se mantienen entries_armed=false, external_mutations=DISABLED,
+order_submission_enabled=false, etoro_demo_write=NOT_TESTED. El parser de quote
+rechaza el timestamp sin offset observado; el análisis lo interpreta como UTC por
+contrato y mide 43,076s hasta retorno de herramienta, por encima del gate de 3s.
+Esto también impide tratar la captura como cotización fresca operativa.
+
+Siguiente dependencia: volumen consolidado/ajustes acreditados y 21 sesiones de
+minutos de un proveedor apto, preservando MarketDataProvider e importación existentes;
+o aclaración contractual de eToro y cobertura demostrada. No reducir warmup ni usar
+volumen diario/ticks para simular RVOL. Los bloqueos contables X04 siguen vigentes;
+resolver datos tampoco autoriza Demo Write. Detalle en ETORO_MARKET_DATA_VALIDATION.
+
+## Historia conservada — fases anteriores
+
+Actualización 2026-09-14: el usuario solicitó adaptar el manejo de proxy del script
+de oficios. Se revisó `oficios.py` en la carpeta de generación/recuperación sin
+ejecutarlo ni importar credenciales. `create_http_client` aplica proxy del entorno
+y prioridad CA local `certs/epm-root.cer` → `REQUESTS_CA_BUNDLE` → defaults HTTPX.
+No se desactiva TLS ni se cambia configuración global. CA/proxy inválidos producen
+error redactado sin fallback. Transportes inyectados no heredan el entorno; el
+panel local mantiene conexión directa. No cambian guardas de escritura, identidad,
+reservas, propiedad, recuperación ni datos/tiempos de disponibilidad.
+
+Verificación: ocho pruebas nuevas aprobadas con
+`.\scripts\uv.ps1 run --frozen pytest -q tests/test_corporate_network.py`.
+Primer pase completo: 15/16 gates; dos pruebas nuevas parcheaban el símbolo
+incorrecto de HTTPX. La guarda de sockets bloqueó la conexión externa y hubo
+resolución DNS fallida del proxy ficticio; ninguna consulta de cuenta ni respuesta
+externa. Se corrigió el aislamiento. Evidencia inicial conservada en
+`runtime/proxy-verification-first.json`. Batería final:
+`.\scripts\uv.ps1 run --frozen python scripts/verify.py`, salida 0;
+16/16 gates, 443 pruebas sin errores/fallos/skips, cobertura 90,686683% y módulos
+críticos por encima del 90%. Ruff check/format, mypy, escaneo de secretos, recorridos
+offline, bloqueos negativos, build y sintaxis JS aprobados. Evidencia exacta en
+`runtime/verification.json`, credenciales retiradas y código estable durante checks.
+
+Construcción del cliente con entorno actual aprobada, sin solicitudes HTTP.
+Proxy presente; CA corporativa no configurada ni encontrada en la carpeta de
+referencia. Falta aportar CA autorizada mediante la ruta/variable documentada en
+OPERATIONS_RUNBOOK y comprobar conectividad en un alcance autorizado. No se
+realizaron lecturas de cuenta, operaciones externas, commits ni publicación.
+Python 3.12.12 y uv.lock conservados. Los bloqueos históricos siguientes permanecen.
 
 Proyecto existente C:/Users/epulgare/Nueva carpeta/Bot 3. Se mantuvieron Python
 3.12.12, uv 0.12.12, uv.lock, ORB_RVOL_v0.1, 20 warmups, presupuesto, riesgo y TTL.

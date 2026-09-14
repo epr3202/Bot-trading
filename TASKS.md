@@ -1,4 +1,19 @@
-# Tareas — cierre de fase 3
+# Tareas — Market Data, 2026-09-14
+
+| Tarea actual | Estado |
+|---|---|
+| Preservar DEMO_READ_VERIFIED comunicado por el usuario | DONE; no repetir diagnóstico de cuenta |
+| Capturar Market Data exclusivamente | DONE vía MCP; siete GET HTTP 200, raw y hashes locales |
+| Identidad, quote, OHLC 1Min y sesión NY | AUDITED; AAPL/1001/Nasdaq; limitaciones temporales documentadas |
+| Semántica de volume y 20 sesiones previas | BLOCKED; consolidación desconocida e histórico insuficiente |
+| ORH/ORL/RVOL independiente y contraste motor | PARTIAL; ORH/ORL reales; RVOL y paridad numérica bloqueados; rechazo del motor comprobado |
+| Shadow | NOT_STARTED_DATA_QUALITY_BLOCKED |
+| Estrategia, riesgo y prohibición de mutaciones | PRESERVED |
+
+Informe vigente: docs/ETORO_MARKET_DATA_VALIDATION.md. Gates y commits en VERIFICATION.
+Las filas históricas X01 NOT_CONFIGURED de abajo quedan superadas por el hito Demo Read.
+
+## Historia conservada — cierre de fase 3
 
 | ID | Estado | Evidencia / siguiente acción |
 |---|---|---|

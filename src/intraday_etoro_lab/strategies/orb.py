@@ -56,11 +56,45 @@ class SessionDecision(FrozenModel):
     rejections: tuple[Rejection, ...]
 
 
+class OpeningMetrics(FrozenModel):
+    or_high: Decimal
+    or_low: Decimal
+    opening_volume: Decimal
+    historical_opening_volume: Decimal
+    rvol: Decimal
+
+
 class ORBStrategy:
     """Point-in-time selection; decisions use first finalized arrival, never revisions."""
 
     def __init__(self, config: StrategyConfig | None = None) -> None:
         self.config = config or StrategyConfig()
+
+    @staticmethod
+    def opening_metrics(opening: list[Bar], previous_volumes: list[Decimal]) -> OpeningMetrics:
+        """Existing arithmetic, also callable for historical audit; never emits signals."""
+        if len(opening) != 5 or len(previous_volumes) != 20:
+            raise ValueError("OPENING_METRICS_REQUIRE_FIVE_MINUTES_AND_TWENTY_SESSIONS")
+        market = session(opening[0].session_date)
+        if any(
+            bar.event_time != market.open + timedelta(minutes=i)
+            or bar.instrument != opening[0].instrument
+            for i, bar in enumerate(opening)
+        ):
+            raise ValueError("OPENING_METRICS_INVALID_WINDOW")
+        if any(not value.is_finite() or value <= 0 for value in previous_volumes):
+            raise ValueError("INVALID_HISTORICAL_OPENING_VOLUME")
+        current_volume = sum((bar.volume for bar in opening), Decimal(0))
+        if current_volume <= 0:
+            raise ValueError("INVALID_OPENING_VOLUME")
+        denominator = sum(previous_volumes, Decimal(0)) / Decimal(20)
+        return OpeningMetrics(
+            or_high=max(bar.high for bar in opening),
+            or_low=min(bar.low for bar in opening),
+            opening_volume=current_volume,
+            historical_opening_volume=denominator,
+            rvol=current_volume / denominator,
+        )
 
     def process_session(self, bundle: DataBundle, day: date) -> SessionDecision:
         config = self.config
@@ -128,7 +162,6 @@ class ORBStrategy:
             if any(volume <= 0 for volume in opening_means):
                 reject(symbol, "INVALID_HISTORICAL_OPENING_VOLUME")
                 continue
-            denominator = sum(opening_means, Decimal(0)) / Decimal(20)
             today = grouped.get((symbol, day), {})
             opening_times = [market.open + timedelta(minutes=i) for i in range(5)]
             if not all(
@@ -142,7 +175,8 @@ class ORBStrategy:
                 reject(symbol, "INVALID_OPENING_VOLUME")
                 continue
             evaluable.append(symbol)
-            rvol = current_volume / denominator
+            metrics = self.opening_metrics(opening, opening_means)
+            rvol = metrics.rvol
             if config.version == "ORB_RVOL_v0.1" and rvol < config.min_rvol:
                 reject(symbol, "RVOL_BELOW_THRESHOLD")
                 continue
@@ -152,12 +186,12 @@ class ORBStrategy:
                     rank=1,
                     rvol=rvol,
                     average_dollar_volume=liquidity,
-                    or_high=max(bar.high for bar in opening),
-                    or_low=min(bar.low for bar in opening),
+                    or_high=metrics.or_high,
+                    or_low=metrics.or_low,
                     or_open=opening[0].open,
                     or_close=opening[-1].close,
                     opening_volume=current_volume,
-                    historical_opening_volume=denominator,
+                    historical_opening_volume=metrics.historical_opening_volume,
                 )
             )
         # Base comparison ranks by the same liquidity universe without RVOL selection.

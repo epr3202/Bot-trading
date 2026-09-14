@@ -5,6 +5,7 @@ import json
 import os
 import random
 import re
+import ssl
 import time
 from collections import defaultdict, deque
 from collections.abc import Callable, Mapping
@@ -12,6 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from email.utils import parsedate_to_datetime
+from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -33,6 +35,23 @@ ORDERS = "/api/v2/trading/execution/demo/orders"
 LOOKUP = "/api/v2/trading/info/demo/orders:lookup"
 COSTS = "/api/v2/trading/info/demo/costs"
 ELIGIBILITY = "/api/v2/trading/info/demo/eligibility"
+
+
+def create_http_client(*, transport: httpx.BaseTransport | None = None) -> httpx.Client:
+    """Use corporate CA/proxy settings only for the actual external network client."""
+    if transport is not None:
+        # An injected transport must never acquire environment proxy mounts.
+        return httpx.Client(
+            transport=transport, timeout=10, follow_redirects=False, trust_env=False
+        )
+    local_ca = Path("certs/epm-root.cer")
+    ca_file = str(local_ca) if local_ca.exists() else os.getenv("REQUESTS_CA_BUNDLE")
+    try:
+        verify = ssl.create_default_context(cafile=ca_file) if ca_file else True
+        return httpx.Client(timeout=10, follow_redirects=False, trust_env=True, verify=verify)
+    except (OSError, ValueError, ImportError):
+        # Do not expose proxy credentials or private paths through exception text.
+        raise BrokerBlocked("ETORO_TLS_OR_PROXY_CONFIGURATION_INVALID") from None
 
 
 @dataclass(frozen=True)
@@ -208,9 +227,7 @@ class GuardedTransport:
         # httpx mock used by contract tests may exercise the existing mutation guards.
         # No configuration, environment variable or old authorization bypasses this.
         self._contract_transport = transport if type(transport) is httpx.MockTransport else None
-        self._client = httpx.Client(
-            transport=transport, timeout=10, follow_redirects=False, trust_env=False
-        )
+        self._client = create_http_client(transport=transport)
 
     def close(self) -> None:
         self._client.close()

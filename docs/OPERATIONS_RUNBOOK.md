@@ -1,5 +1,36 @@
 # Operación e incidentes
 
+## Proxy y certificado corporativo (2026-09-14)
+
+El cliente externo hereda `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` y `NO_PROXY`
+del proceso mediante HTTPX. Para la CA reproduce la prioridad de `oficios.py`:
+`certs/epm-root.cer` relativo al directorio de ejecución (arrancar desde la raíz
+del proyecto), luego `REQUESTS_CA_BUNDLE`. Sin ambos se conserva la configuración
+normal de HTTPX: `SSL_CERT_FILE`/`SSL_CERT_DIR` o certifi. Los archivos CA deben
+contener certificados PEM, aunque su extensión sea `.cer`. Una CA explícita
+inválida bloquea; no se reintenta sin verificación. No se cambia el entorno global.
+
+Colocar el certificado corporativo autorizado en `certs/epm-root.cer` (carpeta
+ignorada por Git), o establecer `$env:REQUESTS_CA_BUNDLE` con la ruta local válida.
+Si la red requiere proxy explícito, establecer `$env:HTTPS_PROXY` con su dirección
+autorizada en la misma consola. No guardar credenciales del proxy en el repositorio.
+El archivo de referencia revisado no contiene la carpeta `certs`; por tanto no se
+copió ni se inventó un certificado. No se importó ni ejecutó el script de oficios.
+
+El preflight existente utiliza esta configuración. Un `httpx.Client(...)` creado
+manualmente en `python -c` no utiliza el código del bot. Para comprobar únicamente
+la construcción local del cliente, sin solicitudes de cuenta ni de red:
+
+```powershell
+.\scripts\uv.ps1 run --frozen python -c "from intraday_etoro_lab.brokers.transport import create_http_client; c=create_http_client(); print('Configuración cargada; conexión no comprobada'); c.close()"
+```
+
+Se conserva TLS obligatorio, origen/rutas permitidos, bloqueo de redirecciones y
+mutaciones externas. Los transportes inyectados de pruebas y el control del panel
+local no heredan proxies. La opción insegura del script de referencia no se adapta.
+Documentación: [TLS HTTPX](https://www.python-httpx.org/advanced/ssl/) y
+[variables de entorno](https://www.python-httpx.org/environment_variables/).
+
 Fase 2: toda gestión externa, incluso salidas/stops/cancelaciones Demo, está
 DESHABILITADA. La tabla de incidentes describe comportamiento del simulador y requisitos
 de una futura sesión; no autoriza operar posiciones existentes del usuario.

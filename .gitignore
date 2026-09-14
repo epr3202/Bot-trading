@@ -27,6 +27,7 @@ reports/runs/
 *.sqlite*
 *.log
 *.pem
+certs/
 *.key
 credentials*
 *.whl

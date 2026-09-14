@@ -1,5 +1,13 @@
 # Auditoría eToro
 
+Actualización de transporte 2026-09-14: por solicitud del usuario, el cliente de
+red ahora hereda el proxy del entorno y admite la CA corporativa; ver
+OPERATIONS_RUNBOOK. Esto sustituye la restricción histórica «sin proxies
+heredados» de fase 2. No cambia origen, allowlist, redirecciones, cuotas,
+autorización ni bloqueo de mutaciones. Pruebas con transporte inyectado siguen
+aisladas del proxy. Ninguna lectura de cuenta autoriza este cambio por sí misma
+y no se realizaron consultas de cuenta para comprobarlo.
+
 ## Fase 3 — revisión focalizada, 2026-09-10
 
 Catálogo oficial revalidado: API **v1.375.0**, catálogo **1.19.1**. Se consultaron

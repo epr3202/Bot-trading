@@ -1,4 +1,26 @@
-# Estado — Market Data, 2026-09-14
+# Estado — Alpaca histórico, 2026-09-14
+
+**ALPACA_DATA_INSUFFICIENT_FOR_RVOL**: primer intento SIP bloqueado antes de red
+por ALPACA_CREDENTIALS_UNAVAILABLE en el proceso del agente. Feed solicitado SIP;
+feed efectivo desconocido; cero barras/sesiones recuperadas. Entitlement no
+comprobado: no se afirma que la cuenta necesite una suscripción. ORH/ORL/RVOL y
+comparación real NOT_RUN. Manifiesto saneado en docs/alpaca-historical-manifest.json.
+
+Proveedor histórico de solo lectura incorporado: captura por ruta fija, paginación,
+SHA-256, carga offline mediante MarketDataProvider y exportación al importador
+existente. No depende de SDK; eToro no fue reemplazado. 38 regresiones Alpaca y
+15 pruebas existentes de estrategia/datos aprobadas. Batería final: 491 pruebas,
+16/16 gates, cobertura total 90,070065%; cobertura crítica sin reducción.
+Evidencia y commits en VERIFICATION.
+Fórmulas de apertura extraídas sin cambios para comparar con cálculo independiente;
+el motor operativo sigue rechazando histórico descargado como datos observados.
+
+eToro DEMO_READ_VERIFIED preservado. No se corrigió el feed eToro, no se consultaron
+cuentas, no hubo órdenes, shadow, realtime ni compras. entries_armed=false,
+external_mutations=DISABLED, order_submission_enabled=false, etoro_demo_write=NOT_TESTED.
+Contrato, limitaciones y comando de captura en [ALPACA_DATA_CONTRACT](docs/ALPACA_DATA_CONTRACT.md).
+
+## Hito anterior conservado — Market Data eToro
 
 | Dimensión actual | Estado | Evidencia / límite |
 |---|---|---|

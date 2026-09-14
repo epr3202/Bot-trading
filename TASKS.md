@@ -1,4 +1,19 @@
-# Tareas — Market Data, 2026-09-14
+# Tareas — Alpaca histórico, 2026-09-14
+
+| Tarea | Estado |
+|---|---|
+| Proveedor Alpaca histórico separado de eToro | IMPLEMENTED; contrato MarketDataProvider preservado |
+| SIP AAPL, 20 previas + objetivo | ATTEMPT_BLOCKED_BEFORE_NETWORK; feed efectivo desconocido |
+| Volumen y parámetros | DOCUMENTED; no evidencia empírica Alpaca disponible |
+| Mapeo, cuotas, páginas y feed identity | CONTRACT_TESTED |
+| Comparación ORH/ORL/RVOL | SOFTWARE_TESTED; datos reales NOT_RUN |
+| Shadow / órdenes / optimización | NOT_STARTED / DISABLED / NOT_PERFORMED |
+
+Estado actual C: ALPACA_DATA_INSUFFICIENT_FOR_RVOL por contexto Alpaca no disponible;
+no atribuirlo a entitlement. Próximo paso: captura desde proceso con variables dedicadas
+ya configuradas, según docs/ALPACA_DATA_CONTRACT.md. Gates/commits en VERIFICATION.
+
+## Hito anterior conservado — Market Data eToro
 
 | Tarea actual | Estado |
 |---|---|

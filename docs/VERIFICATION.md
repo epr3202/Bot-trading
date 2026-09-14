@@ -1,5 +1,54 @@
 # Evidencia de verificación local
 
+## Alpaca histórico — 2026-09-14
+
+Base limpia 134844b; baseline/gates preservados en
+runtime/alpaca-phase-20260914T184730. Nuevo proveedor REST histórico, lector offline
+MarketDataProvider, auditoría Fraction/Decimal y CLI de captura explícita. Se
+mantuvieron Python 3.12.12, uv.lock, eToro Demo y todos los bloqueos de mutación.
+
+Intento externo autorizado:
+`.\scripts\uv.ps1 run --frozen python scripts/audit_alpaca_history.py --capture --feed sip --target 2026-09-11`.
+El lanzador PowerShell reportó exit 1; el resultado estructurado es
+ALPACA_DATA_INSUFFICIENT_FOR_RVOL / ALPACA_CREDENTIALS_UNAVAILABLE antes de red.
+No respuesta HTTP, feed efectivo null, 0 sesiones, métricas reales null, entitlement
+no comprobado. No se repitió diagnóstico eToro ni se solicitaron secretos.
+Evidencia exacta en runtime/alpaca-audits/20260914T185623-4eab7c52/result.json;
+SHA-256 `5948385984087470bc2f04ea2bf1dfb268149f89e83052e2d43eb8e3a883a91c`.
+Ese hash es de un resultado bloqueado, no de barras inexistentes.
+
+Pruebas focalizadas: 38 passed con `uv run --frozen pytest -q tests/test_alpaca_history.py`;
+15 passed con `uv run --frozen pytest -q tests/test_strategy_orb.py tests/test_data_contracts.py`.
+Todos los comandos usan scripts/uv.ps1 en Windows. Un primer comando apuntó a un
+nombre de test inexistente y no ejecutó pruebas; se corrigió la ruta. Mypy y Ruff
+aprobados. Las pruebas de CLI confirman código de salida 2 para bloqueo semántico;
+no lo confunden con la salida 1 del lanzador observado.
+
+Batería final `scripts/uv.ps1 run --frozen python scripts/verify.py`: salida 0,
+**491 pruebas sin errores/fallos/skips y 16/16 gates**, 118,875s de tests.
+Terminó 2026-09-14T19:11:20.283614Z. Cobertura total **90,070065%**; cobertura crítica
+exactamente igual a la base: riesgo 100%, autorización 98,4%, transporte 99,267399%,
+ejecución 95,3125%, modelos de ejecución 100%, persistencia 95,270270%.
+Ruff check/format, mypy, scan, recorridos offline, bloqueos negativos, build y
+sintaxis JS aprobados. Credenciales Alpaca/eToro retiradas de los checks.
+Huella de código estable: `eb3e1377cc82f022b520a14d88e08fbc32fa46184417c50a3a83d6d1db54b268`.
+Lock intacto: `d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f`.
+Evidencia exacta preservada en runtime/alpaca-phase-20260914T184730/final-gates.
+La documentación se terminó después del build; no se atribuye a ese paquete la
+instantánea documental posterior. Las pruebas no certifican conexión externa Alpaca.
+
+Commits locales separados: `880993a` extrae el cálculo sin cambiar reglas;
+`c1c5a11` incorpora proveedor, adquisición, auditoría y pruebas; el documental registra el
+resultado C observado. Antes de cada commit: rutas explícitas, comparación de blobs
+staged con archivos revisados y escaneo de secretos sin hallazgos. Sin remoto/push.
+
+Las barras fabricadas en tests se marcan CONTRACT_TEST y no pueden obtener
+ALPACA_SIP_HISTORICAL_VERIFIED. Se prueba RVOL esperado 3 con veinte aperturas de
+5.000 y apertura objetivo 15.000, calculado fuera del motor; también se fuerza una
+discrepancia del motor y se exige MISMATCH. Esto prueba software, no feed externo.
+El motor operativo sigue rechazando histórico real con OBSERVED_AVAILABILITY_REQUIRED.
+No hubo shadow, datos realtime, órdenes externas, compras o publicación.
+
 ## Market Data — 2026-09-14
 
 Hito externo previo aceptado desde la salida comunicada por el usuario:

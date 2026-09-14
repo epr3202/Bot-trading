@@ -1,5 +1,21 @@
 # Auditoría de proveedores
 
+## Alpaca independiente — 2026-09-14
+
+Implementación de histórico de solo lectura incorporada con feed explícito, captura
+inmutable, paginación, mapeo y auditoría. Proveedor offline conforme a DataBundle;
+sin dependencia Alpaca en estrategia/riesgo/ejecución ni sustitución de eToro.
+Primera consulta AAPL/1Min/SIP para 20 sesiones previas y objetivo 2026-09-11:
+bloqueada antes de red por ALPACA_CREDENTIALS_UNAVAILABLE. Cero sesiones, feed efectivo
+desconocido, ORH/ORL/RVOL reales NOT_RUN. Estado ALPACA_DATA_INSUFFICIENT_FOR_RVOL.
+
+SIP consolidado y volumen de operaciones elegibles están documentados, pero no
+observados en esta cuenta. Un 403 genérico no certifica falta de entitlement; no se
+compró plan. IEX no sustituye SIP. Historical download nunca certifica disponibilidad
+en apertura y no habilita shadow. Véanse [contrato y esquema](ALPACA_DATA_CONTRACT.md)
+y [manifiesto del intento](alpaca-historical-manifest.json). Se conserva la auditoría
+eToro y el proveedor fixture; los hallazgos empíricos siguientes son de eToro, no Alpaca.
+
 ## Market Data real — 2026-09-14
 
 Se obtuvieron siete respuestas HTTP 200 de Market Data eToro mediante MCP y se

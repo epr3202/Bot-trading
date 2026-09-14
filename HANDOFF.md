@@ -1,4 +1,49 @@
-# Continuidad — Market Data, 2026-09-14
+# Continuidad — Alpaca histórico, 2026-09-14
+
+Se continuó desde 134844b y árbol limpio. Baseline y gates anteriores preservados en
+runtime/alpaca-phase-20260914T184730. DEMO_READ_VERIFIED no se volvió a diagnosticar;
+eToro audit-only mantiene ETORO_MARKET_DATA_INSUFFICIENT_FOR_RVOL.
+
+Alpaca incorporado como proveedor independiente sin SDK: data/alpaca_http.py solo
+GET data.alpaca.markets/v2/stocks/bars; data/alpaca.py carga archivos a DataBundle;
+data/alpaca_audit.py compara raw/Fraction con el cálculo Decimal del motor.
+CLI explícita scripts/audit_alpaca_history.py; salida CSV/manifiesto compatible con
+provider=import existente. Fixture sigue predeterminado. RiskEngine, ExecutionEngine,
+el adaptador eToro y sus rutas no cambian. No se amplió MarketDataProvider.
+
+Consulta inicial prevista AAPL/1Min/SIP/split: 2026-08-13 13:30Z a 2026-09-11 19:59Z
+(end inclusivo), 20 sesiones previas más objetivo cerrado 11/09. Intento real:
+ALPACA_CREDENTIALS_UNAVAILABLE antes de red, sin bytes ni feed efectivo.
+Estado C: ALPACA_DATA_INSUFFICIENT_FOR_RVOL; no es evidencia de falta de entitlement.
+Resultado original en runtime/alpaca-audits/20260914T185623-4eab7c52/result.json;
+manifiesto saneado versionado en docs/alpaca-historical-manifest.json.
+No solicitar claves ni buscarlas en perfiles/otros proyectos. El siguiente paso es
+ejecutar el comando documentado desde un proceso con ALPACA_API_KEY/ALPACA_API_SECRET
+ya disponibles, sin volver a consultar eToro. No comprar plan ni cambiar a IEX.
+
+La aritmética ORH/ORL/RVOL existente se extrajo a ORBStrategy.opening_metrics, usada
+también por process_session. No cambian fórmulas, filtros, ranking, riesgo o TTL.
+La comparación histórica usa esa parte numérica y ejecuta process_session por
+separado: el gate OBSERVED_AVAILABILITY_REQUIRED permanece. Tolerancia absoluta
+1e-12 y relativa cero; resultado real NOT_RUN. Nunca se declara observed ni se
+inventa latencia para pasar la prueba. Historical snapshots conservan correcciones
+como posibilidad; no prueban primera recepción ni señales realtime.
+
+38 pruebas nuevas Alpaca aprobadas: mapping, identidad de feed, tiempos, huecos,
+duplicados, paginación, HTTP, cuotas, CSV y cálculo independiente. 15 pruebas previas
+de estrategia/datos también aprobadas. Batería final: 491 pruebas, 16/16 gates;
+cobertura 90,070065% y todos los módulos críticos mantienen exactamente la cobertura
+previa. Código estable, Python/lock conservados; final-gates dentro del baseline
+guarda las salidas exactas. Ver commits en VERIFICATION.
+Scripts de gates y fixtures de tests retiran también las variables Alpaca, y scanner
+incluye sus nombres. Datos raw solo en data/raw/alpaca; resultados en runtime.
+
+Guardas mantenidas: entries_armed=false, external_mutations=DISABLED,
+order_submission_enabled=false, etoro_demo_write=NOT_TESTED. No shadow en esta fase,
+ni siquiera si un histórico llega a aprobar; WebSocket es un alcance posterior.
+Documentación del esquema, contrato y estados en docs/ALPACA_DATA_CONTRACT.md.
+
+## Hito anterior conservado — Market Data eToro
 
 El usuario confirmó DEMO_READ_VERIFIED desde Bot 3, con conexión, autenticación e
 identidad Demo verificadas y cero escrituras. Hito registrado en baseline.json,

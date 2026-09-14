@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import ssl
+import subprocess
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -26,6 +27,30 @@ Feed = Literal["sip", "iex"]
 
 class AlpacaDataError(RuntimeError):
     """Static public reason; upstream error bodies and credentials are never surfaced."""
+
+    @property
+    def status(self) -> str:
+        """Stable failure category, retaining the narrower static reason separately."""
+        reason = str(self)
+        if reason.startswith("ALPACA_RATE_LIMIT_"):
+            return "ALPACA_RATE_LIMITED"
+        if "FEED" in reason and "MISMATCH" in reason:
+            return "ALPACA_FEED_MISMATCH"
+        if "PAGINATION" in reason or reason in {
+            "ALPACA_CAPTURE_INCOMPLETE_OR_WRONG_SOURCE",
+            "ALPACA_NO_PAGES",
+            "ALPACA_NO_REGULAR_BARS",
+        }:
+            return "ALPACA_HISTORICAL_INCOMPLETE"
+        if reason in {
+            "ALPACA_CREDENTIALS_UNAVAILABLE",
+            "ALPACA_CONNECTIVITY_FAILED",
+            "ALPACA_AUTHENTICATION_FAILED",
+            "ALPACA_SIP_ENTITLEMENT_REQUIRED",
+            "ALPACA_TLS_OR_PROXY_CONFIGURATION_INVALID",
+        } or reason.startswith("ALPACA_HTTP_"):
+            return reason
+        return "ALPACA_INVALID_RESPONSE"
 
 
 def utc_now() -> datetime:
@@ -91,6 +116,16 @@ def save_json(path: Path, payload: Any) -> None:
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def software_commit() -> str:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
+        )
+        return result.stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "UNRECORDED_WORKTREE"
 
 
 class AlpacaHistoryClient:
@@ -172,7 +207,7 @@ class AlpacaHistoryClient:
                 self.records.append(
                     {"started_at": started.isoformat(), "status": "TRANSPORT_ERROR"}
                 )
-                raise AlpacaDataError("ALPACA_HISTORY_UNAVAILABLE") from None
+                raise AlpacaDataError("ALPACA_CONNECTIVITY_FAILED") from None
             received = self.now()
             self.records.append(
                 {
@@ -225,7 +260,7 @@ class AlpacaHistoryClient:
             "method": "GET",
             "feed_requested": request.feed,
             "feed_effective": None,
-            "feed_identity_basis": "Explicit HTTPS feed and API contract; no payload echo",
+            "feed_identity_basis": "Request contract only; observed feed requires every page echo",
             "acquisition_class": "NETWORK_HTTP" if self.network_observed else "CONTRACT_TEST",
             "availability_class": "HISTORICAL_DOWNLOAD",
             "target": str(request.target),
@@ -234,6 +269,7 @@ class AlpacaHistoryClient:
             "pages": [],
             "status": "INCOMPLETE",
             "started_at": self.now().isoformat(),
+            "software_commit": software_commit(),
         }
         token: str | None = None
         seen: set[str] = set()
@@ -258,7 +294,12 @@ class AlpacaHistoryClient:
                     raise AlpacaDataError("ALPACA_PAGINATION_STATE_MISSING")
                 next_token = doc["next_page_token"]
                 if next_token is None:
-                    capture.update(status="COMPLETE", feed_effective=request.feed)
+                    capture.update(
+                        status="COMPLETE",
+                        feed_effective=request.feed
+                        if all(page["feed_echo"] == request.feed for page in capture["pages"])
+                        else None,
+                    )
                     return capture
                 if not isinstance(next_token, str) or not next_token or next_token in seen:
                     raise AlpacaDataError("ALPACA_PAGINATION_LOOP_OR_INVALID_TOKEN")

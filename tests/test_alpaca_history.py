@@ -82,7 +82,7 @@ def test_mapping_feed_timestamp_counts_and_no_etoro_credentials(tmp_path, monkey
         assert request.url.params["adjustment"] == "split"
         assert request.headers["APCA-API-KEY-ID"] == "test-alpaca-id"
         assert "x-api-key" not in request.headers and "x-user-key" not in request.headers
-        return response([bar])
+        return response([bar], feed="sip")
 
     raw = capture(tmp_path, handler)
     provider = AlpacaHistoricalProvider(raw)
@@ -402,7 +402,7 @@ def test_zero_quota_on_success_defers_next_page(tmp_path):
     assert sleeps == [3] and len(calls) == 2
 
 
-def test_cli_missing_context_is_C_not_entitlement_or_fake_capture(tmp_path, monkeypatch):
+def test_cli_missing_context_is_configuration_not_data_or_entitlement(tmp_path, monkeypatch):
     script = Path(__file__).resolve().parents[1] / "scripts/audit_alpaca_history.py"
     namespace = runpy.run_path(str(script))
     monkeypatch.chdir(tmp_path)
@@ -410,7 +410,8 @@ def test_cli_missing_context_is_C_not_entitlement_or_fake_capture(tmp_path, monk
     assert namespace["main"]() == 2
     results = list((tmp_path / "runtime/alpaca-audits").glob("*/result.json"))
     payload = json.loads(results[0].read_text())
-    assert payload["status"] == "ALPACA_DATA_INSUFFICIENT_FOR_RVOL"
+    assert payload["status"] == "ALPACA_CREDENTIALS_UNAVAILABLE"
+    assert payload["observed_feed"] is None and payload["raw_sha256"] == {}
     assert payload["feed_effective"] is None and not payload["entitlement_verified"]
     assert not (tmp_path / "data/raw").exists()
 
@@ -438,3 +439,156 @@ def test_engine_metrics_reject_invalid_windows(count, volumes):
     ]
     with pytest.raises(ValueError):
         ORBStrategy.opening_metrics(bars, volumes)
+
+
+@pytest.mark.parametrize("error_type", [httpx.ConnectError, httpx.ReadTimeout])
+def test_transport_failure_classified_without_private_exception(error_type, tmp_path):
+    def handler(request):
+        raise error_type("private-upstream-credentials", request=request)
+
+    with pytest.raises(AlpacaDataError) as error:
+        capture(tmp_path, handler)
+    assert error.value.status == "ALPACA_CONNECTIVITY_FAILED"
+    assert "private-upstream" not in (tmp_path / "raw/capture.json").read_text()
+
+
+@pytest.mark.parametrize(
+    "status,body,expected",
+    [
+        (401, {}, "ALPACA_AUTHENTICATION_FAILED"),
+        (403, {}, "ALPACA_HTTP_403"),
+        (403, {"message": "subscription does not permit SIP"}, "ALPACA_SIP_ENTITLEMENT_REQUIRED"),
+        (429, {}, "ALPACA_RATE_LIMITED"),
+        (200, {"bars": []}, "ALPACA_INVALID_RESPONSE"),
+        (200, {"bars": {}, "feed": "iex"}, "ALPACA_FEED_MISMATCH"),
+        (200, {"bars": {}}, "ALPACA_HISTORICAL_INCOMPLETE"),
+    ],
+)
+def test_acquisition_failure_categories(status, body, expected, tmp_path):
+    with pytest.raises(AlpacaDataError) as error:
+        capture(tmp_path, lambda _: httpx.Response(status, json=body, headers={"Retry-After": "0"}))
+    assert error.value.status == expected
+
+
+def full_rows():
+    return [
+        row(session(day).open + timedelta(minutes=i), 3000 if day == REQUEST.target else 1000)
+        for day in REQUEST.days
+        for i in range(session(day).minutes)
+    ]
+
+
+def test_no_payload_echo_is_unverified_even_with_legacy_real_marker(tmp_path):
+    raw = capture(tmp_path, lambda _: response(full_rows()))
+    # Model an older manifest that inferred effective feed solely from its request.
+    # Fabricated contents remain a test; this is not an external observation.
+    rewrite_manifest(
+        raw, lambda d: d.update(acquisition_class="NETWORK_HTTP", feed_effective="sip")
+    )
+    report = audit_capture(raw, tmp_path / "audit")
+    assert report["metric_comparison"] == "MATCH"
+    assert report["status"] == "FEED_UNVERIFIED"
+    assert report["observed_feed"] is report["feed_effective"] is None
+    assert report["data_quality"]["aggregate"]["status"] == "BLOCKED"
+    imported = import_market_data(
+        tmp_path / "audit/regular-minutes.csv", tmp_path / "audit/import-manifest.json"
+    )
+    assert imported.manifest.volume_kind == "unknown"
+    assert imported.manifest.feed_id == "alpaca:unverified:1Min:split"
+    assert "FEED_UNVERIFIED" in imported.manifest.quality
+    assert report["engine_decision"]["rejections"][0]["reason"] == "OBSERVED_AVAILABILITY_REQUIRED"
+    assert not report["engine_decision"]["signals"]
+
+
+def test_payload_echo_contract_test_never_certifies_external_access(tmp_path):
+    raw = capture(tmp_path, lambda _: response(full_rows(), feed="sip"))
+    report = audit_capture(raw, tmp_path / "audit")
+    assert report["observed_feed"] == "sip"
+    assert report["status"] == "ALPACA_CONTRACT_TEST_VERIFIED"
+    assert report["external_mutations"] == "DISABLED"
+    assert not report["entries_armed"] and not report["order_submission_enabled"]
+    assert report["shadow"] == "NOT_STARTED_THIS_PHASE" and report["writes"] == 0
+
+
+@pytest.mark.parametrize("case", ["duplicate", "zero_volume", "missing_opening"])
+def test_complete_quality_report_blocks_defects_without_repair(case, tmp_path):
+    rows = full_rows()
+    if case == "duplicate":
+        rows.insert(1, dict(rows[0]))
+    elif case == "zero_volume":
+        rows[0]["v"] = 0
+    else:
+        del rows[1]
+    raw = capture(tmp_path, lambda _: response(rows, feed="sip"))
+    before = sha256(raw / "page-000.json")
+    report = audit_capture(raw, tmp_path / "audit")
+    quality = report["data_quality"]["aggregate"]
+    assert quality == report["data_quality"]["by_symbol"]["AAPL"]
+    assert quality["status"] == "BLOCKED"
+    assert quality["sessions_requested"] == 21
+    assert quality["sessions_valid"] == 20 and quality["sessions_invalid"] == 1
+    assert quality["duplicate_bars"] == (case == "duplicate")
+    assert quality["zero_volume_bars"] == (case == "zero_volume")
+    assert quality["missing_bars"] == (case == "missing_opening")
+    assert quality["opening_windows_complete"] == (20 if case == "missing_opening" else 21)
+    assert report["status"] not in {
+        "ALPACA_SIP_HISTORICAL_VERIFIED",
+        "ALPACA_CONTRACT_TEST_VERIFIED",
+    }
+    assert sha256(raw / "page-000.json") == before
+    assert (tmp_path / "audit/data-quality.json").exists()
+
+
+def test_failed_quality_parse_reports_unknown_counts_not_clean_dataset(tmp_path):
+    bad = dict(row(session(REQUEST.target).open), v=-1)
+    raw = capture(tmp_path, lambda _: response([bad]))
+    with pytest.raises(AlpacaDataError):
+        audit_capture(raw, tmp_path / "audit")
+    quality = json.loads((tmp_path / "audit/data-quality.json").read_text())
+    assert quality["status"] == "BLOCKED" and quality["counts"] is None
+    assert quality["reason_codes"] and quality["aggregate"] is None
+
+
+def test_calendar_holiday_timezone_and_outside_session_exclusion(tmp_path):
+    with pytest.raises(ValueError):
+        HistoricalRequest(date(2025, 12, 25))
+    first_day, second_day = REQUEST.days[:2]
+    rows = [
+        row(session(first_day).close),
+        dict(row(session(second_day).open), t=f"{second_day}T09:30:00-04:00"),
+    ]
+    raw = capture(tmp_path, lambda _: response(rows))
+    provider = AlpacaHistoricalProvider(raw)
+    bundle = provider.load()
+    assert bundle.bars[0].event_time == session(second_day).open
+    quality = provider.audit["data_quality"]["aggregate"]
+    assert quality["out_of_session_bars"] == 1
+    assert quality["exclusions"] == [{"reason_code": "OUTSIDE_REGULAR_SESSION", "count": 1}]
+
+
+def test_out_of_order_duplicate_cannot_hide_transport_order_error(tmp_path):
+    first = row(session(REQUEST.target).open)
+    second = row(session(REQUEST.target).open + timedelta(minutes=1))
+    raw = capture(tmp_path, lambda _: response([first, second, first]))
+    with pytest.raises(AlpacaDataError, match="BARS_OUT_OF_ORDER"):
+        AlpacaHistoricalProvider(raw).load()
+
+
+def test_arithmetic_is_deterministic_and_ignores_after_opening_data(tmp_path):
+    rows = full_rows()
+    raw = capture(tmp_path / "original", lambda _: response(rows))
+    first = audit_capture(raw, tmp_path / "audit1")
+    second = audit_capture(raw, tmp_path / "audit2")
+    assert first == second
+    for name in ("audit.json", "manifest.json", "data-quality.json", "regular-minutes.csv"):
+        assert sha256(tmp_path / "audit1" / name) == sha256(tmp_path / "audit2" / name)
+    # A separate capture perturbs only target minutes after 09:34; raw stays immutable.
+    cutoff = session(REQUEST.target).open + timedelta(minutes=5)
+    altered = [
+        dict(bar, v=9999999, h=999) if datetime.fromisoformat(bar["t"]) >= cutoff else bar
+        for bar in rows
+    ]
+    other = capture(tmp_path / "perturbed", lambda _: response(altered))
+    third = audit_capture(other, tmp_path / "audit3")
+    assert first["independent"] == third["independent"]
+    assert first["engine_metrics"] == third["engine_metrics"]

@@ -8,13 +8,14 @@ from datetime import date, timedelta
 from pathlib import Path
 from uuid import uuid4
 
-from intraday_etoro_lab.data.alpaca_audit import INSUFFICIENT, SAFETY, audit_capture
+from intraday_etoro_lab.data.alpaca_audit import SAFETY, audit_capture
 from intraday_etoro_lab.data.alpaca_http import (
     AlpacaCredentials,
     AlpacaDataError,
     AlpacaHistoryClient,
     HistoricalRequest,
     save_json,
+    software_commit,
     utc_now,
 )
 from intraday_etoro_lab.data.calendar import session, sessions
@@ -42,13 +43,20 @@ def main() -> int:
     )
     request = HistoricalRequest(target, args.feed)
     result = {
-        "status": INSUFFICIENT,
+        "status": "ALPACA_NOT_EVALUATED",
+        "schema_version": "alpaca-attempt-v2",
+        "software_commit": software_commit(),
         "provider": "alpaca",
         "feed_requested": request.feed,
         "feed_effective": None,
+        "requested_feed": request.feed,
+        "observed_feed": None,
+        "feed_verification": "FEED_UNVERIFIED",
         "target": str(target),
         "query": request.params(),
         "sessions_recovered": 0,
+        "bar_count": 0,
+        "raw_sha256": {},
         "independent": None,
         "metric_comparison": "NOT_RUN",
         "availability_class": "HISTORICAL_DOWNLOAD",
@@ -62,11 +70,12 @@ def main() -> int:
     except AlpacaDataError as exc:
         reason = str(exc)
         result["reason"] = reason
-        if reason == "ALPACA_SIP_ENTITLEMENT_REQUIRED":
-            result["status"] = reason
-        result["entitlement_verified"] = reason == "ALPACA_SIP_ENTITLEMENT_REQUIRED"
+        result["status"] = exc.status
+        result["entitlement_verified"] = False
+        result["entitlement_denial_observed"] = reason == "ALPACA_SIP_ENTITLEMENT_REQUIRED"
     except (OSError, ValueError, TypeError, KeyError):
         result["reason"] = "ALPACA_LOCAL_INPUT_OR_STORAGE_INVALID"
+        result["status"] = "ALPACA_LOCAL_INPUT_OR_STORAGE_INVALID"
     finally:
         if client is not None:
             client.close()

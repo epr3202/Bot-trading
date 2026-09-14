@@ -67,7 +67,7 @@ class AlpacaHistoricalProvider:
         ):
             raise AlpacaDataError("ALPACA_CAPTURE_INCOMPLETE_OR_WRONG_SOURCE")
         feed = capture["feed_requested"]
-        if feed not in {"sip", "iex"} or capture["feed_effective"] != feed:
+        if feed not in {"sip", "iex"} or capture["feed_effective"] not in {None, feed}:
             raise AlpacaDataError("ALPACA_FEED_IDENTITY_MISMATCH")
         request = HistoricalRequest(datetime.fromisoformat(capture["target"]).date(), feed)
         if capture["params"] != request.params():
@@ -85,7 +85,9 @@ class AlpacaHistoricalProvider:
         bars: dict[datetime, Bar] = {}
         originals: dict[datetime, dict[str, Any]] = {}
         received_times = []
+        feed_observed = True
         outside = duplicates = raw_count = 0
+        duplicate_times: set[datetime] = set()
         counts: list[int] = []
         vwaps: list[Decimal] = []
         token: str | None = None
@@ -107,6 +109,8 @@ class AlpacaHistoricalProvider:
             doc = read_document(path)
             if doc.get("feed", feed) != feed or page["feed_echo"] not in {None, feed}:
                 raise AlpacaDataError("ALPACA_FEED_IDENTITY_MISMATCH")
+            # A query parameter is a contractual request, not a server observation.
+            feed_observed &= doc.get("feed") == feed and page["feed_echo"] == feed
             token = doc["next_page_token"]
             if index < len(pages) - 1:
                 if not isinstance(token, str) or not token or token in token_history:
@@ -127,13 +131,14 @@ class AlpacaHistoricalProvider:
                 event = parse_time(row["t"])
                 if not start <= event <= end:
                     raise AlpacaDataError("ALPACA_BAR_OUTSIDE_REQUEST")
+                if last_time is not None and event < last_time:
+                    raise AlpacaDataError("ALPACA_BARS_OUT_OF_ORDER")
                 if event in originals:
                     if originals[event] != row:
                         raise AlpacaDataError("ALPACA_CONFLICTING_DUPLICATE")
                     duplicates += 1
+                    duplicate_times.add(event)
                     continue
-                if last_time is not None and event < last_time:
-                    raise AlpacaDataError("ALPACA_BARS_OUT_OF_ORDER")
                 last_time = event
                 originals[event] = row
                 bar = Bar(
@@ -170,11 +175,18 @@ class AlpacaHistoricalProvider:
         if not bars:
             raise AlpacaDataError("ALPACA_NO_REGULAR_BARS")
         ordered = tuple(bars[time] for time in sorted(bars))
-        coverage = []
+        coverage: list[dict[str, Any]] = []
         for day in request.days:
             market = session(day)
             expected_times = {market.open + timedelta(minutes=i) for i in range(market.minutes)}
             missing = sorted(expected_times - bars.keys())
+            session_reasons = []
+            if missing:
+                session_reasons.append("SESSION_GAPS")
+            if expected_times & duplicate_times:
+                session_reasons.append("DUPLICATE_BARS")
+            if any(bars[t].volume == 0 for t in expected_times & bars.keys()):
+                session_reasons.append("ZERO_VOLUME_BARS")
             coverage.append(
                 {
                     "date": str(day),
@@ -185,6 +197,8 @@ class AlpacaHistoricalProvider:
                     "missing_count": len(missing),
                     "missing_timestamps": [value.isoformat() for value in missing],
                     "complete": not missing,
+                    "valid": not session_reasons,
+                    "reason_codes": session_reasons,
                     "gap_cause": "UNKNOWN_NO_HALT_EVIDENCE" if missing else None,
                     "first_five_complete": all(
                         market.open + timedelta(minutes=i) in bars for i in range(5)
@@ -192,11 +206,47 @@ class AlpacaHistoricalProvider:
                 }
             )
         synthetic = capture["acquisition_class"] == "CONTRACT_TEST"
+        complete = sum(item["complete"] for item in coverage)
+        zero_volume = sum(bar.volume == 0 for bar in ordered)
+        reasons = []
+        if complete != 21:
+            reasons.append("SESSION_GAPS")
+        if duplicates:
+            reasons.append("DUPLICATE_BARS")
+        if zero_volume:
+            reasons.append("ZERO_VOLUME_BARS")
+        if not synthetic and not feed_observed:
+            reasons.append("FEED_UNVERIFIED")
+        quality = {
+            "status": "PASS" if not reasons else "BLOCKED",
+            "reason_codes": reasons,
+            "sessions_requested": len(request.days),
+            "sessions_valid": sum(item["valid"] for item in coverage),
+            "sessions_invalid": sum(not item["valid"] for item in coverage),
+            "opening_windows_complete": sum(item["first_five_complete"] for item in coverage),
+            "missing_bars": sum(item["missing_count"] for item in coverage),
+            "duplicate_bars": duplicates,
+            "out_of_session_bars": outside,
+            "exclusions": [{"reason_code": "OUTSIDE_REGULAR_SESSION", "count": outside}]
+            if outside
+            else [],
+            # These zeros are only emitted after every raw row passed the parser.
+            "non_positive_prices": 0,
+            "negative_volume": 0,
+            "zero_volume_bars": zero_volume,
+            "feed_mismatch": 0,
+            "timezone_errors": 0,
+            "hash": sha256(self.directory / "capture.json"),
+            "provider": "alpaca",
+            "feed": feed if feed_observed else None,
+        }
         manifest = DataManifest(
             source="alpaca",
             synthetic=synthetic,
             volume_kind="synthetic_shares"
             if synthetic
+            else "unknown"
+            if not feed_observed
             else "consolidated_shares"
             if feed == "sip"
             else "venue_shares",
@@ -212,13 +262,16 @@ class AlpacaHistoricalProvider:
             availability_evidence="HTTP receipt per page; no contemporaneous observation",
             availability_kind="historical_download",
             acquired_at=min(received_times),
-            feed_id=f"alpaca:{feed}:1Min:split",
-            quality=("SESSION_GAPS",) if any(item["missing_count"] for item in coverage) else (),
+            feed_id=f"alpaca:{feed if feed_observed else 'unverified'}:1Min:split",
+            quality=tuple(reasons),
         )
         self.audit = {
             "provider": "alpaca",
             "feed_requested": feed,
-            "feed_effective": feed,
+            "feed_effective": feed if feed_observed else None,
+            "requested_feed": feed,
+            "observed_feed": feed if feed_observed else None,
+            "feed_verification": "PAYLOAD_ECHO_OBSERVED" if feed_observed else "FEED_UNVERIFIED",
             "feed_identity_basis": capture["feed_identity_basis"],
             "raw_bar_count": raw_count,
             "regular_bar_count": len(ordered),
@@ -226,6 +279,7 @@ class AlpacaHistoricalProvider:
             "outside_regular_session": outside,
             "sessions": coverage,
             "complete_sessions": sum(item["complete"] for item in coverage),
+            "data_quality": {"by_symbol": {request.symbol: quality}, "aggregate": quality},
             "trade_count_present": len(counts),
             "vwap_present": len(vwaps),
             "volume_semantics": "SIP eligible trade sizes in split-adjusted shares"

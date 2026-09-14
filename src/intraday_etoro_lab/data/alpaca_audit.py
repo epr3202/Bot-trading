@@ -10,7 +10,13 @@ from pathlib import Path
 from typing import Any
 
 from intraday_etoro_lab.data.alpaca import AlpacaHistoricalProvider, parse_time, read_document
-from intraday_etoro_lab.data.alpaca_http import HistoricalRequest, save_json, sha256
+from intraday_etoro_lab.data.alpaca_http import (
+    AlpacaDataError,
+    HistoricalRequest,
+    save_json,
+    sha256,
+    software_commit,
+)
 from intraday_etoro_lab.data.calendar import session
 from intraday_etoro_lab.strategies.orb import ORBStrategy
 
@@ -63,8 +69,26 @@ def independent_metrics(directory: Path, request: HistoricalRequest) -> dict[str
 
 
 def audit_capture(directory: Path, output: Path) -> dict[str, Any]:
+    output.mkdir(parents=True, exist_ok=False)
     provider = AlpacaHistoricalProvider(directory)
-    bundle = provider.load()
+    try:
+        bundle = provider.load()
+    except AlpacaDataError as exc:
+        # Parsing stopped: unmeasured counts must not masquerade as zero defects.
+        save_json(
+            output / "data-quality.json",
+            {
+                "status": "BLOCKED",
+                "reason_codes": [str(exc)],
+                "classification": exc.status,
+                "counts": None,
+                "provider": "alpaca",
+                "feed": None,
+                "by_symbol": None,
+                "aggregate": None,
+            },
+        )
+        raise
     capture = provider.capture
     request = HistoricalRequest(date.fromisoformat(capture["target"]), capture["feed_requested"])
     report: dict[str, Any] = {
@@ -105,9 +129,15 @@ def audit_capture(directory: Path, output: Path) -> dict[str, Any]:
                 engine_metrics=actual,
                 metric_comparison="MATCH" if matches else "MISMATCH",
             )
-            if matches and request.feed == "sip":
+            if (
+                matches
+                and request.feed == "sip"
+                and provider.audit["data_quality"]["aggregate"]["status"] == "PASS"
+            ):
                 report["status"] = (
                     "ALPACA_SIP_HISTORICAL_VERIFIED"
+                    if not bundle.manifest.synthetic and provider.audit["observed_feed"] == "sip"
+                    else "FEED_UNVERIFIED"
                     if not bundle.manifest.synthetic
                     else "ALPACA_CONTRACT_TEST_VERIFIED"
                 )
@@ -115,7 +145,11 @@ def audit_capture(directory: Path, output: Path) -> dict[str, Any]:
             report["metric_comparison"] = "INVALID_OPENING_WINDOWS"
     if request.feed == "iex":
         report["status"] = "ALPACA_IEX_INSUFFICIENT_FOR_PRODUCTION_RVOL"
-    output.mkdir(parents=True, exist_ok=False)
+    elif provider.audit["complete_sessions"] != 21:
+        report["status"] = "ALPACA_HISTORICAL_INCOMPLETE"
+    elif not bundle.manifest.synthetic and provider.audit["observed_feed"] != "sip":
+        report["status"] = "FEED_UNVERIFIED"
+    save_json(output / "data-quality.json", provider.audit["data_quality"])
     # Share-compatible existing import route, with historical receipts intact.
     csv_path = output / "regular-minutes.csv"
     fields = [
@@ -154,17 +188,20 @@ def audit_capture(directory: Path, output: Path) -> dict[str, Any]:
         "Missing bars have unknown cause without independent halt evidence; never filled",
         "SIP volume follows Alpaca eligible-trade aggregation, not every reported event",
         "Split-adjusted prices and volume; no point-in-time universe certification",
-        "Feed bound by HTTPS query and API contract; no independent feed attestation",
+        "Requested feed is contractual; missing payload echo remains FEED_UNVERIFIED",
         "Numeric engine metrics comparison is not causal signal or execution validation",
     ]
     save_json(output / "audit.json", report)
     portable = {
-        "schema_version": "alpaca-audit-v1",
+        "schema_version": "alpaca-audit-v2",
         "status": report["status"],
         "provider": "alpaca",
         "symbol": request.symbol,
         "feed_requested": request.feed,
-        "feed_effective": capture["feed_effective"],
+        "feed_effective": provider.audit["observed_feed"],
+        "requested_feed": request.feed,
+        "observed_feed": provider.audit["observed_feed"],
+        "feed_verification": provider.audit["feed_verification"],
         "feed_identity_basis": capture["feed_identity_basis"],
         "endpoint": capture["origin"] + capture["endpoint"],
         "query": capture["params"],
@@ -174,6 +211,9 @@ def audit_capture(directory: Path, output: Path) -> dict[str, Any]:
         "acquisition_class": capture["acquisition_class"],
         "started_at": capture["started_at"],
         "finished_at": capture["finished_at"],
+        "software_commit": capture.get("software_commit", "UNRECORDED_WORKTREE"),
+        "audit_software_commit": software_commit(),
+        "instrument_identity": bundle.instruments[0].model_dump(mode="json"),
         "sessions": [
             {key: entry[key] for key in ("date", "expected_minutes", "missing_count", "complete")}
             for entry in provider.audit["sessions"]
@@ -185,7 +225,12 @@ def audit_capture(directory: Path, output: Path) -> dict[str, Any]:
         "capture_sha256": sha256(directory / "capture.json"),
         "derived_sha256": {
             name: sha256(output / name)
-            for name in ("regular-minutes.csv", "import-manifest.json", "audit.json")
+            for name in (
+                "regular-minutes.csv",
+                "import-manifest.json",
+                "audit.json",
+                "data-quality.json",
+            )
         },
         "independent": report["independent"],
         "engine_metrics": report["engine_metrics"],

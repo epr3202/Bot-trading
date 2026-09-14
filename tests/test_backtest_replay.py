@@ -74,3 +74,23 @@ def test_session_blocks_and_chronological_walkforward() -> None:
     for window in windows:
         assert max(window["development"]) < min(window["validation"])
         assert max(window["validation"]) < min(window["test"])
+
+
+@pytest.mark.parametrize("multiplier", [1, 2, 3])
+def test_fixed_baseline_cost_scenarios_preserve_accounting(bundle, multiplier) -> None:
+    """Synthetic cost-model regression only; no strategy selection or external calibration."""
+    base = CostConfig()
+    costs = CostConfig.model_validate(
+        {
+            key: value * multiplier if isinstance(value, Decimal) else value
+            for key, value in base.model_dump().items()
+        }
+    )
+    assert costs.estimate(Decimal(10), Decimal(100)) == Decimal("0.30") * multiplier
+    config = BacktestConfig(spread_bps=Decimal(2 * multiplier), slippage_bps=Decimal(multiplier))
+    result = run_backtest(bundle, backtest_config=config, costs=costs)
+    assert result.trades and result.data_manifest["synthetic"]
+    assert result.label == "SYNTHETIC — NO EVIDENCE OF PROFITABILITY"
+    for trade in result.trades:
+        assert Decimal(trade["costs"]) == Decimal(trade["fees"]) + Decimal(trade["spread_slippage"])
+    assert {signal.strategy_version for signal in result.signals} == {"ORB_RVOL_v0.1"}

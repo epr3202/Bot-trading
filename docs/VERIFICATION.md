@@ -1,5 +1,104 @@
 # Evidencia de verificación local
 
+## Preparación para fase shadow — 2026-09-14
+
+Decisión: **BLOCKED_BY_EXTERNAL_CONFIGURATION**, motivo observado
+**ALPACA_CREDENTIALS_UNAVAILABLE**; **SHADOW_NOT_READY**.
+Partida `43c9cc5b7d6366ee72d38dd17542ec7341e4e7e1`, rama
+feat/phase3-readonly-evidence, árbol e índice limpios comprobados.
+El registro anterior leído tenía 16/16 gates y código estable; se preservó junto
+con coverage/JUnit/package en runtime/shadow-readiness-20260914/prior-*.
+No se confunde esa evidencia heredada con las ejecuciones nuevas siguientes.
+
+Código final: commit local `b7a17b7d17e3c7da3f1fa03c4bc5cbcffda16918`.
+Seis rutas explícitas: tres módulos Alpaca, CLI de auditoría y dos archivos de
+tests. Sin cambios en estrategia, riesgo, ejecución, bróker, persistencia,
+configs/offline.yaml, Python o uv.lock. El commit documental siguiente conserva
+esta evidencia y la decisión; su identificador se obtiene del historial local.
+Identidad efectiva author/committer comprobada, sin modificar configuración.
+
+### Comprobaciones ejecutadas
+
+Todos los comandos uv usan `.\scripts\uv.ps1` y `--frozen` en Windows.
+La suite estándar retira claves eToro/Alpaca y mantiene modo offline/envío false.
+
+| Comando / recorrido | Resultado observado |
+|---|---|
+| `run --frozen pytest -q tests/test_alpaca_history.py tests/test_strategy_orb.py tests/test_data_contracts.py tests/test_backtest_replay.py` | 75 passed, 5 warnings, 43,77s antes de añadir los tres casos de costes |
+| `run --frozen ruff check .` | 0 |
+| `run --frozen mypy src` | 0 tras corregir anotación de coverage; 36 fuentes |
+| `run --frozen python scripts/verify.py`, primer pase | 0; 512 pruebas, 16/16 gates, cobertura 90,470532%; código estable |
+| `run --frozen python scripts/verify.py`, final | 0; **512 pruebas, 0 errores/fallos/skips, 16/16 gates**; 119,534s de pytest |
+| `run --frozen python scripts/audit_alpaca_history.py --capture --feed sip --target 2026-09-11` | Lanzador exit 1; status/reason ALPACA_CREDENTIALS_UNAVAILABLE antes de red; main exit 2 comprobado por test |
+| Auditoría histórica/calidad con capturas fabricadas, importación y comparación independiente | Ejecutadas por pytest; incluyen determinismo, hashes, apertura faltante, calendario y futuro perturbado; no evidencia real |
+| `bot data validate`, `demo-offline`, `backtest` dentro de verify.py | 0 cada uno; fixtures sintéticos, nunca baseline real |
+| Histórico/calidad ampliada/backtest reales | BLOCKED/NOT_RUN por gate externo; no comando con dataset inexistente ni sustitución por fixture |
+| `run --frozen python scripts/scan_secrets.py` adicional antes de commit | 0; 145 candidatos, cero hallazgos |
+| Escaneo de seis blobs staged + igualdad con archivos revisados | 0; cero hallazgos; keyword audit ETORO_, ALPACA_, APCA_, api-key, secret, private, user-key sin valores impresos |
+| `git diff --check`, `git diff --cached --check` | 0 |
+| `run --frozen python scripts/verify_package.py` con claves retiradas | 0; instalación nueva offline de 52 paquetes con Python 3.12.12; demo sintética de 4 órdenes y 0 posiciones |
+
+Los 16 gates finales incluyen sync frozen offline, Ruff check/format, mypy,
+pytest, cobertura crítica, scanner, doctor, data validate, demo-offline, backtest,
+preflight sin claves (2 esperado), bloqueos etoro_demo/live (2 esperado), build
+offline y sintaxis JS. No se rebajaron gates ni umbrales. El preflight de la suite
+es un test negativo sin claves, no una repetición de la cuenta Demo del usuario.
+
+Primer pase completo preservado en runtime/shadow-readiness-20260914/first-*.
+La revisión posterior encontró que el manifiesto aún infería volumen consolidado
+con feed no confirmado; se cambió a unknown/unverified con calidad BLOCKED y se
+repitieron los gates. Finalizado **2026-09-14T20:07:48.868538Z**; evidencia final
+en runtime/shadow-readiness-20260914/final-{verification.json,coverage.json,test-results.xml}.
+El código no cambió durante cada batería.
+
+Cobertura final combinada: **90,488615%**. Crítica idéntica a la partida:
+riesgo 100%, autorización 98,4%, transporte 99,267399%, ejecución 95,3125%,
+modelos de ejecución 100%, persistencia 95,270270%.
+Huella de código: `b03aee3f85785abc9f96b167bc62bf9aa848d53d1bc0cabfb604f170f29c331e`.
+Lock: `d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f`.
+
+Fallos intermedios visibles: cuatro diagnósticos mypy por inferencia de tipos del
+reporte se corrigieron con una anotación explícita. Los tres nuevos tests de costes
+fallaron inicialmente al consultar un atributo inexistente de SessionDecision;
+se corrigió la comprobación a Signal.strategy_version. La suite final los incluye
+aprobados sin modificar estrategia ni costes. Un helper PowerShell no pudo leer
+coverage.json con ConvertFrom-Json; se leyó con Python, sin alterar el reporte.
+Advertencias de dependencias permanecen visibles, sin skips para ocultarlas.
+
+### Evidencia externa y límites
+
+Ambas variables Alpaca ausentes por comprobación de presencia. Intento oficial
+en runtime/alpaca-audits/20260914T195435-d5744088/result.json, SHA-256
+`87727b03931ce1ea8e7890248ee8336400df8d6a341e13bb40e05862f846fd94`.
+Ese hash pertenece al resultado bloqueado, no a datos de mercado. No se creó su
+directorio raw. El comando se ejecutó sobre cambios locales con HEAD de partida,
+antes del ajuste final de etiquetas de manifiesto; su ruta negativa no cambió.
+El artefacto anterior v1 se preserva sin reescribir su clasificación histórica.
+
+Alpaca/AAPL/1Min, SIP solicitado, observado null, 0 barras/sesiones. ORH/ORL/RVOL,
+V5 y paridad reales null; ampliación, baseline, costes reales y OOS NOT_RUN.
+Tolerancia numérica local 1e-12 absoluta/0 relativa, sin cambios.
+Costes 1x/2x/3x se prueban solo con fixtures; ninguna rentabilidad inferida.
+
+Documentación pública [Alpaca FAQ](https://docs.alpaca.markets/us/docs/market-data-faq)
+reconsultada: petición por feed y agregación por condiciones son semántica
+documentada, no observación de esta cuenta. Feed sin eco conserva FEED_UNVERIFIED
+y volumen unknown. El gate OBSERVED_AVAILABILITY_REQUIRED permanece: la descarga
+histórica no prueba disponibilidad causal ni autoriza señales/realtime/shadow.
+
+Sin lecturas de cuenta nuevas, Demo Write, WebSocket, shadow, compras, remoto,
+push o publicación. La revisión de riesgo/seguridad es propia, sin delegación ni
+afirmación de auditoría externa. [Decisión y dependencias](SHADOW_READINESS.md).
+
+La anotación documental de resultados se cerró después del build de los gates;
+ese paquete contiene el código final, pero no esta anotación posterior.
+Paquete instalado bajo runtime/package-checks/6b811c4a495a433e8cfabd99c1790b5c;
+registro y hashes en runtime/shadow-readiness-20260914/final-package-evidence.json.
+Comparación byte a byte: 79 archivos de src/scripts/tests/configs/Python/lock
+coinciden con el árbol revisado. Sdist SHA-256
+`e859142ed5968fcd1ac857112d57fd6376856dc5bdd5859e5ad29b3b2bf283c5`;
+wheel `bdd1607ae3083251bc54a1e615abb80eef86b0025251b9731878b00e70ec2874`.
+
 ## Alpaca histórico — 2026-09-14
 
 Base limpia 134844b; baseline/gates preservados en

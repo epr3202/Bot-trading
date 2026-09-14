@@ -1,5 +1,25 @@
 # Limitaciones verificables
 
+## Vigente — 2026-09-14, antes de fase shadow
+
+Decisión: BLOCKED_BY_EXTERNAL_CONFIGURATION, ALPACA_CREDENTIALS_UNAVAILABLE;
+no es evidencia de datos insuficientes ni suscripción faltante. No hay autenticación,
+feed SIP observado, histórico Alpaca o RVOL real. Reportes de calidad/aritmética
+solo están comprobados con muestras fabricadas. Un error de parser conserva
+conteos desconocidos; no existe informe ampliado real de 60 sesiones.
+
+Feed explícito en query es solicitud contractual; sin eco en cada página se
+mantiene FEED_UNVERIFIED. El servidor habitual no repite ese campo: queda pendiente
+resolver evidencia del proveedor sin inventarla ni ampliar rutas de cuenta.
+El motor conserva OBSERVED_AVAILABILITY_REQUIRED: snapshots históricos y paridad
+numérica no certifican replay causal ni habilitan baseline real con backdating.
+
+Universo ampliado, métricas/1x-2x-3x reales, OOS, interfaces shadow y realtime:
+NOT_STARTED, sujetos a gates previos. No se declara rentabilidad ni ventaja.
+eToro Demo Read conserva su hito histórico comunicado; no se repitió la cuenta.
+Demo Write NOT_TESTED; mutaciones DISABLED; no shadow. [Detalle](SHADOW_READINESS.md).
+Los estados NOT_CONFIGURED/SYNTHETIC_ONLY siguientes son historia anterior.
+
 Fase 3 prevalece sobre el antecedente siguiente: 435 pruebas / 16 gates locales;
 identidad Git resuelta y capas A/B/C versionadas. Lookup v2 sí describe aperturas,
 cierres, estados y exposición. Faltan garantías contables de cierre, no todo el

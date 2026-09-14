@@ -1,5 +1,24 @@
 # Auditoría de proveedores
 
+## Estado vigente — decisión previa a shadow, 2026-09-14
+
+**BLOCKED_BY_EXTERNAL_CONFIGURATION / ALPACA_CREDENTIALS_UNAVAILABLE**.
+Comprobación de presencia y ejecución de CLI observadas, ambas antes de red.
+Cero barras/sesiones Alpaca; ni acceso SIP ni insuficiencia de sus datos demostrados.
+El intento anterior conserva su artefacto, pero su categoría genérica queda corregida.
+
+Documentación pública reconsultada: el parámetro feed solicita SIP/IEX y el
+volumen se agrega según condiciones de cada operación. La respuesta habitual no
+repite el feed. El criterio estricto de esta fase mantiene observed_feed=null y
+FEED_UNVERIFIED sin identificación explícita del servidor; no usa solo la query
+para afirmar SIP observado. Semántica documental y observación de cuenta siguen
+separadas. [FAQ oficial](https://docs.alpaca.markets/us/docs/market-data-faq).
+
+El reporte AAPL/agregado bloquea sesiones incompletas, duplicados y volumen cero;
+un parseo fallido no fabrica conteos de cero. Calidad real sigue BLOCKED.
+Ver [contrato](ALPACA_DATA_CONTRACT.md) y [decisión completa](SHADOW_READINESS.md).
+Las secciones siguientes conservan antecedentes, no sustituyen el estado vigente.
+
 ## Alpaca independiente — 2026-09-14
 
 Implementación de histórico de solo lectura incorporada con feed explícito, captura

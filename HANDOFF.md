@@ -1,4 +1,36 @@
-# Continuidad — Alpaca histórico, 2026-09-14
+# Continuidad — preparación para fase shadow, 2026-09-14
+
+Partida limpia `43c9cc5b7d6366ee72d38dd17542ec7341e4e7e1`, misma rama local.
+Resultado vigente: BLOCKED_BY_EXTERNAL_CONFIGURATION, motivo
+ALPACA_CREDENTIALS_UNAVAILABLE; SHADOW_NOT_READY. Ambas variables ausentes.
+El comando oficial de captura devuelve ese motivo antes de red, sin raw Alpaca.
+Evidencia en runtime/alpaca-audits/20260914T195435-d5744088/result.json;
+comprobaciones previas preservadas en runtime/shadow-readiness-20260914/prior-*.
+
+Status/razón separados; timeout es conectividad, 429 es rate limit y la negativa
+SIP no se registra como entitlement aprobado. Feed sin eco queda desconocido aun
+en capturas antiguas; duplicados y volumen cero bloquean calidad. Auditoría genera
+data-quality.json; parseos interrumpidos dejan conteos desconocidos. No cambian
+estrategia, riesgo, transporte eToro, Python ni lock. Commit código `b7a17b7`;
+`scripts/verify.py` final: **512 pruebas, 16/16 gates, 90,488615% de cobertura**,
+sin fallos/skips y módulos críticos sin reducción. Evidencia exacta:
+[VERIFICATION](docs/VERIFICATION.md).
+
+Siguiente acción externa: titular del acceso ejecuta el comando desde un proceso
+con las variables dedicadas heredadas, sin pegar secretos ni cambiar a IEX. Después
+resolver evidencia explícita del feed y validar AAPL/21. Ampliación a 60 sesiones,
+baseline real y preparación shadow siguen condicionados, no ejecutados. El gate
+de disponibilidad histórica es un bloqueo adicional: no backdatear ni falsificar
+observed para generar señales. Secuencia completa: [SHADOW_READINESS](docs/SHADOW_READINESS.md).
+
+Se mantienen DEMO_READ_VERIFIED histórico, entries_armed=false,
+external_mutations=DISABLED, order_submission_enabled=false y Demo Write NOT_TESTED.
+No repetir lectura de cuenta, iniciar shadow ni continuar después de esta decisión.
+
+## Antecedente — Alpaca histórico
+
+La etiqueta antigua de insuficiencia por ausencia de credenciales queda corregida
+por el estado vigente anterior; sus artefactos raw y resultados se preservan.
 
 Se continuó desde 134844b y árbol limpio. Baseline y gates anteriores preservados en
 runtime/alpaca-phase-20260914T184730. DEMO_READ_VERIFIED no se volvió a diagnosticar;

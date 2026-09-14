@@ -1,4 +1,26 @@
-# Estado — Alpaca histórico, 2026-09-14
+# Estado — preparación para fase shadow, 2026-09-14
+
+**BLOCKED_BY_EXTERNAL_CONFIGURATION / ALPACA_CREDENTIALS_UNAVAILABLE**.
+Ambas variables dedicadas ausentes en el proceso; CLI oficial bloqueada antes de
+red. Cero datos Alpaca, feed no observado, ORH/ORL/RVOL reales NOT_RUN.
+**SHADOW_NOT_READY**; no se ejecutó ampliación, baseline real, OOS ni shadow.
+
+Se corrigen clasificación de fallos, feed inferido sin eco y duplicados que podían
+aprobar calidad. Reportes de calidad por AAPL/agregado, hashes y regresiones
+temporales preservan el gate OBSERVED_AVAILABILITY_REQUIRED. ORB/RVOL, riesgo,
+eToro y configuración operativa intactos. `scripts/verify.py`: **512 pruebas,
+16/16 gates, cobertura 90,488615%**, sin fallos/skips ni reducción crítica.
+Código local `b7a17b7`; comprobaciones exactas: [VERIFICATION](docs/VERIFICATION.md).
+
+eToro DEMO_READ_VERIFIED se conserva como evidencia histórica registrada, sin
+consultas de cuenta nuevas. entries_armed=false, external_mutations=DISABLED,
+order_submission_enabled=false, etoro_demo_write=NOT_TESTED.
+Decisión y requisitos pendientes: [SHADOW_READINESS](docs/SHADOW_READINESS.md).
+
+## Antecedente — Alpaca histórico
+
+La clasificación siguiente es histórica y queda corregida arriba: ausencia de
+credenciales no demuestra insuficiencia de datos ni falta de entitlement.
 
 **ALPACA_DATA_INSUFFICIENT_FOR_RVOL**: primer intento SIP bloqueado antes de red
 por ALPACA_CREDENTIALS_UNAVAILABLE en el proceso del agente. Feed solicitado SIP;

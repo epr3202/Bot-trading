@@ -1,10 +1,13 @@
 # Alpaca histórico — contrato y auditoría
 
-Estado observado el 2026-09-14: **ALPACA_DATA_INSUFFICIENT_FOR_RVOL**.
+Estado vigente el 2026-09-14: **ALPACA_CREDENTIALS_UNAVAILABLE**.
+Decisión de fase: **BLOCKED_BY_EXTERNAL_CONFIGURATION**, SHADOW_NOT_READY.
 Motivo: ALPACA_CREDENTIALS_UNAVAILABLE en el proceso del agente, antes de cualquier
 petición. No se obtuvieron barras; feed efectivo desconocido, no se ha comprobado
 entitlement y no se declara necesario pagar una suscripción. El manifiesto saneado
-versionado es [alpaca-historical-manifest.json](alpaca-historical-manifest.json).
+del intento anterior es [alpaca-historical-manifest.json](alpaca-historical-manifest.json).
+Ese artefacto histórico conserva su clasificación antigua; la corrección vigente y
+el nuevo intento se registran en [SHADOW_READINESS](SHADOW_READINESS.md).
 ORH, ORL, RVOL y comparación real: NOT_RUN. Los números de tests son fabricados.
 
 ## Arquitectura y uso
@@ -51,10 +54,18 @@ El parámetro feed se fija en cada página; no se omite ni cambia entre reintent
 El contrato identifica sip como fuente estadounidense consolidada e iex como un
 solo mercado. Sin suscripción realtime, el histórico SIP puede consultarse con end
 de al menos 15 minutos de antigüedad. Esto es capacidad documentada, no prueba de
-acceso de esta cuenta. Respuesta HTTP exitosa con feed explícito constituye la
-identidad contractual del feed; el cuerpo habitual **no repite el nombre del feed**.
-El manifiesto distingue ese fundamento de una atestación independiente. Si hay
-un campo feed contradictorio se bloquea; ninguna página IEX puede mezclarse con SIP.
+acceso de esta cuenta. El cuerpo habitual **no repite el nombre del feed**. Desde
+esta fase, la query solo acredita requested_feed: observed_feed y feed_effective
+quedan null sin eco concordante en todas las páginas. El manifiesto real importable
+conserva volume_kind=unknown, feed_id=alpaca:unverified:1Min:split y un bloqueo
+FEED_UNVERIFIED; no presenta volumen consolidado por inferencia de la query.
+Un histórico numéricamente
+completo queda FEED_UNVERIFIED; no se eleva a SIP verificado por HTTP 200 y query.
+El lector reevalúa los bytes, incluso si un manifiesto antiguo infería SIP.
+Un campo feed contradictorio bloquea; ninguna página IEX puede mezclarse con SIP.
+Este criterio deliberadamente estricto requiere resolver evidencia adicional con
+el proveedor si su respuesta estándar no identifica el feed. No se añade una ruta
+de cuenta ni se compra acceso para solventarlo.
 [Parámetros de barras](https://docs.alpaca.markets/us/reference/stockbars),
 [acceso y feeds](https://docs.alpaca.markets/us/docs/market-data-faq).
 
@@ -74,11 +85,11 @@ venue; nunca se etiqueta como volumen consolidado.
 |---|---|
 | bars.AAPL[].t | event_time UTC, con zona explícita, alineado al minuto; [t,t+1m) |
 | o / h / l / c | open / high / low / close Decimal; positivos, finitos y OHLC coherente |
-| v | volume Decimal no negativo; SIP consolidated_shares, IEX venue_shares |
+| v | volume Decimal no negativo; SIP observado consolidated_shares, IEX observado venue_shares; feed no observado unknown |
 | n | Entero no negativo si aparece; se conserva raw y se registra presencia |
 | vw | Decimal positivo finito si aparece; raw y presencia; no es señal |
 | Recepción HTTP de página | received_at=available_at real de descarga; nunca t+200ms |
-| feed y adjustment de consulta | feed_id=alpaca:sip:1Min:split o alpaca:iex:1Min:split |
+| feed observado y adjustment de consulta | feed_id=alpaca:sip:1Min:split o alpaca:iex:1Min:split; sin eco alpaca:unverified:1Min:split |
 
 availability_class=HISTORICAL_DOWNLOAD; DataManifest.availability_kind=
 historical_download. `final=true` identifica intervalo histórico cerrado en la
@@ -92,7 +103,9 @@ todos los timestamps ausentes. Un hueco se marca UNKNOWN_NO_HALT_EVIDENCE: no se
 atribuye automáticamente a halt, fallo del feed o ausencia de trades elegibles.
 No se rellena. La evidencia actual no contiene barras ni halts que contrastar.
 
-Duplicados exactos se deduplican preservando todas las páginas raw; versiones
+Duplicados exactos se representan una vez en el CSV, preservando las páginas raw,
+pero DUPLICATE_BARS bloquea el gate y la sesión se marca inválida. No es una
+corrección silenciosa ni permite aprobar un histórico defectuoso. Versiones
 distintas del mismo minuto bloquean. Timestamps fuera de orden, símbolo distinto,
 intervalos fuera de consulta, feed mixto, checksum distinto o cursor incompleto
 bloquean. No se usa una página parcial como histórico completo.
@@ -119,10 +132,33 @@ siguen rechazados con OBSERVED_AVAILABILITY_REQUIRED. No se falsea observed para
 forzar señales. La coincidencia numérica no certifica replay causal ni rentabilidad.
 Una regresión altera deliberadamente el resultado del motor y exige MISMATCH.
 
-Estados: A solo si SIP contractual, 21 sesiones y métricas coincidentes con captura
-real; B solo ante negativa explícita de acceso SIP; C si faltan datos o propiedades.
-Capturas mock se etiquetan CONTRACT_TEST, nunca A. IEX tiene su estado insuficiente
-específico. No se inicia shadow ni se arma el bróker en ningún resultado.
+ALPACA_SIP_HISTORICAL_VERIFIED requiere captura real, eco SIP en todas las páginas,
+21 sesiones, calidad aprobada y métricas coincidentes. Capturas mock se etiquetan
+CONTRACT_TEST y nunca certifican acceso. IEX conserva su estado insuficiente.
+Ese hito histórico por sí solo no significa READY_FOR_SHADOW_PHASE.
+No se inicia shadow ni se arma el bróker en ningún resultado.
+
+Taxonomía pública: status identifica la categoría; reason conserva el motivo estático.
+
+| Status | Evidencia requerida |
+|---|---|
+| ALPACA_CREDENTIALS_UNAVAILABLE | Variables dedicadas ausentes o inválidas; antes de red |
+| ALPACA_CONNECTIVITY_FAILED | Excepción de transporte, incluido timeout |
+| ALPACA_AUTHENTICATION_FAILED | HTTP 401 |
+| ALPACA_SIP_ENTITLEMENT_REQUIRED | Negativa explícita SIP en HTTP 403/422; no acredita acceso |
+| ALPACA_HTTP_403 | Prohibición ambigua, sin inferir entitlement ni autenticación |
+| ALPACA_HTTP_NNN | HTTP distinto de éxito, separado de contenido y calidad |
+| ALPACA_RATE_LIMITED | Reintentos agotados o espera pendiente/inválida |
+| ALPACA_INVALID_RESPONSE | Esquema, contenido, checksum o contrato inválido |
+| ALPACA_FEED_MISMATCH | Contradicción de feed en respuesta o manifiesto |
+| ALPACA_HISTORICAL_INCOMPLETE | Paginación incompleta, ausencia de barras o sesiones faltantes |
+| ALPACA_DATA_INSUFFICIENT_FOR_RVOL | Datos presentes con calidad/aritmética inadecuada |
+| FEED_UNVERIFIED | No existe observación explícita del feed efectivo |
+| ALPACA_SIP_HISTORICAL_VERIFIED | Primer gate real completo; nunca habilita operación |
+
+Configuración TLS/proxy y almacenamiento local conservan errores propios. Una
+negativa SIP registra entitlement_denial_observed=true, entitlement_verified=false.
+Ausencia de claves nunca se clasifica como insuficiencia de datos o suscripción.
 
 ## Persistencia y formato del manifiesto
 
@@ -132,11 +168,21 @@ Cada página registra file, SHA-256, parámetros exactos, feed y received_at. Lo
 cursores se conservan localmente para reproducir la cadena. Estado COMPLETE exige
 terminación explícita con next_page_token=null. INCOMPLETE nunca se importa.
 
-`alpaca-audit-v1` (saneable): consulta sin credenciales/cursores, feed y fundamento,
+`alpaca-audit-v2` (saneable): consulta sin credenciales/cursores, feed y fundamento,
 sesiones/conteos, semántica, hashes de páginas/captura/CSV/informe, métricas,
-tolerancia, limitaciones y guardas. `alpaca-attempt-v1` registra intentos bloqueados
+tolerancia, limitaciones y guardas. Incluye identidad instrumental declarada,
+commit de captura y auditoría, y hash de data-quality.json. El ID eToro no se infiere.
+Los commits identifican HEAD; un análisis con cambios sin commit debe declarar ese
+hecho en VERIFICATION. `alpaca-attempt-v2` registra intentos bloqueados
 sin respuesta: feed_effective=null, raw_sha256 vacío, métricas null y motivo exacto.
 No confundir un hash de result.json con un checksum de datos de mercado inexistentes.
+Los artefactos v1 existentes se preservan sin reescribir su evidencia.
+El reporte de calidad incluye por AAPL y agregado: sesiones solicitadas/válidas/
+inválidas, aperturas completas, faltantes, duplicados, fuera de sesión, precios
+no positivos, volumen negativo/cero, feed mismatch, errores de zona, proveedor,
+feed y hash. Cada sesión inválida y exclusión regular tiene reason codes.
+Un fallo de parser genera reporte BLOCKED con conteos null, porque la inspección
+no terminó; no informa ceros ni un agregado aprobado. Aún no hay reporte real.
 Estos son los esquemas versionados; el código valida identidad y consistencia
 cruzada antes de construir el DataManifest existente. No se amplió ese contrato.
 

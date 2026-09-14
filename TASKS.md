@@ -1,4 +1,22 @@
-# Tareas — Alpaca histórico, 2026-09-14
+# Tareas — preparación para fase shadow, 2026-09-14
+
+| Tarea vigente | Estado |
+|---|---|
+| Clasificación diferenciada de errores y feed observado | IMPLEMENTED; pruebas locales en VERIFICATION |
+| Reporte calidad AAPL/agregado y bloqueo por duplicados | IMPLEMENTED; datos fabricados únicamente |
+| Alpaca credenciales/conexión/autenticación | BLOCKED: ALPACA_CREDENTIALS_UNAVAILABLE antes de red |
+| Primer gate AAPL/SIP/21 y ORH/ORL/RVOL reales | BLOCKED; no barras ni feed observado |
+| Ampliación 10 símbolos/60 sesiones | NOT_STARTED; depende del primer gate completo |
+| Baseline fijo real, costes 1x/2x/3x, OOS | NOT_STARTED; datos y disponibilidad pendientes |
+| Preparación técnica shadow / arranque | NOT_STARTED / DISABLED |
+| Continuidad documental y revisión | Decisión BLOCKED_BY_EXTERNAL_CONFIGURATION; ver SHADOW_READINESS |
+
+La fuente de verdad de gates ejecutados es [VERIFICATION](docs/VERIFICATION.md).
+No avanzar tras esta decisión ni considerar mocks como acceso externo.
+
+## Antecedente — Alpaca histórico
+
+La clasificación antigua de insuficiencia por claves ausentes queda superada.
 
 | Tarea | Estado |
 |---|---|

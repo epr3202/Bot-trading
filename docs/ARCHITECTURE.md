@@ -1,5 +1,16 @@
 # Arquitectura
 
+Este documento existente es la fuente canónica también para la referencia
+`docs/architecture.md` en Windows (filesystem sin distinción de mayúsculas).
+No se crea una segunda arquitectura con diferente capitalización.
+
+Alpaca histórico: CLI explícita → cliente GET con host/ruta fija → raw inmutable
+y manifiesto → proveedor offline DataBundle → auditoría Fraction/Decimal y calidad.
+Errores de configuración, HTTP, feed, integridad y calidad se distinguen; el feed
+solicitado no reemplaza al observado. No existe enlace de captura con ejecución
+eToro ni arranque shadow. [Contrato](ALPACA_DATA_CONTRACT.md),
+[decisión vigente](SHADOW_READINESS.md), [contexto](system_context.md).
+
 Monolito modular Python 3.12.12: Pydantic, httpx, SQLite, exchange-calendars,
 pandas/Parquet, FastAPI y HTML/CSS/JavaScript locales. No servicios persistentes.
 

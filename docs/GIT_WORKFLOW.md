@@ -1,5 +1,15 @@
 # Versionado verificable
 
+Fase previa a shadow 2026-09-14: partida limpia
+`43c9cc5b7d6366ee72d38dd17542ec7341e4e7e1`, misma rama
+feat/phase3-readonly-evidence. Código revisado en
+`b7a17b7d17e3c7da3f1fa03c4bc5cbcffda16918`, seis rutas explícitas, 512 pruebas.
+El incremento documental siguiente registra BLOCKED_BY_EXTERNAL_CONFIGURATION.
+Scanner sobre archivos y blobs staged, comparación índice/worktree y revisión de
+keywords sensibles sin imprimir valores. Identidad existente comprobada, sin
+cambios globales; escritura Git autorizada por revisión automática. Sin remoto,
+push, publicación, reset, clean ni descarte de trabajo. Evidencia en VERIFICATION.
+
 La identidad local aportada por el usuario se verificó mediante git config y
 git var GIT_AUTHOR_IDENT / GIT_COMMITTER_IDENT antes de crear los commits.
 Está CONFIGURED; no se inventó identidad ni se cambiaron valores globales.

@@ -1,5 +1,16 @@
 # Cambios
 
+## Preparación para fase shadow — 2026-09-14
+
+- Clasificación de credenciales, conectividad, HTTP, cuota, feed y contenido separada.
+- Feed sin eco no se acredita como observado; capturas antiguas se reevalúan.
+- Duplicados, volumen cero y sesiones incompletas bloquean calidad; orden temporal
+  no se oculta al deduplicar. Reporte AAPL/agregado y hashes reproducibles.
+- Regresiones de errores, tiempo, independencia del cálculo y costes 1x/2x/3x
+  exclusivamente sintéticos. Estrategia, riesgo, eToro y lock preservados.
+- BLOCKED_BY_EXTERNAL_CONFIGURATION: claves Alpaca ausentes, cero datos nuevos;
+  sin ampliación, baseline real, OOS, shadow ni Demo Write. Ver VERIFICATION.
+
 ## Fase 3 — 2026-09-10
 
 - Identidad efectiva verificada; índice original preservado en A (358 pruebas),

@@ -1,5 +1,40 @@
 # Protocolo de investigación
 
+## Restricción de esta fase — 2026-09-14
+
+Baseline real NOT_STARTED por ALPACA_CREDENTIALS_UNAVAILABLE. Primero deben pasar
+AAPL/SIP/21, paridad independiente y calidad; solo después se amplía al universo
+propuesto de diez símbolos y al menos 60 sesiones completas. No se ejecuta el
+comparador de variantes `controlled_comparison` en esta fase.
+
+Se mantienen fijos opening_range_minutes=5, warmup_sessions=20,
+min_previous_close=10, min_average_dollar_volume=50000000, min_rvol=2,
+max_selected=10 y entry_window_minutes=60; versión ORB_RVOL_v0.1, sin indicadores.
+El motor rechaza historical_download como disponibilidad observada. Resolver ese
+bloqueo requiere evidencia compatible, nunca backdating ni rebajar el gate.
+
+Tras aprobar datos/disponibilidad: baseline 1x, 2x y 3x de todos los coeficientes
+monetarios de CostConfig y spread_bps/slippage_bps de BacktestConfig, misma estrategia
+y riesgo. Base existente: comisión por lado/unidad 0,005 USD, deslizamiento total
+por unidad 0,02 USD, spread 2 bps y slippage adicional 1 bp; fijos/mínimos/tasa
+notional/impacto cuadrático 0. Son supuestos del simulador sin calibración eToro.
+Se recalcula sizing conservando límites; no se fuerza igual número de operaciones.
+Los tests 1x/2x/3x comprueban contabilidad sintética, no sensibilidad real.
+
+Mínimo a reportar: trades, ganadoras/perdedoras, win rate, PnL bruto/neto, media y
+mediana por trade, profit factor, drawdown, exposición, turnover, duración media,
+mayor ganadora/perdedora, concentración por símbolo/día y sensibilidad a costes.
+Campos no calculados son null con motivo. No interpretar cero señales por rechazo
+de disponibilidad como backtest válido. El reporte ampliado real sigue pendiente.
+
+Separación temporal exclusivamente; 60 sesiones (incluidos warmups) es exploratorio.
+Congelar fechas de desarrollo/validación/OOS antes de mirar resultados y registrar
+cada ejecución, sin optimización. Sin historial suficiente no hay OOS defendible.
+Sharpe solo sobre serie diaria apropiada con jornadas sin trades, nunca anualizando
+trades como días. Etiquetas permitidas con datos reales: HISTORICAL_RESULT_OBSERVED
+u OUT_OF_SAMPLE_RESULT_OBSERVED; ninguna equivale a ventaja o rentabilidad validadas.
+La [decisión de fase](SHADOW_READINESS.md) conserva todos los bloqueos.
+
 Motor ejecutable: `backtesting/engine.py`; mismos ORBStrategy/RiskEngine que el recorrido
 offline, sin transporte al bróker. Modelo minute-next-open-v1. No hay históricos de
 mercado incluidos: los resultados de fixtures llevan **SYNTHETIC — NO EVIDENCE OF

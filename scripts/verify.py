@@ -43,6 +43,8 @@ def main() -> int:
             "ORDER_SUBMISSION_ENABLED": "false",
             "ETORO_API_KEY": "",
             "ETORO_USER_KEY": "",
+            "ALPACA_API_KEY": "",
+            "ALPACA_API_SECRET": "",
             "PYTHONUTF8": "1",
             "UV_CACHE_DIR": str(root / ".uv-cache"),
             "UV_PYTHON_INSTALL_DIR": str(root / ".python"),

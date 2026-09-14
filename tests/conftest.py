@@ -34,5 +34,7 @@ def offline_network_boundary(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(socket.socket, "connect", guarded_connect)
     monkeypatch.delenv("ETORO_API_KEY", raising=False)
     monkeypatch.delenv("ETORO_USER_KEY", raising=False)
+    monkeypatch.delenv("ALPACA_API_KEY", raising=False)
+    monkeypatch.delenv("ALPACA_API_SECRET", raising=False)
     monkeypatch.delenv("BOT_MODE", raising=False)
     monkeypatch.delenv("ORDER_SUBMISSION_ENABLED", raising=False)

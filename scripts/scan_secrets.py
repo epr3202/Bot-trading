@@ -10,7 +10,10 @@ from pathlib import Path
 PATTERNS = (
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
     re.compile(r"(?:ghp_|github_pat_|sk-proj-)[A-Za-z0-9_]{20,}"),
-    re.compile(r"(?im)^[ \t]*(?:ETORO_API_KEY|ETORO_USER_KEY)[ \t]*=[ \t]*[^\s#]{12,}[ \t]*$"),
+    re.compile(
+        r"(?im)^[ \t]*(?:ETORO_API_KEY|ETORO_USER_KEY|ALPACA_API_KEY|ALPACA_API_SECRET)"
+        r"[ \t]*=[ \t]*[^\s#]{12,}[ \t]*$"
+    ),
 )
 
 

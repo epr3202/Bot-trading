@@ -1,4 +1,42 @@
-# Continuidad — preparación para fase shadow, 2026-09-14
+# Continuidad — Massive histórico, 2026-09-15
+
+Partida limpia `262944f`; misma rama local feat/phase3-readonly-evidence.
+Massive agregado como proveedor independiente histórico read-only. No se cambian
+Alpaca, eToro, estrategia, riesgo, ejecución, configs ni lock. La clave dedicada
+estaba presente en el proceso; no se leyó ningún perfil ni se guardó su valor.
+
+Primer intento restringido CONNECTIVITY_FAILED antes de respuesta. Repetición
+con permiso de red: un GET histórico, HTTP 200 a las 12:27:06.148056 UTC,
+17.588 barras raw y 8.190 regulares; 21/21 sesiones válidas, objetivo 14/09.
+**MASSIVE_HISTORICAL_RVOL_VERIFIED**, igualdad exacta de cinco métricas:
+ORH 334.83, ORL 331.72, V5 1834725.760868, media 1690527.49202725,
+RVOL 1.085297795818647139199521439. Sin latencia de datos inventada.
+
+Raw inmutable: data/raw/massive/20260915T122702-6a68f76c.
+Informe real: runtime/massive-audits/20260915T122702-6a68f76c/result.json.
+Contrato, esquema, semántica documental y CLI: docs/MASSIVE_DATA_CONTRACT.md.
+Solo manifiesto saneado en docs/massive-historical-manifest.json; no dataset en Git.
+Código `8ed65eb`; 574 pruebas, 16/16 gates, cobertura 90,525210%, sin fallos/skips
+ni reducción crítica. Comandos y huellas exactos en docs/VERIFICATION.md.
+Baseline anterior preservado en runtime/massive-phase-20260915T071442/prior-*.
+Gates finales estables en la misma carpeta, final-{verification.json,coverage.json,test-results.xml}.
+Reauditoría offline: runtime/massive-audits/20260915T123151-9e27df3a/result.json;
+misma aritmética y checksums. CSV real importado con 8.190 barras, gate preservado.
+
+El hito solo acredita histórico AAPL. No acredita señales causales, latencia
+realtime ni rentabilidad. El motor rechaza HISTORICAL_DOWNLOAD con
+OBSERVED_AVAILABILITY_REQUIRED; cero candidatos/señales. No modificar observed,
+warmup o estrategia para saltarlo. El nombre del plan no está en el endpoint;
+se acredita acceso, no una suscripción concreta. Cierres extraordinarios y
+correcciones históricas siguen siendo límites; DST/cierre temprano se prueban
+localmente, no se observaron en esta ventana.
+
+Esta fase termina en la validación histórica. No iniciar shadow ni Demo Write.
+Mantener eToro DEMO_READ_VERIFIED previo, entries_armed=false,
+external_mutations=DISABLED y order_submission_enabled=false.
+Alpaca conserva su bloqueo externo anterior; no se volvió a consultar eToro.
+
+## Antecedente — preparación para fase shadow, 2026-09-14
 
 Partida limpia `43c9cc5b7d6366ee72d38dd17542ec7341e4e7e1`, misma rama local.
 Resultado vigente: BLOCKED_BY_EXTERNAL_CONFIGURATION, motivo

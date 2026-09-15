@@ -1,4 +1,27 @@
-# Estado — preparación para fase shadow, 2026-09-14
+# Estado — Massive histórico, 2026-09-15
+
+**MASSIVE_HISTORICAL_RVOL_VERIFIED**. AAPL, 1m, objetivo 14/09/2026:
+20 sesiones previas completas + objetivo; **21/21 válidas, 8.190 barras regulares**.
+Captura real HTTP 200 tras fallo de conectividad en el entorno restringido.
+Cobertura 100_percent_market según contrato histórico consolidado CTA/UTP;
+nombre del plan no observado. Calidad PASS; ninguna barra rellenada.
+
+ORH 334.83; ORL 331.72; V5 objetivo 1834725.760868; media previa
+1690527.49202725; RVOL **1.085297795818647139199521439**.
+Cinco métricas coinciden exactamente con el motor. Datos HISTORICAL_DOWNLOAD:
+el gate operativo OBSERVED_AVAILABILITY_REQUIRED sigue bloqueando señales.
+
+Proveedor Massive independiente y CSV importable. Alpaca, eToro, ORB/RVOL,
+riesgo, ejecución, configuración y lock preservados. No shadow, órdenes ni
+Demo Write. DEMO_READ_VERIFIED sigue como hito previo, sin lecturas de cuenta.
+entries_armed=false, external_mutations=DISABLED,
+order_submission_enabled=false, etoro_demo_write=NOT_TESTED.
+
+Contrato, métricas y límites: [MASSIVE_DATA_CONTRACT](docs/MASSIVE_DATA_CONTRACT.md).
+Código `8ed65eb`: **574 pruebas, 16/16 gates, cobertura 90,525210%**;
+sin fallos/skips y sin reducción de cobertura crítica. Evidencia: VERIFICATION.
+
+## Antecedente — preparación para fase shadow, 2026-09-14
 
 **BLOCKED_BY_EXTERNAL_CONFIGURATION / ALPACA_CREDENTIALS_UNAVAILABLE**.
 Ambas variables dedicadas ausentes en el proceso; CLI oficial bloqueada antes de

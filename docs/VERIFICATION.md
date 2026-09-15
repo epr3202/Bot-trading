@@ -1,5 +1,91 @@
 # Evidencia de verificación local
 
+## Massive histórico — 2026-09-15
+
+Resultado externo: **MASSIVE_HISTORICAL_RVOL_VERIFIED**, AAPL/1m,
+20 previas + objetivo 14/09/2026, 21/21 sesiones válidas, 8.190 barras regulares.
+GET histórico real, un HTTP 200; plan no observado. Cinco métricas coinciden
+exactamente con el motor. Contrato, fuentes y métricas completas:
+[MASSIVE_DATA_CONTRACT](MASSIVE_DATA_CONTRACT.md).
+
+Partida limpia `262944f`. Commit de código local **`8ed65eb`** en
+feat/phase3-readonly-evidence: ocho rutas explícitas, tres módulos Massive,
+CLI de auditoría, pruebas y aislamiento/escaneo de la nueva credencial.
+El commit documental siguiente registra resultados sin cambiar el código probado;
+su identificador se obtiene del historial Git. Identidad efectiva author/committer
+comprobada, sin inventarla ni cambiar configuración. No hubo push/publicación.
+
+Se verificó diff vacío contra la partida para Alpaca (tres módulos y CLI),
+eToro/brokers, estrategia, riesgo, ejecución, persistencia, configs, Python y lock.
+No se consultaron cuentas. Demo Read previo conservado; órdenes externas
+deshabilitadas, Demo Write NOT_TESTED, shadow NOT_STARTED.
+
+### Comprobaciones exactas
+
+Todos los comandos `run --frozen` usan `.\scripts\uv.ps1` en Windows.
+Python 3.12.12. `scripts/verify.py` retira las claves eToro, Alpaca y Massive de
+los procesos hijos; la suite también las retira y bloquea sockets externos.
+
+| Comando / recorrido | Resultado |
+|---|---|
+| `run --frozen pytest -q tests/test_massive_history.py`, primera batería | 52 passed; contrato fabricado, antes de ampliar pruebas |
+| `run --frozen pytest -q tests/test_strategy_orb.py tests/test_data_contracts.py` | 15 passed |
+| Ampliación Massive a 62 casos | Detectó fixture Decimal no serializable en prueba de bucle; se corrigió la serialización del mock |
+| `run --frozen pytest -q tests/test_massive_history.py::test_incomplete_pagination_reader_and_loop` | 1 passed tras corregir el fixture |
+| `run --frozen python scripts/verify.py`, preliminar | 15/16; fallo del fixture anterior y huella no estable al corregirlo durante ese pase; no es evidencia final |
+| `run --frozen python scripts/verify.py`, final | **16/16 PASS**, salida 0, código estable |
+| pytest dentro del gate final | **574 pruebas, 0 errores/fallos/skips**, 7 warnings; incluye 62 Massive; 164,734s en JUnit |
+| `run --frozen ruff check .`, `ruff format --check .`, `mypy src` | 0 cada uno; 39 archivos fuente para mypy |
+| `run --frozen python scripts/audit_massive_history.py --capture --target 2026-09-14`, restringido | CONNECTIVITY_FAILED, sin HTTP/barras; lanzador devolvió 1 |
+| Mismo comando con permiso de red | Salida 0; NETWORK_HTTP, HTTP 200, 17.588 barras raw, 8.190 regulares; hito histórico verificado |
+| `run --frozen python scripts/audit_massive_history.py --input data/raw/massive/20260915T122702-6a68f76c` | Salida 0; mismas métricas y checksums, sin red |
+| Importador existente sobre CSV/manifiesto reales | 8.190 barras, historical_download, cero candidatos/señales; OBSERVED_AVAILABILITY_REQUIRED |
+| `git diff --check`, `git diff --cached --check`, scanner de candidatos y blobs staged | 0; ningún secreto; blobs staged iguales a archivos revisados; identidad configurada |
+
+Los 16 gates: sync frozen offline, Ruff check, Ruff format, mypy, pytest,
+cobertura crítica, scanner, doctor, data validate, demo-offline, backtest,
+preflight sin credenciales (2 esperado), bloqueos etoro_demo/live (2 cada uno),
+build offline y sintaxis JS. Replay/demo-offline usan fixtures sintéticos: no
+son órdenes externas ni prueban rentabilidad. Preflight es negativo sin claves;
+no repite la lectura de cuenta eToro. Avisos de deprecación NumPy/calendario
+se conservan; ningún fallo de calidad/acceso se rebajó a warning.
+
+### Cobertura, huellas y revisión
+
+Cobertura combinada líneas/ramas **90,52521008403362%** (partida 90,488615%).
+Massive: lector 92,715232%, auditoría 92,523364%, HTTP 89,160839%.
+Módulos críticos sin reducción: riesgo 100%, autorización 98,4%, transporte
+99,267399%, ejecución 95,3125%, modelos de ejecución 100%, persistencia 95,270270%.
+No se cambiaron umbrales ni se añadieron exclusiones para aprobar.
+
+Verificación final: **2026-09-15T12:37:38.294018Z**, huella estable:
+`18d6323a0a99498d0c53ec4deaf9d2851d45645f363b4964aa89325768607e27`.
+Lock intacto: `d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f`.
+Evidencia exacta con stdout/stderr, salidas esperadas y comandos en
+`runtime/massive-phase-20260915T071442/final-verification.json`;
+JUnit/coverage final junto a ese archivo. Baseline y pase fallido preservados
+como prior-* y preliminary-*, sin sobrescribirlos.
+
+Captura externa recibida **2026-09-15T12:27:06.148056Z**. Sus intervalos se
+marcan final como instantánea histórica, no como versiones originales observadas.
+SHA-256 raw: `143f529d60baeb21a9361d1a6eb77652939bcb94b1095135c0903e66dce221a2`.
+SHA-256 capture: `43f556d7a6a7ff24ec1a50580f40c438a3e42c1b8d640b90a2490a84fa9310f2`.
+SHA-256 CSV: `819eeb47413f0eedba17fdc453f5ff597e9723e4f3d7175a7e75eb94a29e27be`.
+La captura ocurrió con fuentes Massive aún sin commit; esas mismas fuentes
+están en `8ed65eb`. La corrección posterior afectó solo al fixture de test.
+
+Revisión de seguridad/datos: host/método/ruta fijos, paginación sin desvío de
+credenciales, redirecciones bloqueadas, reintentos acotados, raws inmutables,
+calendario NY y recibos sin backdating. Duplicados y huecos bloquean, no se
+rellenan. Pruebas verifican perturbación del futuro, rechazo del motor por
+disponibilidad y ausencia de mutaciones. Reservas, propiedad, recuperación y
+transporte eToro no cambian; sus regresiones están incluidas en la batería.
+
+Límites: plan comercial desconocido; cobertura sustentada por contrato EOD
+consolidado, sin reconciliación trade a trade. Snapshot susceptible de revisiones;
+no validación de disponibilidad realtime, causalidad operativa, universo histórico
+ni rentabilidad. Este hito no autoriza shadow ni Demo Write.
+
 ## Preparación para fase shadow — 2026-09-14
 
 Decisión: **BLOCKED_BY_EXTERNAL_CONFIGURATION**, motivo observado

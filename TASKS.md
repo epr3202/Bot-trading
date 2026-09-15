@@ -1,4 +1,19 @@
-# Tareas — preparación para fase shadow, 2026-09-14
+# Tareas — Massive histórico, 2026-09-15
+
+| Tarea vigente | Estado |
+|---|---|
+| Proveedor Massive histórico independiente | IMPLEMENTED; MarketDataProvider.load y CSV/manifiesto existentes |
+| AAPL 1m, 20 previas + objetivo 14/09 | VERIFIED: 21/21 sesiones válidas, 8.190 barras regulares, HTTP 200 real |
+| Semántica y cobertura | VERIFIED_DOCUMENTED: CTA/UTP consolidado, trades elegibles, split-adjusted; plan no observado |
+| Calidad sin rellenar | PASS; raw/recibos/checksums preservados |
+| ORH/ORL/V5/media/RVOL independiente vs motor | EXACT_MATCH; MASSIVE_HISTORICAL_RVOL_VERIFIED |
+| Pruebas y gates | PASS: 574 pruebas, 16/16 gates, 90,525210%; código 8ed65eb |
+| Alpaca, eToro, ORB/RVOL y riesgo | PRESERVED |
+| Shadow, realtime, órdenes y Demo Write | NOT_STARTED / DISABLED / NOT_TESTED |
+
+Detalle reproducible: [MASSIVE_DATA_CONTRACT](docs/MASSIVE_DATA_CONTRACT.md).
+
+## Antecedente — preparación para fase shadow, 2026-09-14
 
 | Tarea vigente | Estado |
 |---|---|

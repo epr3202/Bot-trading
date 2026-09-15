@@ -45,6 +45,7 @@ def main() -> int:
             "ETORO_USER_KEY": "",
             "ALPACA_API_KEY": "",
             "ALPACA_API_SECRET": "",
+            "MASSIVE_API_KEY": "",
             "PYTHONUTF8": "1",
             "UV_CACHE_DIR": str(root / ".uv-cache"),
             "UV_PYTHON_INSTALL_DIR": str(root / ".python"),

@@ -1,5 +1,33 @@
 # Continuidad — Massive histórico, 2026-09-15
 
+## Cierre exclusivo A1 — 2026-09-15
+
+Partida `adb2e10`, árbol limpio. Ambos criterios pendientes quedan **CLOSED**:
+Massive seleccionable por configuración normal y batería focal final explícita.
+No volver a diagnosticarlos como pendientes; no continuar con A2.
+
+`DataConfig.provider="massive"` reutiliza `data.path`: directorio existente con
+capture.json y páginas raw; no acepta manifest externo. Configuración valida
+la ruta y el lector Massive existente valida contenido/checksums. load_bundle
+resuelve fixtures/import/massive explícitamente y propaga MassiveDataError.
+No descarga, no requiere clave Massive ni cambia disponibilidad histórica.
+Ejemplo YAML y CLI: docs/MASSIVE_DATA_CONTRACT.md.
+
+Pruebas finales con capturas fabricadas, sin raw real en tests: Massive completo
+**69 passed / 0 fallos / 0 errores / 0 skips / 5 warnings / exit 0**;
+configuración, importación y servicio **36 passed / 7 warnings / exit 0**.
+Gate oficial **16/16 PASS**, **589 passed / 0 fallos / 0 errores / 0 skips /
+7 warnings**; cobertura **90,70593149540518%**, crítica idéntica a la partida.
+Huella de código común a focales y gates:
+`b2c1ae5541d6f3f751ade6f579ed808a1be1c72e63eaa9160a3279ea3888ac80`.
+Evidencia exacta en runtime/a1-massive-config-20260915 y docs/VERIFICATION.md.
+
+Producción modificada únicamente en config.py y load_bundle de service.py.
+Lector/cliente/auditor Massive, ORBStrategy, riesgo, ejecución, bróker, Alpaca,
+persistencia, reglas observed, order_submission_enabled, uv.lock y manifiesto
+histórico real sin cambios. Se conserva MASSIVE_HISTORICAL_RVOL_VERIFIED previo;
+esta fase no repite ni amplía validación externa. Sin shadow, Demo Write ni órdenes.
+
 ## Publicación autorizada — 2026-09-15
 
 Destino indicado por el usuario: https://github.com/epr3202/Bot-trading.git.

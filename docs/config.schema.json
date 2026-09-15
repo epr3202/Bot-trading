@@ -181,7 +181,8 @@
           "default": "fixtures",
           "enum": [
             "fixtures",
-            "import"
+            "import",
+            "massive"
           ],
           "title": "Provider",
           "type": "string"

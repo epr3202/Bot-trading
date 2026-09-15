@@ -49,7 +49,7 @@ Todos los costes predeterminados describen únicamente simulación sintética.
 | `backtest.seed` | class 'int' | `42` |
 | `backtest.bootstrap_samples` | class 'int' | `200` |
 | `backtest.bootstrap_block_sessions` | class 'int' | `2` |
-| `data.provider` | typing.Literal['fixtures', 'import'] | `fixtures` |
+| `data.provider` | typing.Literal['fixtures', 'import', 'massive'] | `fixtures` |
 | `data.path` | pathlib.Path o None | `None` |
 | `data.manifest` | pathlib.Path o None | `None` |
 

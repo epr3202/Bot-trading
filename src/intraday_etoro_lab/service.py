@@ -19,6 +19,7 @@ from intraday_etoro_lab.brokers.simulator import SimulatorBroker
 from intraday_etoro_lab.config import AppConfig, Mode
 from intraday_etoro_lab.data import FixtureProvider
 from intraday_etoro_lab.data.importer import import_market_data
+from intraday_etoro_lab.data.massive import MassiveHistoricalProvider
 from intraday_etoro_lab.data.providers import DataBundle
 from intraday_etoro_lab.execution.engine import Executor
 from intraday_etoro_lab.persistence.store import ExecutorLock, StateStore
@@ -29,9 +30,15 @@ from intraday_etoro_lab.strategies.orb import ORBStrategy
 def load_bundle(config: AppConfig) -> DataBundle:
     if config.data.provider == "fixtures":
         return FixtureProvider().load()
-    if config.data.path is None or config.data.manifest is None:
-        raise ValueError("Importación requiere archivo y manifiesto")
-    return import_market_data(config.data.path, config.data.manifest)
+    if config.data.provider == "import":
+        if config.data.path is None or config.data.manifest is None:
+            raise ValueError("Importación requiere archivo y manifiesto")
+        return import_market_data(config.data.path, config.data.manifest)
+    if config.data.provider == "massive":
+        if config.data.path is None:
+            raise ValueError("Massive requiere directorio de captura explícito")
+        return MassiveHistoricalProvider(config.data.path).load()
+    raise ValueError("Proveedor de datos no soportado")
 
 
 def source_revision() -> str:

@@ -79,8 +79,45 @@ coverage=null y la auditoría no puede dar el hito verificado.
 `data/massive_http.py` adquiere; `data/massive.py::MassiveHistoricalProvider.load()`
 lee offline y devuelve el DataBundle del MarketDataProvider existente;
 `data/massive_audit.py` valida y compara. Son independientes de Alpaca y eToro.
-No hay SDK nuevo ni cambios de Python, lock, estrategia, DataConfig o configuración
-operativa. CSV/manifiesto son compatibles con el importador existente.
+No hay SDK nuevo ni cambios de Python, lock o estrategia. DataConfig permite
+seleccionar Massive histórico; CSV/manifiesto siguen siendo compatibles con el
+importador existente.
+
+### Selección desde configuración normal (A1)
+
+```yaml
+mode: offline
+order_submission_enabled: false
+data:
+  provider: massive
+  path: data/raw/massive/20260915T122702-6a68f76c
+```
+
+Guardar el YAML localmente, por ejemplo en `runtime/massive-offline.yaml`, y usar:
+
+```powershell
+.\scripts\uv.ps1 run --frozen bot data validate --config runtime/massive-offline.yaml
+```
+
+`data.path` es el directorio de una captura ya existente, con `capture.json` y
+las páginas raw referenciadas. Las rutas relativas se resuelven desde el directorio
+de trabajo del proceso, como en import; no desde la carpeta del YAML. No se añade
+otro campo. `data.manifest` se omite: Massive usa su propio capture.json y rechaza
+un manifiesto externo para evitar configuraciones ignoradas.
+
+DataConfig rechaza ruta ausente, inexistente o que sea archivo. `load_bundle()`
+resuelve explícitamente fixtures, import y massive; para Massive instancia
+`MassiveHistoricalProvider(data.path).load()`. El lector existente valida fuente,
+esquema, páginas y checksums. Captura ausente/corrupta produce MassiveDataError;
+el servicio lo propaga sin convertirlo en fixtures, import u otro proveedor.
+Las comprobaciones de calidad y semántica del lector/auditor no cambian.
+
+Seleccionar Massive solo habilita carga histórica offline: no descarga datos,
+no necesita MASSIVE_API_KEY, no habilita realtime, shadow, Demo Write ni órdenes.
+HISTORICAL_DOWNLOAD y OBSERVED_AVAILABILITY_REQUIRED permanecen intactos.
+Los tests de configuración usan capturas fabricadas; no reemplazan el manifiesto
+histórico real ni acreditan acceso externo nuevo. La CLI de captura independiente
+conserva su contrato y autenticación descritos a continuación.
 
 ```powershell
 .\scripts\uv.ps1 run --frozen python scripts/audit_massive_history.py --capture --target 2026-09-14

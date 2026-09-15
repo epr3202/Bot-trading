@@ -1,5 +1,15 @@
 # Cambios
 
+## Cierre A1 — 2026-09-15
+
+- data.provider=massive y data.path a captura offline existente; load_bundle usa
+  MassiveHistoricalProvider explícitamente y propaga errores sin fallback.
+- Configuración valida directorio y rechaza manifiesto externo Massive.
+  Fixtures e import conservan su comportamiento; sin cambios de estrategia o bróker.
+- Batería focal final 69 Massive y 36 pruebas relacionadas; gate completo 589 pruebas,
+  16/16 PASS, cobertura 90,705931%, crítica sin reducción. Ambos criterios A1 cerrados.
+- Histórico real y reglas observed preservados; A2, shadow y Demo Write fuera de alcance.
+
 ## Preparación para fase shadow — 2026-09-14
 
 - Clasificación de credenciales, conectividad, HTTP, cuota, feed y contenido separada.

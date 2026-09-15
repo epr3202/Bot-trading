@@ -6,8 +6,9 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from intraday_etoro_lab.api.app import Command, ControlSettings, create_app
-from intraday_etoro_lab.config import AppConfig, load_config
+from intraday_etoro_lab.config import AppConfig, DataConfig, load_config
 from intraday_etoro_lab.observability.logging import JsonFormatter, redact
+from intraday_etoro_lab.service import load_bundle
 
 
 @pytest.mark.parametrize(
@@ -42,6 +43,63 @@ def test_config_hash_and_strict_values(tmp_path: Path, monkeypatch: pytest.Monke
         AppConfig(data={"provider": "import"})  # type: ignore[arg-type]
     with pytest.raises(ValidationError):
         AppConfig(strategy={"vwap_enabled": True})  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("invalid_path", ["missing", "nonexistent", "file", "external_manifest"])
+def test_massive_configuration_requires_capture_directory(
+    tmp_path: Path, invalid_path: str
+) -> None:
+    values: dict[str, Any] = {"provider": "massive"}
+    if invalid_path == "nonexistent":
+        values["path"] = tmp_path / "absent"
+    elif invalid_path == "file":
+        file = tmp_path / "capture.json"
+        file.write_text("{}", encoding="utf-8")
+        values["path"] = file
+    elif invalid_path == "external_manifest":
+        values.update(path=tmp_path, manifest=tmp_path / "manifest.json")
+    with pytest.raises(ValidationError, match="Massive"):
+        DataConfig.model_validate(values)
+
+
+def test_unknown_provider_never_dispatches_to_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    from intraday_etoro_lab import service
+
+    def forbidden(*args: Any) -> Any:
+        pytest.fail("Unknown provider must not initialize any provider")
+
+    for name in ("FixtureProvider", "import_market_data", "MassiveHistoricalProvider"):
+        monkeypatch.setattr(service, name, forbidden)
+    with pytest.raises(ValidationError):
+        DataConfig.model_validate({"provider": "unknown"})
+    # Also reject invalid values if a caller bypasses Pydantic validation.
+    config = AppConfig(data=DataConfig().model_copy(update={"provider": "unknown"}))
+    with pytest.raises(ValueError, match="Proveedor de datos no soportado"):
+        load_bundle(config)
+
+
+def test_fixture_dispatch_preserves_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    from intraday_etoro_lab import service
+
+    def forbidden(*args: Any) -> Any:
+        pytest.fail("Fixtures must not initialize another provider")
+
+    monkeypatch.setattr(service, "MassiveHistoricalProvider", forbidden)
+    monkeypatch.setattr(service, "import_market_data", forbidden)
+    config = load_config("configs/offline.yaml")
+    bundle = load_bundle(config)
+    assert config.data.provider == "fixtures"
+    assert bundle.manifest.synthetic and bundle.manifest.availability_kind == "synthetic"
+    assert {instrument.symbol for instrument in bundle.instruments} == {"SIMA", "SIMB", "SIMC"}
+
+
+@pytest.mark.parametrize("provider", ["import", "massive"])
+def test_service_rejects_missing_paths_even_if_validation_bypassed(provider: str) -> None:
+    config = AppConfig().model_copy(
+        update={"data": DataConfig().model_copy(update={"provider": provider})}
+    )
+    with pytest.raises(ValueError, match="requiere"):
+        load_bundle(config)
 
 
 class FakeService:

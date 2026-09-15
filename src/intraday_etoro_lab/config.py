@@ -24,14 +24,21 @@ class Mode(StrEnum):
 
 class DataConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
-    provider: Literal["fixtures", "import"] = "fixtures"
+    provider: Literal["fixtures", "import", "massive"] = "fixtures"
     path: Path | None = None
     manifest: Path | None = None
 
     @model_validator(mode="after")
-    def validate_import(self) -> Self:
+    def validate_provider_paths(self) -> Self:
         if self.provider == "import" and (self.path is None or self.manifest is None):
             raise ValueError("Importación requiere path y manifest explícitos")
+        if self.provider == "massive":
+            if self.path is None:
+                raise ValueError("Massive requiere path explícito al directorio de captura")
+            if not self.path.is_dir():
+                raise ValueError("Massive requiere un directorio de captura existente")
+            if self.manifest is not None:
+                raise ValueError("Massive usa capture.json dentro de path, no manifest externo")
         return self
 
 

@@ -4,6 +4,30 @@ Este documento existente es la fuente canónica también para la referencia
 `docs/architecture.md` en Windows (filesystem sin distinción de mayúsculas).
 No se crea una segunda arquitectura con diferente capitalización.
 
+### Selección histórica Massive (A1)
+
+`DataConfig.provider` admite fixtures, import y massive. `service.load_bundle()`
+resuelve cada valor explícitamente y rechaza cualquier valor desconocido; no hay
+fallback automático. Para Massive, `data.path` es un directorio existente de
+captura offline. Configuración valida la ruta; el lector valida capture.json,
+páginas y hashes. MassiveDataError se propaga al llamador.
+
+```mermaid
+flowchart LR
+  CFG[Configuración data.provider] --> LOAD[load_bundle]
+  LOAD -->|fixtures| F[FixtureProvider]
+  LOAD -->|import| I[import_market_data]
+  LOAD -->|massive + data.path| M[MassiveHistoricalProvider]
+  F --> DBUNDLE[DataBundle]
+  I --> DBUNDLE
+  M --> DBUNDLE
+```
+
+Esta selección no ejecuta captura HTTP ni crea clientes de bróker. Conserva
+HISTORICAL_DOWNLOAD; el gate OBSERVED_AVAILABILITY_REQUIRED sigue separando carga
+histórica de disponibilidad operativa. Riesgo, ejecución y eToro no se modifican.
+Contrato y ejemplo YAML: [Massive](MASSIVE_DATA_CONTRACT.md).
+
 Alpaca histórico: CLI explícita → cliente GET con host/ruta fija → raw inmutable
 y manifiesto → proveedor offline DataBundle → auditoría Fraction/Decimal y calidad.
 Errores de configuración, HTTP, feed, integridad y calidad se distinguen; el feed

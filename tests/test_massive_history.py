@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 import httpx
 import pytest
 
+from intraday_etoro_lab.config import AppConfig, DataConfig, load_config
 from intraday_etoro_lab.data.calendar import session
 from intraday_etoro_lab.data.importer import import_market_data
 from intraday_etoro_lab.data.massive import MassiveHistoricalProvider, event_time
@@ -25,7 +26,8 @@ from intraday_etoro_lab.data.massive_http import (
     read_document,
     sha256,
 )
-from intraday_etoro_lab.data.providers import MarketDataProvider
+from intraday_etoro_lab.data.providers import DataBundle, MarketDataProvider
+from intraday_etoro_lab.service import load_bundle
 from intraday_etoro_lab.strategies.orb import ORBStrategy
 
 TARGET = date(2025, 11, 28)
@@ -371,7 +373,7 @@ def test_no_lookahead_or_operational_signals(tmp_path: Path) -> None:
     before = independent_metrics(directory, MassiveHistoricalRequest(TARGET))
     # This metadata alteration exercises a real-data guard with fabricated bars, not real evidence.
     rewrite_capture(directory, acquisition_class="NETWORK_HTTP")
-    bundle = MassiveHistoricalProvider(directory).load()
+    bundle = load_bundle(AppConfig(data=DataConfig(provider="massive", path=directory)))
     decision = ORBStrategy().process_session(bundle, TARGET)
     assert not decision.signals and not decision.selection
     assert decision.rejections[0].reason == "OBSERVED_AVAILABILITY_REQUIRED"
@@ -569,3 +571,119 @@ def test_excludes_extended_hours_and_preserves_fractional_volume(tmp_path: Path)
     assert provider.audit["sessions_valid"] == 21
     assert bundle.bars[0].volume == Decimal("1000.25")
     assert audit_capture(directory, tmp_path / "audit")["metric_comparison"] == "MATCH"
+
+
+def test_massive_selected_from_yaml_loads_without_fixtures_or_network(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from intraday_etoro_lab import service
+
+    directory = capture_rows(tmp_path)
+    checksums = {path.name: sha256(path) for path in directory.iterdir()}
+    path = tmp_path / "massive.yaml"
+    path.write_text(
+        "data:\n  provider: massive\n  path: " + json.dumps(directory.as_posix()) + "\n",
+        encoding="utf-8",
+    )
+    config = load_config(path)
+    assert config.data == DataConfig(provider="massive", path=directory)
+    assert config.order_submission_enabled is False
+    initialized: list[Path] = []
+
+    def initialize(capture: Path) -> MassiveHistoricalProvider:
+        initialized.append(capture)
+        return MassiveHistoricalProvider(capture)
+
+    def forbidden(*args: Any, **kwargs: Any) -> Any:
+        pytest.fail("Massive offline load must not use fixtures, import or network")
+
+    monkeypatch.setattr(service, "MassiveHistoricalProvider", initialize)
+    monkeypatch.setattr(service, "FixtureProvider", forbidden)
+    monkeypatch.setattr(service, "import_market_data", forbidden)
+    monkeypatch.setattr(httpx, "Client", forbidden)
+    bundle = load_bundle(config)
+    assert initialized == [directory]
+    assert isinstance(bundle, DataBundle) and len(bundle.bars) == 8010
+    assert bundle.manifest.source == "massive"
+    assert bundle.manifest.synthetic  # Fabricated capture; no claim of external access.
+    assert bundle.manifest.availability_kind == "historical_download"
+    assert bundle.bars[0].available_at == NOW
+    assert checksums == {path.name: sha256(path) for path in directory.iterdir()}
+
+
+@pytest.mark.parametrize("invalid_capture", ["empty", "invalid_json", "wrong_provider", "checksum"])
+def test_configured_massive_invalid_capture_fails_without_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, invalid_capture: str
+) -> None:
+    from intraday_etoro_lab import service
+
+    directory = tmp_path
+    if invalid_capture == "invalid_json":
+        (directory / "capture.json").write_text("{broken", encoding="utf-8")
+    elif invalid_capture in {"wrong_provider", "checksum"}:
+        directory = capture_rows(tmp_path)
+        if invalid_capture == "wrong_provider":
+            rewrite_capture(directory, provider="alpaca")
+        else:
+            capture = read_document(directory / "capture.json")
+            capture["pages"][0]["sha256"] = "0" * 64
+            rewrite_capture(directory, pages=capture["pages"])
+    config = AppConfig(data=DataConfig(provider="massive", path=directory))
+
+    def forbidden(*args: Any, **kwargs: Any) -> Any:
+        pytest.fail("Invalid Massive capture must not fall back or connect")
+
+    monkeypatch.setattr(service, "FixtureProvider", forbidden)
+    monkeypatch.setattr(service, "import_market_data", forbidden)
+    monkeypatch.setattr(httpx, "Client", forbidden)
+    with pytest.raises(MassiveDataError) as error:
+        load_bundle(config)
+    assert error.value.status == "MASSIVE_DATA_INCOMPLETE"
+
+
+def test_configured_massive_propagates_exact_provider_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from intraday_etoro_lab import service
+
+    error = MassiveDataError("RAW_CHECKSUM_MISMATCH")
+
+    def fail_provider(self: MassiveHistoricalProvider) -> DataBundle:
+        raise error
+
+    def forbidden(*args: Any) -> Any:
+        pytest.fail("Provider failure must not fall back")
+
+    monkeypatch.setattr(MassiveHistoricalProvider, "load", fail_provider)
+    monkeypatch.setattr(service, "FixtureProvider", forbidden)
+    monkeypatch.setattr(service, "import_market_data", forbidden)
+    with pytest.raises(MassiveDataError) as observed:
+        load_bundle(AppConfig(data=DataConfig(provider="massive", path=tmp_path)))
+    assert observed.value is error
+
+
+def test_import_dispatch_still_loads_csv_and_manifest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from intraday_etoro_lab import service
+
+    directory = capture_rows(tmp_path)
+    output = tmp_path / "export"
+    audit_capture(directory, output)
+    config = AppConfig(
+        data=DataConfig(
+            provider="import",
+            path=output / "regular-minutes.csv",
+            manifest=output / "import-manifest.json",
+        )
+    )
+
+    def forbidden(*args: Any) -> Any:
+        pytest.fail("Import must not initialize fixtures or the Massive provider")
+
+    monkeypatch.setattr(service, "FixtureProvider", forbidden)
+    monkeypatch.setattr(service, "MassiveHistoricalProvider", forbidden)
+    bundle = load_bundle(config)
+    assert len(bundle.bars) == 8010 and bundle.manifest.source == "massive"
+    assert bundle.bars[0].volume == Decimal(1000)
+    assert bundle.manifest.availability_kind == "historical_download"

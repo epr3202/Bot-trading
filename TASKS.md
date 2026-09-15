@@ -2,16 +2,19 @@
 
 | Tarea vigente | Estado |
 |---|---|
+| A1 — Massive seleccionable por configuración | CLOSED: data.provider=massive, data.path directorio validado; dispatch explícito sin fallback |
+| A1 — batería focal final Massive | CLOSED: 69 passed, exit 0; configuración/importación/servicio 36 passed |
 | Proveedor Massive histórico independiente | IMPLEMENTED; MarketDataProvider.load y CSV/manifiesto existentes |
 | AAPL 1m, 20 previas + objetivo 14/09 | VERIFIED: 21/21 sesiones válidas, 8.190 barras regulares, HTTP 200 real |
 | Semántica y cobertura | VERIFIED_DOCUMENTED: CTA/UTP consolidado, trades elegibles, split-adjusted; plan no observado |
 | Calidad sin rellenar | PASS; raw/recibos/checksums preservados |
 | ORH/ORL/V5/media/RVOL independiente vs motor | EXACT_MATCH; MASSIVE_HISTORICAL_RVOL_VERIFIED |
-| Pruebas y gates | PASS: 574 pruebas, 16/16 gates, 90,525210%; código 8ed65eb |
+| Pruebas y gates vigentes | PASS: 589 pruebas, 16/16 gates, 90,705931%; sin reducción crítica |
 | Alpaca, eToro, ORB/RVOL y riesgo | PRESERVED |
 | Shadow, realtime, órdenes y Demo Write | NOT_STARTED / DISABLED / NOT_TESTED |
 
 Detalle reproducible: [MASSIVE_DATA_CONTRACT](docs/MASSIVE_DATA_CONTRACT.md).
+Estos dos criterios A1 no están pendientes. A2 no se inicia ni se marca completado.
 
 ## Antecedente — preparación para fase shadow, 2026-09-14
 

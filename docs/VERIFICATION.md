@@ -1,6 +1,84 @@
 # Evidencia de verificación local
 
-## Massive histórico — 2026-09-15
+## A1 — selección Massive y batería focal final, 2026-09-15
+
+Partida limpia `adb2e101af7dac7cad134a2114738eb59abfe07c`.
+Cambio de producción limitado a DataConfig y load_bundle: proveedor massive,
+path de captura offline existente, dispatch explícito y errores propagados.
+No se modifica el lector/auditor/cliente Massive ni el manifiesto real anterior.
+Las pruebas nuevas son de configuración e integración con capturas fabricadas.
+No hubo captura externa, consultas eToro, shadow, órdenes ni Demo Write.
+
+### Comandos finales focales ejecutados
+
+| Comando exacto | Exit | Passed | Failures | Errors | Skips | Warnings |
+|---|---:|---:|---:|---:|---:|---:|
+| `.\scripts\uv.ps1 run --frozen pytest -q tests/test_massive_history.py` | 0 | **69** | 0 | 0 | 0 | 5 |
+| `.\scripts\uv.ps1 run --frozen pytest -q tests/test_config_api.py tests/test_import_phase2.py tests/test_e2e_http.py` | 0 | **36** | 0 | 0 | 0 | 7 |
+
+El archivo Massive completo pasó sobre el código final: 62 casos anteriores y
+siete adicionales; también se ejercita el gate observed existente a través de
+load_bundle con configuración Massive. Duración pytest 26,25s, comando iniciado
+13:04:50.830530 UTC y finalizado 13:05:25.080630 UTC. La regresión adicional pasó
+en 27,86s. Esta es la evidencia focal vigente; los 52 casos de la sección
+histórica siguiente no son el criterio de cierre A1.
+
+Los cinco warnings Massive son de deprecación NumPy/exchange-calendars. La
+regresión adicional incluye además avisos Starlette/httpx y AnyIO. No se
+silenciaron warnings, redujeron gates ni cambiaron dependencias o exclusiones.
+
+Ambos comandos ejecutados por PowerShell mediante el lanzador local, sin alterar
+sus argumentos, con las claves eToro/Alpaca/Massive retiradas. Salida completa,
+exit code, tiempos y huella antes/después en
+`runtime/a1-massive-config-20260915/{massive,related}.json`.
+Huella común estable: `b2c1ae5541d6f3f751ade6f579ed808a1be1c72e63eaa9160a3279ea3888ac80`.
+Python 3.12.12; lock SHA-256 intacto:
+`d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f`.
+
+### Gate oficial completo
+
+`.\scripts\uv.ps1 run --frozen python scripts/verify.py`: **exit 0, 16/16 gates
+PASS**, código estable y misma huella que ambas ejecuciones focales. Pytest global:
+**589 passed, 0 failures, 0 errors, 0 skips, 7 warnings**; 114,727s en JUnit.
+Ambos criterios pendientes de **A1 quedan CLOSED**. A2 no se inicia ni se completa.
+
+Gates: sync frozen offline, Ruff check/format, mypy, pytest, cobertura crítica,
+scanner, doctor, data validate, demo-offline, backtest, preflight sin claves
+(2 esperado), rechazos etoro_demo/live (2 esperado cada uno), build offline y
+sintaxis JS. Los recorridos offline son sintéticos; el preflight es negativo
+sin claves. Ningún resultado se atribuye a una conexión eToro/Massive nueva.
+
+Cobertura total líneas/ramas **90,70593149540518%**, frente a 90,52521008403362%
+de partida. Cobertura crítica idéntica: riesgo 100%, autorización 98,4%,
+transporte 99,26739926739927%, ejecución 95,3125%, modelos de ejecución 100%,
+persistencia 95,27027027027027%. No se redujeron gates, umbrales ni exclusiones.
+
+Evidencia completa: `runtime/a1-massive-config-20260915/gates.json` y
+`final-{verification.json,coverage.json,test-results.xml}`. La batería anterior
+se preserva en `prior-*`. Se compararon las huellas de focales, gate global y
+código final: coinciden. El cierre se versiona tras revisar rutas explícitas,
+comparar blobs staged y escanear secretos; el commit final se identifica en
+el historial Git, sin introducir un hash autorreferente en este documento.
+
+### Alcance de la revisión
+
+Configuración exige path/directorio y rechaza manifest externo para Massive;
+el lector existente valida esquema/checksums. Tests prueban directorio vacío,
+JSON inválido, fuente incorrecta, checksum distinto y propagación del mismo
+MassiveDataError. Fixtures, importador y HTTP fallan deliberadamente si son
+invocados durante la carga Massive probada. La captura fabricada permanece
+inmutable. Fixtures e import mantienen sus regresiones; provider desconocido
+se rechaza incluso al eludir la validación de Pydantic.
+
+Diff vacío respecto de la partida en ORBStrategy, riesgo, ejecución, bróker,
+Alpaca, persistencia, subsistema Massive, scripts de captura/gates, configs,
+uv.lock y docs/massive-historical-manifest.json. No se altera
+OBSERVED_AVAILABILITY_REQUIRED ni order_submission_enabled. A2 queda fuera
+de alcance. Esquema JSON/referencia de configuración regenerados con
+`.\scripts\uv.ps1 run --frozen python scripts/document_config.py` (exit 0);
+único cambio generado: incluir massive en el enum/lista de proveedores.
+
+## Antecedente — Massive histórico, 2026-09-15
 
 Resultado externo: **MASSIVE_HISTORICAL_RVOL_VERIFIED**, AAPL/1m,
 20 previas + objetivo 14/09/2026, 21/21 sesiones válidas, 8.190 barras regulares.

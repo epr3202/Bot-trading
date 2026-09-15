@@ -1,5 +1,22 @@
 # Estado — Massive histórico, 2026-09-15
 
+## A1 cerrado — configuración y batería focal final, 2026-09-15
+
+Los dos criterios pendientes están **CLOSED**. `data.provider="massive"` selecciona
+MassiveHistoricalProvider usando `data.path` al directorio de captura existente.
+Ruta ausente/inválida, captura corrupta y errores Massive fallan explícitamente;
+no hay fallback a fixtures/import. La carga normal es offline, histórica y read-only.
+
+Batería focal final Massive: **69 passed**, exit 0, 0 fallos/errores/skips,
+5 warnings. Configuración/importación/servicio: **36 passed**, exit 0, 7 warnings.
+Gate oficial: **589 pruebas, 16/16 PASS**, 0 fallos/errores/skips; cobertura
+**90,705931%**, sin reducción crítica. Detalle exacto: [VERIFICATION](docs/VERIFICATION.md).
+
+La evidencia real MASSIVE_HISTORICAL_RVOL_VERIFIED anterior se conserva.
+ORBStrategy, riesgo, ejecución, eToro, Alpaca, persistencia, semántica/cliente
+Massive y uv.lock intactos. HISTORICAL_DOWNLOAD y OBSERVED_AVAILABILITY_REQUIRED
+no cambian; order_submission_enabled=false. Sin A2, shadow, órdenes ni Demo Write.
+
 ## Repositorio remoto autorizado — 2026-09-15
 
 El usuario autorizó publicar este proyecto en

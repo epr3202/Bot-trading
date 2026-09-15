@@ -1,5 +1,20 @@
 # Continuidad — Massive histórico, 2026-09-15
 
+## Publicación autorizada — 2026-09-15
+
+Destino indicado por el usuario: https://github.com/epr3202/Bot-trading.git.
+Remoto local `origin`; publicación de la rama actual en `refs/heads/main`.
+Se conserva la rama local feat/phase3-readonly-evidence y el historial existente.
+Antes de publicar: remoto vacío por `git ls-remote --symref`; 13 commits y
+248 blobs hasta `710e3e9` escaneados sin secretos/rutas privadas. El incremento
+documental se revisa y escanea por separado. Sin cambios de código ni repetición
+de pruebas: huella idéntica a la batería de 574 pruebas y 16/16 gates.
+La autorización del usuario cubre esta publicación; no habilita trading,
+shadow o Demo Write. No se suben datos raw, claves ni estado local.
+Los resultados de CI remoto deben verificarse por separado de los gates locales.
+
+## Continuidad de la integración Massive
+
 Partida limpia `262944f`; misma rama local feat/phase3-readonly-evidence.
 Massive agregado como proveedor independiente histórico read-only. No se cambian
 Alpaca, eToro, estrategia, riesgo, ejecución, configs ni lock. La clave dedicada

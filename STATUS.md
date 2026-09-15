@@ -1,5 +1,16 @@
 # Estado — Massive histórico, 2026-09-15
 
+## Repositorio remoto autorizado — 2026-09-15
+
+El usuario autorizó publicar este proyecto en
+[epr3202/Bot-trading](https://github.com/epr3202/Bot-trading), rama `main`.
+Revisión previa: remoto vacío; 13 commits y 248 blobs históricos escaneados,
+cero hallazgos de secretos o rutas privadas. Código probado sin cambios:
+574 pruebas y 16/16 gates locales. GitHub Actions no se declara verificado.
+Raw, credenciales, runtime y entornos locales quedan excluidos de Git.
+
+## Validación histórica vigente
+
 **MASSIVE_HISTORICAL_RVOL_VERIFIED**. AAPL, 1m, objetivo 14/09/2026:
 20 sesiones previas completas + objetivo; **21/21 válidas, 8.190 barras regulares**.
 Captura real HTTP 200 tras fallo de conectividad en el entorno restringido.

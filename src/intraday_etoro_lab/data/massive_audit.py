@@ -77,7 +77,9 @@ def audit_capture(directory: Path, output: Path) -> dict[str, Any]:
             },
         )
         raise
-    request = MassiveHistoricalRequest(date.fromisoformat(provider.capture["target"]))
+    request = MassiveHistoricalRequest(
+        date.fromisoformat(provider.capture["target"]), provider.capture.get("symbol", "AAPL")
+    )
     report: dict[str, Any] = {
         "schema_version": "massive-audit-v1",
         "status": "MASSIVE_DATA_INCOMPLETE",

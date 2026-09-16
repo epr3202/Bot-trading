@@ -1,4 +1,248 @@
+## A7 WebSocket: verificacion final del spike (2026-09-16)
+
+23 tests del spike PASS; 165 focales WebSocket/A6/A7 PASS (5 warnings).
+Suite completa: 905 passed, 7 warnings, cero fallos/errors/skips; 16/16 gates
+PASS con scripts/verify.py y codigo inmutable durante checks. Secret scan:
+193 archivos, 0 hallazgos; git diff --check exit 0; inspector Strategy 1 PASS.
+52 archivos src/configs/lock/snapshot/pyproject preservados contra baseline.
+El primer gate detecto dos fallos del aislamiento monkeypatch del test nuevo;
+se corrigieron y se repitieron focales y todos los gates. Evidencia inicial
+se conserva, evidencia final: runtime/a7-websocket/verification.json.
+No demuestra viabilidad WebSocket: handshake HTTP 403 del proxy EPM, cero
+eventos y cero mutaciones; A7 PARTIAL/BLOCKED. Detalle: A7_WEBSOCKET.md.
+
+## A7 WebSocket: spike bloqueado por handshake HTTP 403
+
+Revision contractual permite eToro WebSocket conservando el gate de 3 s.
+Diagnostico aislado: el handshake devuelve HTTP 403 con pagina Proxy WebGateway
+EPM, antes de Authenticate; cero eventos, suscripciones u ordenes. No se ha
+integrado el stream al runner ni se ha cambiado codigo productivo, riesgo,
+Strategy 1, A6, Massive, contratos congelados o uv.lock. Reconnect productivo
+y validacion en mercado abierto pendientes; no declarar migracion PASS.
+Detalle: docs/A7_WEBSOCKET.md (desde docs: A7_WEBSOCKET.md).
+A7 PARTIAL/BLOCKED: upgrade WebSocket rechazado por la infraestructura de red.
+
+## Massive: detalle del 403 verificado (2026-09-16 19:35 UTC)
+
+MASSIVE_API_KEY: PRESENT; fuente exclusiva .env del repositorio.
+Un GET /v2/last/nbbo/AAPL devuelve HTTP 403, status NOT_AUTHORIZED:
+You are not entitled to this data. El proveedor indica falta de entitlement
+para estos datos y sugiere upgrade; el nombre del plan sigue UNKNOWN.
+No generalizar a todo acceso operativo ni atribuirlo al incidente FMV.
+Evidencia sanitizada: runtime/massive-operational/denial-detail-20260916T193532830663Z.json.
+La fuente actual queda verificada; la credencial del intento historico sigue
+sin identificacion demostrable. A7 PARTIAL/BLOCKED; limite 3 s intacto.
+Cero mutaciones; sin cambios de codigo productivo, contratos ni .env.
+Las notas inferiores sobre .env MISSING corresponden al estado anterior.
+
 # Continuidad — Massive histórico, 2026-09-15
+
+El diagnóstico Massive ahora carga únicamente MASSIVE_API_KEY de .env raíz;
+ignora la clave heredada, no interpola ni hace fallback. La entrada sigue MISSING.
+El usuario debe configurarla localmente; no copiar la variable Windows no verificada.
+21 tests aislados PASS; .env, trading, contratos y A7 sin cambios.
+
+## Rectificación de credencial Massive — 2026-09-16
+
+Resultado vigente CREDENTIAL_SOURCE_UNVERIFIED. No presentar los tres 403 como
+prueba de plan insuficiente o de indisponibilidad Massive. El probe usó la variable
+MASSIVE_API_KEY del proceso como Bearer; PRESENT no prueba validez. Hoy aparece
+en proceso y Windows User, no en .env/Machine. No hay fingerprint Massive previo
+que identifique el valor enviado. Preservar raw y la rectificación separada.
+No se modifican A7, contratos, secretos ni código de trading.
+
+## Investigación Massive operativo — 2026-09-16
+
+CONTRACT_CHANGE_NOT_JUSTIFIED: tres GET Last NBBO, AAPL/SPY/QQQ HTTP 403.
+No atribuir plan específico al 403 ni inventar métricas sin cotizaciones.
+Evidencia runtime/massive-operational/live-20260916; contratos eToro consultados
+documentan limitIOC/limitRate, distinto de MIT, sin ejecución ni integración.
+A7 permanece PARTIAL/BLOCKED, 3s intacto, REAL fuera de capacidad. Sin A8.
+12 tests spike, 268 focales, 873 completos y 16/16 gates PASS; normativa intacta.
+La continuación exige evidencia operativa antes de proponer cambios de contrato.
+Informe: [viabilidad](docs/MASSIVE_OPERATIONAL_FEASIBILITY.md).
+
+Validacion final de esta auditoria: 861 tests PASS, 7 warnings; 16/16 gates PASS.
+142 focales A7/A6 PASS; secret scan 187 archivos / 0 hallazgos; diff check 0.
+Strategy 1/riesgo/runner A6/config/lock preservados por hashes. Evidencia exacta
+en runtime/a7-quote-audit/verification.json y acceptance.json.
+
+## A7 — auditoria UTC/costes, PARTIAL/BLOCKED (2026-09-16)
+
+La evidencia anterior era 81.588043 s, no 81588 s; ambiguedad de coma decimal.
+Dos GET rates nuevos confirmaron retrasos de 35.860831 y 75.107782 s.
+Recepcion HTTP registrada antes del parseo, UTC aware; limite 3 s intacto.
+Costes value/amount normalizados dentro del adapter; fixture real sanitizado.
+142 pruebas focales A7/A6 PASS. Gate externo QUOTE_STALE_OR_DELAYED;
+cero ordenes/mutaciones; identidad DEMO y parser de costes PASS.
+No se habilita el vertical de trading mientras falle frescura. No A8.
+Detalle, cambios, comandos y evidencia: [auditoria A7](docs/A7_QUOTE_COST_AUDIT.md).
+
+
+## A7 — continuación: preparación y diagnóstico externo, PARTIAL/BLOCKED
+
+Se distingue rechazo previo al envío de UNKNOWN: preparación con intención
+APPROVED, metadata durable y liberación de reservas solo con cero intentos de
+mutación demostrados. Crash durante POST sigue UNKNOWN y nunca reenvía.
+El usuario autorizó estímulo sintético A6 exclusivamente para el smoke Demo.
+Identidad/scopes/elegibilidad/costes hipotéticos observados con credenciales
+existentes PRESENT. La cotización externa falló: 81.588043s frente a máximo 3s.
+Costes usa value frente a amount del esquema; contabilidad de cierre pendiente.
+Cero órdenes/mutaciones. No se conectó aún el runner ni se habilitó Demo Write.
+Gates finales: 842 passed, 7 warnings, 16/16 PASS, cero fallos/skips.
+39 A6 y 84 A7 PASS; secretos/diff check/Strategy 1 PASS.
+Detalles y partes pendientes: [continuación A7](docs/A7_COMPLETION_ATTEMPT.md).
+Las afirmaciones históricas de core intacto o UNKNOWN para todo rechazo quedan
+actualizadas por este incremento; Strategy 1, riesgo, A6 y esquema se conservan.
+
+## A7 — PARTIAL / ejecución externa BLOCKED, 2026-09-16
+
+Defensa de identidad centralizada DEMO/REAL/UNKNOWN; adaptador y transporte
+verifican /me + portfolio Demo, scopes write y vínculo de autorización antes
+de mutar en contratos mock. REAL/UNKNOWN/error y cambio de identidad bloquean.
+A7 está autorizado, pero no cerrado: permanecen pendientes feed operativo,
+elegibilidad/costes/stops efectivos y reconciliación contable externa de cierres.
+La barrera de red sigue activa; no nuevo runner conectado ni DEMO_WRITE_VERIFIED.
+Core A6/riesgo/persistencia/Strategy 1 preservados; cero operaciones externas.
+Validación final: 822 passed, 7 warnings, cero fallos/skips; 16/16 gates.
+64 casos A7 y 39 A6 PASS; código estable, escaneo de secretos y diff check PASS.
+Diseño, pruebas, matriz DoD y límites: [A7](docs/A7_DEMO_ONLY.md).
+Checks exactos: [VERIFICATION](docs/VERIFICATION.md).
+Las notas inferiores de A7 no autorizado quedan como antecedentes superados.
+
+## A6 — PASS / sesión exclusivamente simulada, 2026-09-16
+
+Runner conectado con Strategy 1 v1 congelada: contexto Demo mock, elegibilidad,
+señal, riesgo, intención durable, simulador local, reconciliación y cierre flat.
+Dos runs aceptados: una señal, entrada+cierre, mismo estado/órdenes/resultado;
+retry sin duplicados. No señal: cero intenciones. Evidencia runtime/a6/comparison.json.
+39 casos A6; suite completa 758 passed, 7 warnings, cero fallos/skips; 16/16 gates
+PASS. Cobertura total 91.411683%, runner 95.18%, inputs/fixture 100%; crítica intacta.
+Código previo preservado por huella, Strategy 1 inspector PASS. No cuenta externa,
+lectura de .env, mutaciones eToro, cambios de riesgo/schema/dependencias o A7.
+A5 real conserva su propia evidencia; A6 no la renueva ni habilita permisos.
+Detalles: [A6](docs/A6_SESSION.md); comandos y checks: [VERIFICATION](docs/VERIFICATION.md).
+Las notas históricas A6 no iniciado inferiores quedan superadas por este alcance.
+
+## A5 — CLOSED / DEMO_READ_VERIFIED, 2026-09-16
+
+Credenciales existentes en .env cargadas explícitamente mediante uv --env-file
+.env; ambas PRESENT. Sin cambios de código ni del archivo de credenciales.
+El diagnóstico anterior comprobó solo el entorno exportado, no ausencia de claves.
+CLI real sin instrumentación: 12:55:35.171934Z, exit 0, PASS; identidad Demo,
+16 scopes observados, credit virtual válido y AAPL/1001/Stocks/exchangeId=4.
+Tres GET, HTTP 200/200/200, cero mutaciones y cero órdenes; protección intacta.
+Evidencia local: runtime/a5-preflight/demo-read-verified.json. El primer intento
+cargado falló con WinError 10061 bajo red restringida; PASS fuera de esa restricción,
+con TLS/CA local conservados y sin cambiar proxy ni ajustes globales.
+202 tests focales PASS, 7 warnings, cero fallos/skips; Ruff check/format, mypy e
+inspector Strategy 1 PASS. Suite anterior 719/16 gates conservada; no se atribuye
+una repetición completa. A6/shadow/Demo Write no iniciados.
+Las notas A5 pendiente inferiores quedan como antecedentes superados.
+Detalle, diagnóstico y comando: [A5](docs/A5_PREFLIGHT.md); checks exactos: [VERIFICATION](docs/VERIFICATION.md).
+
+## A5 — implementado localmente; validación externa pendiente, 2026-09-16
+
+Preflight separado de Strategy 1: identidad/scopes Demo, portfolio virtual y
+resolución del símbolo A2; tres rutas GET, informe JSON saneado y evidencia local.
+REAL/UNKNOWN/ambiguo fallan cerrados; mutaciones bloqueadas incluso en mocks.
+Intento propio 12:38:58Z: exit Python 2, ambas claves eToro ausentes, cero requests.
+No declarar A5 DONE hasta obtener PASS externo y evidencia sanitizada desde el
+proceso con credenciales Demo Read. El hito histórico comunicado se conserva.
+A6/shadow/Demo Write no iniciados. Detalles y comando: [A5](docs/A5_PREFLIGHT.md).
+Checks exactos en [VERIFICATION](docs/VERIFICATION.md). Cambios previos A2–A4 preservados, sin commit.
+719 passed, 7 warnings, cero fallos/skips; 16/16 gates PASS. Ruff/mypy,
+cobertura crítica y escaneo de secretos PASS. No se atribuye conexión externa.
+
+## A4 — DONE / replay_as_of_v1, 2026-09-15
+
+Contrato temporal aprobado explícitamente e implementado en el boundary:
+historical_download preservado, vistas observed solo cuando available_at <= reloj.
+Strategy 1 ORB_RVOL_v1.0, parámetros, configuración y fuentes congeladas intactos.
+Dos runs Massive A2 reales consecutivos producen operaciones/summary idénticos:
+PASS, run_id 1d21808255a75077d902. AAPL evaluable, cero operaciones por
+RVOL_BELOW_THRESHOLD; sin rechazo de disponibilidad ni tuning.
+
+Evidencia: runtime/a4-replay/run-1, run-2 y comparison.json. Código efectivo
+SHA-256 5b9fefc95ee1b319425f3172ef7be5418365ce2c734d416e968f092051d25db6;
+base HEAD ed456c32355bea05b5c6e04bc4b889ce8bce8ef3, sin commit nuevo.
+658 passed, 7 warnings, cero fallos/skips; Ruff check/format, mypy, inspector,
+secret scan y recorridos offline PASS. Cobertura 90.641410%; crítica sin reducción.
+
+[Informe y comandos](docs/A4_READINESS.md), [contrato](docs/REPLAY_AS_OF_V1.md),
+[verificación](docs/VERIFICATION.md). A2/A3/raw preservados. La disponibilidad
+es lógica/modelada, no evidencia realtime. No quedan criterios A4 pendientes.
+Las secciones A4 BLOCKED/PENDING inferiores son antecedentes superados.
+Shadow, eToro Demo Write, nuevas estrategias y optimización no se inician.
+
+## A4 — BLOCKED por contrato temporal A2/A3, 2026-09-15
+
+Inspección terminada: hashes de las tres capturas A2 y congelación A3 PASS.
+Strategy 1 v1 rechaza los datos Massive historical_download con
+OBSERVED_AVAILABILITY_REQUIRED; las recepciones son posteriores a la sesión.
+No se implementan fases 2–5 ni se presentan cero operaciones como replay válido.
+A2 CLOSED y A3 DONE se conservan; las notas A4 PENDING inferiores son antecedentes.
+Detalle y propuesta mínima fuera de alcance: [A4_READINESS](docs/A4_READINESS.md).
+Evidencia local runtime/a4-readiness/evidence.json.
+Regresión focal: 63 passed, 5 warnings, cero fallos/skips; comandos en VERIFICATION.
+Siguiente dependencia: decisión explícita del responsable sobre contrato temporal
+de investigación; no retrofechar datos ni cambiar Strategy 1 dentro de A4.
+Sin cambios productivos, raw, configuración, lock, eToro, commits o publicación.
+
+## A3 definitivo — Strategy 1 v1, 2026-09-15
+
+ORB_RVOL_v1.0 implementada y congelada según decisiones explícitas B1–B4.
+Cargar configs/strategy-1-v1.yaml; verificar con scripts/inspect_strategy_v1.py.
+RS evalúa primera candidata ORB con SPY/QQQ del mismo minuto disponibles al decidir;
+si falla, no intenta otra barra. ETF/reference-only nunca alcanzan señales/sizing.
+Importador multiinstrumento existente sirve DataBundle; fixtures antiguos sin
+benchmarks rechazan RS. Massive A2 sigue histórico, no observed. A4 no se ejecutó.
+Snapshot preserva auditoría histórica; v0.1 continúa disponible. Código/riesgo/
+ejecución/proveedores previos se conservan salvo cambios A3 en config.py y orb.py.
+Base y HEAD ed456c32355bea05b5c6e04bc4b889ce8bce8ef3; sin commit solicitado
+explícitamente, se entrega working tree revisable con cambios A2/A3 preservados.
+Nueva versión requerida para cualquier modificación de hipótesis durante A4.
+Gates finales: 645 passed / 7 warnings / cero fallos-skips; focal 116 passed.
+Ruff check/format, mypy, inspector y scanner PASS. Cobertura 91.308711%, crítica
+sin reducción; logs/huellas/comparación en runtime/a3-freeze y docs/VERIFICATION.md.
+
+## A3 — historial agotado localmente, 2026-09-15
+
+Continuación sobre la misma base ed456c3 y cambios A2/A3 sin commit. Se revisaron
+15 commits alcanzables, -S/-G/blame/show y versiones de archivos; logs y hashes
+previos en runtime/a3-history. No hay nueva aprobación de RS/régimen/VWAP/ETF.
+Bootstrap:169 excluye ETF explícitamente; FUT-001/002 dejan extensiones pendientes.
+El siguiente paso es revisión humana de B1–B4 en docs/A3_PENDING_DECISIONS.md,
+no otra búsqueda equivalente ni activación inferida. A3 BLOCKED, A4 no iniciado.
+Tests existentes A3: 5 passed, 1 warning, exit 0; hashes y conservación PASS,
+escaneo 161 candidatos/cero hallazgos. Código, configuración y tests sin cambios.
+
+## A3 — entrega de auditoría bloqueada, 2026-09-15
+
+Base `ed456c32355bea05b5c6e04bc4b889ce8bce8ef3`, árbol con A2 sin commit.
+Se preservaron diff/estado previos en runtime/a3-audit. No confundir esa base
+con el árbol actual ni hacer un commit que mezcle A2 bajo un título exclusivo A3.
+Pendientes B1–B4: RS/SPY/QQQ, régimen, confirmación VWAP y universo ETF.
+La pregunta de alcance solicita conservar exclusiones v0.1 o definir nueva versión;
+sin decisión no se puede cerrar A3. Inventario/snapshot y siguiente paso en
+docs/STRATEGY_1_A3_AUDIT.md. Tests nuevos auditan estado actual, no congelación.
+A4 pendiente; cualquier cambio de reglas requiere nueva versión y revisión A3.
+Verificación A3: 74 passed, 7 warnings, exit 0; Ruff check/format y mypy PASS;
+cero secretos; sin fallos/skips. runtime/a3-audit/tests.log y tests.xml.
+
+## Entrega A2 — 2026-09-15
+
+Siete criterios de datos PASS, captura real SPY/QQQ HTTP 200 y AAPL previo reutilizado.
+Reproducir con el comando de docs/MASSIVE_A2.md; raw inmutable y privado, sin Git.
+Informe completo runtime/a2-massive/offline-final.json; manifiesto portable
+ docs/massive-a2-manifest.json. El intento de red fallido se conserva.
+Cambios mínimos: allowlist histórica AAPL/SPY/QQQ, identidad ETF en benchmarks,
+auditor A2 y CLI explícita. Capturas antiguas sin symbol siguen siendo AAPL,
+con endpoint y ticker validados; nunca fallback a otro proveedor.
+Régimen no existe en v0.1: no inventar reglas. RS/VWAP siguen inactivos.
+No continuar A3. Resultados de checks A2 en docs/VERIFICATION.md.
+598 pruebas PASS, 7 warnings, cero fallos/skips; ruff check/format y mypy PASS.
+Cobertura 91.142857%, crítica intacta; checks.json conserva huella y comparación.
 
 ## Cierre exclusivo A1 — 2026-09-15
 

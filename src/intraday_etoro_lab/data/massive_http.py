@@ -1,4 +1,4 @@
-"""Massive historical AAPL aggregates only. No account or execution capabilities."""
+"""Massive historical AAPL/SPY/QQQ aggregates only. No account capabilities."""
 
 from __future__ import annotations
 
@@ -99,9 +99,16 @@ class MassiveCredentials:
 @dataclass(frozen=True)
 class MassiveHistoricalRequest:
     target: date
+    symbol: str = "AAPL"
 
     def __post_init__(self) -> None:
+        if self.symbol not in {"AAPL", "SPY", "QQQ"}:
+            raise MassiveDataError("SYMBOL_NOT_ALLOWED")
         session(self.target)
+
+    @property
+    def prefix(self) -> str:
+        return f"/v2/aggs/ticker/{self.symbol}/range/1/minute/"
 
     @property
     def days(self) -> tuple[date, ...]:
@@ -120,7 +127,7 @@ class MassiveHistoricalRequest:
     @property
     def endpoint(self) -> str:
         start, end = self.bounds
-        return f"{ORIGIN}{PREFIX}{start}/{end}"
+        return f"{ORIGIN}{self.prefix}{start}/{end}"
 
     @property
     def url(self) -> str:
@@ -131,7 +138,7 @@ class MassiveHistoricalRequest:
         if not isinstance(value, str) or len(value) > 8192 or not value.isascii():
             raise MassiveDataError("PAGINATION_URL_NOT_ALLOWED")
         parsed = urlsplit(value)
-        match = re.fullmatch(re.escape(PREFIX) + r"([0-9]{13})/([0-9]{13})", parsed.path)
+        match = re.fullmatch(re.escape(self.prefix) + r"([0-9]{13})/([0-9]{13})", parsed.path)
         if (
             parsed.scheme != "https"
             or parsed.netloc != "api.massive.com"
@@ -156,13 +163,13 @@ class MassiveHistoricalRequest:
         return value
 
 
-def validate_page(doc: dict[str, Any]) -> None:
+def validate_page(doc: dict[str, Any], symbol: str = "AAPL") -> None:
     if doc.get("status") in {"NOT_AUTHORIZED", "AUTH_ERROR"}:
         raise MassiveDataError("AUTH_PAYLOAD_DENIED")
     rows = doc.get("results", [])
     if (
         doc.get("status") != "OK"
-        or doc.get("ticker") != "AAPL"
+        or doc.get("ticker") != symbol
         or doc.get("adjusted") is not True
         or not isinstance(rows, list)
         or type(doc.get("resultsCount")) is not int
@@ -268,7 +275,7 @@ class MassiveHistoryClient:
                 doc = json.loads(response.content, parse_float=Decimal)
                 if not isinstance(doc, dict):
                     raise ValueError
-                validate_page(doc)
+                validate_page(doc, request.symbol)
                 if doc.get("next_url") is not None:
                     request.validate_url(doc["next_url"])
             except (ValueError, TypeError, UnicodeError):
@@ -292,6 +299,7 @@ class MassiveHistoryClient:
             "endpoint": request.endpoint,
             "initial_url": request.url,
             "target": str(request.target),
+            "symbol": request.symbol,
             "timeframe": "1m",
             "timezone": "America/New_York",
             "availability_class": "HISTORICAL_DOWNLOAD",

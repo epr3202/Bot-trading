@@ -43,7 +43,35 @@ def make_transport(handler, mode="etoro_demo", now=lambda: NOW, **kwargs):
     )
 
 
-def arm(transport):
+def arm(transport, *, identity_reads=True):
+    # Existing lease tests now also need explicit provider identity responses.
+    # Adapter/security tests supply their own responses and disable this fixture.
+    mock = transport._contract_transport
+    if identity_reads and type(mock) is httpx.MockTransport:
+        original = mock.handler
+
+        def observed(request):
+            if request.method == "GET" and request.url.path == ME:
+                return httpx.Response(
+                    200, json={"demoCid": 42, "realCid": 99, "scopes": ["etoro-public:demo:write"]}
+                )
+            if request.method == "GET" and request.url.path == PORTFOLIO:
+                return httpx.Response(
+                    200,
+                    json={
+                        "clientPortfolio": {
+                            "credit": 10000,
+                            "positions": [],
+                            "orders": [],
+                            "mirrors": [],
+                            "ordersForOpen": [],
+                            "ordersForClose": [],
+                        }
+                    },
+                )
+            return original(request)
+
+        mock.handler = observed
     authorization = DemoAuthorization("session", HASH)
     evidence = PreflightEvidence(
         42,

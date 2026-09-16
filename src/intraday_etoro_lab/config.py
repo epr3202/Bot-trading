@@ -14,6 +14,29 @@ from intraday_etoro_lab.backtesting.engine import BacktestConfig
 from intraday_etoro_lab.risk import CostConfig, RiskConfig
 from intraday_etoro_lab.strategies.orb import StrategyConfig
 
+V1_RISK_VALUES = {
+    "allocated_capital": "10000",
+    "risk_fraction": "0.001",
+    "daily_loss_fraction": "0.005",
+    "max_positions": 2,
+    "max_gross_fraction": "1",
+    "max_position_fraction": "0.60",
+    "max_spread_fraction": "0.003",
+    "max_price_deviation": "0.005",
+    "max_source_divergence": "0.005",
+    "max_quote_age_seconds": 3,
+    "signal_ttl_seconds": 10,
+}
+V1_COST_VALUES = {
+    "known": True,
+    "fixed_per_side": "0",
+    "minimum_per_side": "0",
+    "per_unit_per_side": "0.005",
+    "notional_rate_per_side": "0",
+    "slippage_per_unit": "0.02",
+    "quadratic_impact": "0",
+}
+
 
 class Mode(StrEnum):
     OFFLINE = "offline"
@@ -57,6 +80,11 @@ class AppConfig(BaseModel):
 
     @model_validator(mode="after")
     def safe_modes(self) -> Self:
+        if self.strategy.version == "ORB_RVOL_v1.0":
+            if self.risk != RiskConfig.model_validate(V1_RISK_VALUES):
+                raise ValueError("STRATEGY_V1_FROZEN_RISK")
+            if self.costs != CostConfig.model_validate(V1_COST_VALUES):
+                raise ValueError("STRATEGY_V1_FROZEN_COSTS")
         if self.order_submission_enabled and self.mode != Mode.ETORO_DEMO:
             raise ValueError("ORDER_SUBMISSION_ENABLED solo es válido en etoro_demo")
         if self.risk.allocated_capital != self.backtest.starting_capital:
@@ -69,6 +97,16 @@ class AppConfig(BaseModel):
     def config_hash(self) -> str:
         payload = json.dumps(self.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(payload.encode()).hexdigest()
+
+    @property
+    def strategy_hash(self) -> str:
+        """Strategy, risk and sizing costs only; excludes future replay parameters."""
+        payload = {
+            key: getattr(self, key).model_dump(mode="json") for key in ("strategy", "risk", "costs")
+        }
+        return hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
 
 
 def load_config(path: Path | str | None = None, mode: str | None = None) -> AppConfig:

@@ -1,5 +1,11 @@
 # ORB_RVOL_v0.1
 
+Versión adicional congelada A3: **ORB_RVOL_v1.0**, en
+[STRATEGY_1_A3_AUDIT](STRATEGY_1_A3_AUDIT.md), YAML `configs/strategy-1-v1.yaml`.
+Conserva las reglas base siguientes y añade RS estricta contra SPY y QQQ sobre
+la primera candidata ORB. Régimen y confirmación VWAP permanecen desactivados.
+Las referencias a extensiones desactivadas en este documento describen v0.1.
+
 Implementación: `strategies/orb.py`, modelo StrategyConfig usado por YAML validado.
 Hipótesis no validada, exclusivamente larga. Fuerza relativa, régimen y VWAP son false
 literales en v0.1: no basta un flag para activar otra estrategia.

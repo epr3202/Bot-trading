@@ -1,0 +1,202 @@
+{
+  "status": "A3_DONE",
+  "frozen": true,
+  "strategy_id": "Strategy_1",
+  "name": "ORB/RVOL with dual-benchmark relative strength",
+  "version": "ORB_RVOL_v1.0",
+  "base_commit": "ed456c32355bea05b5c6e04bc4b889ce8bce8ef3",
+  "configuration": "configs/strategy-1-v1.yaml",
+  "strategy_hash": "e751eb0db5be3f07950d5da5ccda0def4aeee6c03b0da83912ac38ed6beed7cb",
+  "effective": {
+    "strategy": {
+      "version": "ORB_RVOL_v1.0",
+      "warmup_sessions": 20,
+      "opening_range_minutes": 5,
+      "min_previous_close": "10",
+      "min_average_dollar_volume": "50000000",
+      "min_rvol": "2",
+      "max_selected": 10,
+      "entry_window_minutes": 60,
+      "selection_wait_seconds": 2,
+      "signal_ttl_seconds": 10,
+      "relative_strength_enabled": true,
+      "regime_enabled": false,
+      "vwap_enabled": false,
+      "rs_benchmarks": [
+        "SPY",
+        "QQQ"
+      ],
+      "rs_comparison": "strictly_greater_than_both",
+      "rs_margin": "0",
+      "etf_tradable": false,
+      "benchmarks_reference_only": true
+    },
+    "risk": {
+      "allocated_capital": "10000",
+      "risk_fraction": "0.001",
+      "daily_loss_fraction": "0.005",
+      "max_positions": 2,
+      "max_gross_fraction": "1",
+      "max_position_fraction": "0.60",
+      "max_spread_fraction": "0.003",
+      "max_price_deviation": "0.005",
+      "max_source_divergence": "0.005",
+      "max_quote_age_seconds": 3,
+      "signal_ttl_seconds": 10
+    },
+    "costs": {
+      "known": true,
+      "fixed_per_side": "0",
+      "minimum_per_side": "0",
+      "per_unit_per_side": "0.005",
+      "notional_rate_per_side": "0",
+      "slippage_per_unit": "0.02",
+      "quadratic_impact": "0"
+    }
+  },
+  "source_sha256": {
+    "configs/strategy-1-v1.yaml": "b059c1bbb208430d7d5cd16bb60dbba3dbbeebc5583e6bd42767627022e9ce36",
+    "src/intraday_etoro_lab/strategies/orb.py": "b843411484ff849b041f537bdf440d556ec0a452cc855e2b2f248232e7a0b226",
+    "src/intraday_etoro_lab/strategies/features.py": "9e84cb04a696eca282230b8809608ebb1901d2daca654f49b2ac230143c0a98b",
+    "src/intraday_etoro_lab/risk/engine.py": "a3045eb9c8c2ad9b980b2b30999d65a83eb9922dd73b8a0fdf7cf94f72809439",
+    "src/intraday_etoro_lab/config.py": "6d47d093caed6235f73ed92951169e97cadee0901767afb09877887f5c0dca63",
+    "src/intraday_etoro_lab/data/calendar.py": "42a615fb6aeaeba45a5ffac34ef5d91a43c655d61b2776189ac8fa113ea70b68",
+    "src/intraday_etoro_lab/domain/models.py": "a343b0b943b7471a6b7f26fbcb9680b1a615f7b7de43e1b2da23a6ea6b6eace7",
+    "src/intraday_etoro_lab/data/importer.py": "8e5a987daa03831c5836710c08970b6a3bfcc92099f743226f7799e1159da5d5",
+    "uv.lock": "d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f"
+  },
+  "decisions": {
+    "B1": {
+      "status": "RESOLVED",
+      "evidence": "E1_EXPLICIT_USER_DECISION_2026-09-15"
+    },
+    "B2": {
+      "status": "RESOLVED",
+      "evidence": "E1_EXPLICIT_USER_DECISION_2026-09-15"
+    },
+    "B3": {
+      "status": "RESOLVED",
+      "evidence": "E1_EXPLICIT_USER_DECISION_2026-09-15"
+    },
+    "B4": {
+      "status": "RESOLVED",
+      "evidence": "E1_EXPLICIT_USER_DECISION_2026-09-15"
+    }
+  },
+  "temporal_policy": {
+    "return_start": "regular session open 09:30 America/New_York",
+    "return_end": "first ORB candidate bar close",
+    "benchmark_event_time": "exact match with candidate",
+    "benchmark_available_at": "<= candidate.available_at",
+    "failed_first_candidate": "terminal; no later retry",
+    "missing_tie_stale_future": "reject; no fallback"
+  },
+  "shorts": "NOT_IMPLEMENTED; outside existing long-only flow",
+  "regime": "disabled",
+  "vwap_confirmation": "disabled",
+  "universe": "eligible common_stock USD XNYS/XNAS; ETF excluded; SPY/QQQ reference-only",
+  "historical_audit": {
+    "status": "A3_BLOCKED",
+    "frozen": false,
+    "base_commit": "ed456c32355bea05b5c6e04bc4b889ce8bce8ef3",
+    "configuration": "configs/offline.yaml",
+    "existing_version": "ORB_RVOL_v0.1",
+    "effective": {
+      "strategy": {
+        "version": "ORB_RVOL_v0.1",
+        "warmup_sessions": 20,
+        "opening_range_minutes": 5,
+        "min_previous_close": "10",
+        "min_average_dollar_volume": "50000000",
+        "min_rvol": "2",
+        "max_selected": 10,
+        "entry_window_minutes": 60,
+        "selection_wait_seconds": 2,
+        "signal_ttl_seconds": 10,
+        "relative_strength_enabled": false,
+        "regime_enabled": false,
+        "vwap_enabled": false
+      },
+      "risk": {
+        "allocated_capital": "10000",
+        "risk_fraction": "0.001",
+        "daily_loss_fraction": "0.005",
+        "max_positions": 2,
+        "max_gross_fraction": "1",
+        "max_position_fraction": "0.60",
+        "max_spread_fraction": "0.003",
+        "max_price_deviation": "0.005",
+        "max_source_divergence": "0.005",
+        "max_quote_age_seconds": 3,
+        "signal_ttl_seconds": 10
+      },
+      "costs": {
+        "known": true,
+        "fixed_per_side": "0",
+        "minimum_per_side": "0",
+        "per_unit_per_side": "0.005",
+        "notional_rate_per_side": "0",
+        "slippage_per_unit": "0.02",
+        "quadratic_impact": "0"
+      }
+    },
+    "source_sha256": {
+      "configs/offline.yaml": "a50c9024cb91ecfdd68972bc89fe4ab6f24f82ec1148e7abcc13133ded97e9cd",
+      "src/intraday_etoro_lab/strategies/orb.py": "c27a62caf42edc7478d4ad6f45e8a8e3d8aca41fc98409ae22f01b064e245747",
+      "src/intraday_etoro_lab/strategies/features.py": "9e84cb04a696eca282230b8809608ebb1901d2daca654f49b2ac230143c0a98b",
+      "src/intraday_etoro_lab/risk/engine.py": "a3045eb9c8c2ad9b980b2b30999d65a83eb9922dd73b8a0fdf7cf94f72809439",
+      "src/intraday_etoro_lab/config.py": "69673ad5756ea785eb26117455d64df8437f70a5d3dfa249cf1e4b2aa1630784",
+      "src/intraday_etoro_lab/data/calendar.py": "42a615fb6aeaeba45a5ffac34ef5d91a43c655d61b2776189ac8fa113ea70b68",
+      "docs/STRATEGY_SPEC.md": "c3311121fd33a088f7870c5f903ad2775114d5997b8e200630766519ddceb3a7",
+      "docs/RISK_POLICY.md": "ea651cae54d357ab8266969f0b32d94a08d2c59416778e797f480423f4bd8678",
+      "docs/adr/003-strategy-v01.md": "29dcecf0ac335f7ab076d3f6e63aba58e8c3115b4ab5784e33d6cbcff12299e8",
+      "uv.lock": "d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f"
+    },
+    "blockers": [
+      "RS_ENTRY_RULE_AND_BENCHMARK_POLICY_UNDEFINED",
+      "REGIME_RULE_UNDEFINED",
+      "VWAP_CONFIRMATION_RULE_UNDEFINED",
+      "ETF_UNIVERSE_CONFLICT"
+    ],
+    "scope": "Audit of existing bootstrap configuration; not a frozen Strategy 1 or A4 authorization",
+    "historical_investigation": {
+      "date": "2026-09-15",
+      "reachable_commits": 15,
+      "unique_matching_path_text_pairs": 65,
+      "scope": "All locally reachable refs and current tracked/untracked project files; no fetch",
+      "initial_commit": "6af05f1b16b8e3488a5cd959dc0e7f889b258fd6",
+      "evidence_report": "docs/STRATEGY_1_A3_AUDIT.md",
+      "pending_decisions": "docs/A3_PENDING_DECISIONS.md",
+      "resolution": {
+        "B1": {
+          "status": "PENDING",
+          "confidence": "HIGH",
+          "existing_policy": "E1",
+          "complete_requested_rule": "E3",
+          "technical_support": "E2"
+        },
+        "B2": {
+          "status": "PENDING",
+          "confidence": "HIGH",
+          "existing_policy": "E1",
+          "complete_requested_rule": "E3",
+          "technical_support": "NONE"
+        },
+        "B3": {
+          "status": "PENDING",
+          "confidence": "HIGH",
+          "existing_policy": "E1",
+          "complete_requested_rule": "E3",
+          "technical_support": "E2"
+        },
+        "B4": {
+          "status": "PENDING",
+          "confidence": "HIGH",
+          "existing_policy": "E1",
+          "complete_requested_rule": "E3",
+          "technical_support": "E2"
+        }
+      }
+    }
+  }
+}

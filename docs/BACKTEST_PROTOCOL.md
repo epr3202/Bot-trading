@@ -1,5 +1,19 @@
 # Protocolo de investigación
 
+## A4 — autorización temporal vigente, 2026-09-15
+
+Se aprueba replay_as_of_v1: historical_download permanece como procedencia; observed
+significa visibilidad en el reloj lógico solo dentro del boundary. Publicación
+explícita tiene prioridad; A2 carece de ella por barra y usa cierre efectivo
+documentado t+60s. No se altera Strategy 1 ni OBSERVED_AVAILABILITY_REQUIRED.
+Recibos originales preservados y vistas filtradas available_at <= replay_clock.
+
+Este contrato sustituye la prohibición histórica inferior para el replay A4
+aprobado, sin habilitar rutas operativas ni alterar la carga histórica normal.
+Cero operaciones por RVOL insuficiente tras evaluación válida puede ser un resultado
+reproducible; cero operaciones por rechazo de disponibilidad sigue sin aprobar A4.
+Contrato, pruebas y límites: [REPLAY_AS_OF_V1](REPLAY_AS_OF_V1.md).
+
 ## Restricción de esta fase — 2026-09-14
 
 Baseline real NOT_STARTED por ALPACA_CREDENTIALS_UNAVAILABLE. Primero deben pasar

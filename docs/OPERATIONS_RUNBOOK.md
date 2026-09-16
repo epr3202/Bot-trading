@@ -47,6 +47,23 @@ o credenciales de un conector. La guía consultada no documenta un botón adicio
 inequívoco para emitir la clave de aplicación: ese paso queda pendiente del titular.
 El programa usa exactamente ETORO_API_KEY y ETORO_USER_KEY del proceso; no carga .env
 automáticamente ni hereda un conector de ChatGPT. Nunca pegar las claves en el chat.
+
+A5 verificado el 2026-09-16: si las claves ya existen en `.env` de la raíz,
+seleccionar explícitamente ese archivo con el mecanismo incorporado de uv:
+
+```powershell
+.\scripts\uv.ps1 run --frozen --env-file .env bot etoro preflight --read-only --config configs/strategy-1-v1.yaml --evidence runtime/a5-preflight/demo-read-verified.json
+```
+
+Usar un nombre de evidencia nuevo al repetir: no se sobreescribe el existente.
+La carga ocurre antes del proceso Python; el launcher no cambia cwd ni carga .env
+por defecto. No hace falta regenerar claves ni modificar .env. Para mantener el
+comando sin --env-file, UV_ENV_FILE=.env en el proceso lanzador selecciona el mismo
+archivo. No aplicar esta carga a pytest/CI: sus credenciales se retiran por diseño.
+PASS real registrado con la CLI; WinError 10061 bajo el entorno restringido se
+resolvió ejecutando en el entorno de red autorizado, sin desactivar TLS o cambiar
+configuración global. [Diagnóstico y evidencia](A5_PREFLIGHT.md).
+
 Este bloque de PowerShell pide los valores sin eco ni incluirlos en el historial:
 
 ```powershell

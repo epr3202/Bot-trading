@@ -11,7 +11,7 @@ Todos los costes predeterminados describen únicamente simulación sintética.
 | `runtime_dir` | class 'pathlib.Path' | `runtime` |
 | `reports_dir` | class 'pathlib.Path' | `reports\runs` |
 | `arm_ttl_seconds` | class 'int' | `300` |
-| `strategy.version` | typing.Literal['ORB_RVOL_v0.1', 'ORB_BASE_v0.1'] | `ORB_RVOL_v0.1` |
+| `strategy.version` | typing.Literal['ORB_RVOL_v0.1', 'ORB_BASE_v0.1', 'ORB_RVOL_v1.0'] | `ORB_RVOL_v0.1` |
 | `strategy.warmup_sessions` | typing.Literal[20] | `20` |
 | `strategy.opening_range_minutes` | typing.Literal[5] | `5` |
 | `strategy.min_previous_close` | class 'decimal.Decimal' | `10` |
@@ -21,9 +21,14 @@ Todos los costes predeterminados describen únicamente simulación sintética.
 | `strategy.entry_window_minutes` | class 'int' | `60` |
 | `strategy.selection_wait_seconds` | class 'int' | `2` |
 | `strategy.signal_ttl_seconds` | class 'int' | `10` |
-| `strategy.relative_strength_enabled` | typing.Literal[False] | `False` |
+| `strategy.relative_strength_enabled` | class 'bool' | `False` |
 | `strategy.regime_enabled` | typing.Literal[False] | `False` |
 | `strategy.vwap_enabled` | typing.Literal[False] | `False` |
+| `strategy.rs_benchmarks` | tuple[typing.Literal['SPY'], typing.Literal['QQQ']] | `('SPY', 'QQQ')` |
+| `strategy.rs_comparison` | typing.Literal['strictly_greater_than_both'] | `strictly_greater_than_both` |
+| `strategy.rs_margin` | class 'decimal.Decimal' | `0` |
+| `strategy.etf_tradable` | typing.Literal[False] | `False` |
+| `strategy.benchmarks_reference_only` | typing.Literal[True] | `True` |
 | `risk.allocated_capital` | class 'decimal.Decimal' | `10000` |
 | `risk.risk_fraction` | class 'decimal.Decimal' | `0.001` |
 | `risk.daily_loss_fraction` | class 'decimal.Decimal' | `0.005` |
@@ -57,6 +62,9 @@ Todos los costes predeterminados describen únicamente simulación sintética.
 Cambios de modo, datos, estrategia, costes, riesgo y duración alteran el hash de
 configuración y requieren nuevo armado. Presupuesto backtest y riesgo, y TTL de
 estrategia/riesgo, deben coincidir. Extensiones bool solo admiten false en v0.1.
+Strategy 1 v1 usa configs/strategy-1-v1.yaml: RS activa contra SPY y QQQ;
+regime/VWAP desactivados, ETF excluidos. Versión, parámetros, riesgo y costes
+se validan como contrato congelado; strategy_hash excluye datos y backtest.
 
 BOT_MODE se valida aun si CLI proporciona otro modo. ORDER_SUBMISSION_ENABLED
 solo admite texto true/false y requiere etoro_demo para true. .env no se carga.

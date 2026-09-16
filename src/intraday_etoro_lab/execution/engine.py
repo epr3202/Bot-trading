@@ -1,11 +1,13 @@
 """One executor owns all submissions, cumulative accounting and safe exits."""
 
+import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from types import TracebackType
 from uuid import NAMESPACE_URL, uuid5
 
+from intraday_etoro_lab.brokers.authorization import RejectedBeforeSend
 from intraday_etoro_lab.execution.models import (
     ACTIVE_STATES,
     BrokerOrder,
@@ -13,6 +15,8 @@ from intraday_etoro_lab.execution.models import (
     LifecycleError,
     OrderIntent,
     OrderState,
+    PreparedSubmission,
+    PreparingBroker,
 )
 from intraday_etoro_lab.persistence import StateStore
 from intraday_etoro_lab.risk import EntryRequest, RiskDecision, RiskEngine
@@ -141,16 +145,45 @@ class Executor:
         intent, created = self.store.create_intent(intent)
         if not created:
             return SubmissionResult(intent, RiskDecision(False, "DUPLICATE_INTENT"), True)
+        prepared = None
+        if isinstance(self.broker, PreparingBroker):
+            try:
+                prepared = self.broker.prepare(intent)
+            except RejectedBeforeSend as exc:
+                self._reject_pre_send(intent, exc)
+                return SubmissionResult(self.store.intent(intent.intent_id), decision)
+            self.store.set_meta("prepared:" + intent.intent_id, json.dumps(prepared.metadata))
+            self.store.audit("PREPARED", intent.intent_id)
         intent = self.store.transition(intent.intent_id, OrderState.SUBMITTING)
-        self._send(intent, request.now)
+        self._send(intent, request.now, prepared)
         return SubmissionResult(self.store.intent(intent.intent_id), decision)
 
-    def _send(self, intent: OrderIntent, now: datetime) -> None:
+    def _reject_pre_send(self, intent: OrderIntent, exc: RejectedBeforeSend) -> None:
+        current = self.store.intent(intent.intent_id)
+        if (
+            current.state not in {OrderState.APPROVED, OrderState.SUBMITTING}
+            or current.filled_units
+        ):
+            raise LifecycleError("PRE_SEND_REJECTION_STATE_CONTRADICTION") from None
+        self.store.transition(intent.intent_id, OrderState.REJECTED)
+        self.store.pause(self.session_id)
+        self.store.audit("REJECTED_PRE_SEND", intent.intent_id, str(exc))
+
+    def _send(
+        self, intent: OrderIntent, now: datetime, prepared: PreparedSubmission | None = None
+    ) -> None:
         try:
             update = (
-                self.broker.submit(intent) if intent.kind == "entry" else self.broker.close(intent)
+                prepared.send(intent)
+                if prepared is not None
+                else self.broker.submit(intent)
+                if intent.kind == "entry"
+                else self.broker.close(intent)
             )
             self._apply(update, now)
+        except RejectedBeforeSend as exc:
+            # Only the adapter's measured pre-dispatch failure can release reserves.
+            self._reject_pre_send(intent, exc)
         except Exception:
             # An arbitrary exception may happen AFTER the external side effect. Never retry.
             current = self.store.intent(intent.intent_id)

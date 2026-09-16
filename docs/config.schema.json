@@ -381,7 +381,8 @@
           "default": "ORB_RVOL_v0.1",
           "enum": [
             "ORB_RVOL_v0.1",
-            "ORB_BASE_v0.1"
+            "ORB_BASE_v0.1",
+            "ORB_RVOL_v1.0"
           ],
           "title": "Version",
           "type": "string"
@@ -469,7 +470,6 @@
           "type": "integer"
         },
         "relative_strength_enabled": {
-          "const": false,
           "default": false,
           "title": "Relative Strength Enabled",
           "type": "boolean"
@@ -484,6 +484,59 @@
           "const": false,
           "default": false,
           "title": "Vwap Enabled",
+          "type": "boolean"
+        },
+        "rs_benchmarks": {
+          "default": [
+            "SPY",
+            "QQQ"
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "const": "SPY",
+              "type": "string"
+            },
+            {
+              "const": "QQQ",
+              "type": "string"
+            }
+          ],
+          "title": "Rs Benchmarks",
+          "type": "array"
+        },
+        "rs_comparison": {
+          "const": "strictly_greater_than_both",
+          "default": "strictly_greater_than_both",
+          "title": "Rs Comparison",
+          "type": "string"
+        },
+        "rs_margin": {
+          "anyOf": [
+            {
+              "maximum": 0.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0",
+          "title": "Rs Margin"
+        },
+        "etf_tradable": {
+          "const": false,
+          "default": false,
+          "title": "Etf Tradable",
+          "type": "boolean"
+        },
+        "benchmarks_reference_only": {
+          "const": true,
+          "default": true,
+          "title": "Benchmarks Reference Only",
           "type": "boolean"
         }
       },

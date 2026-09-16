@@ -2,18 +2,40 @@ import hashlib
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from intraday_etoro_lab.data.calendar import session, sessions
 from intraday_etoro_lab.data.providers import DataBundle
 from intraday_etoro_lab.domain import Bar, Instrument, Signal
 from intraday_etoro_lab.domain.models import FrozenModel
+from intraday_etoro_lab.strategies.features import relative_strength
+
+V1_STRATEGY_VALUES = {
+    "version": "ORB_RVOL_v1.0",
+    "warmup_sessions": 20,
+    "opening_range_minutes": 5,
+    "min_previous_close": "10",
+    "min_average_dollar_volume": "50000000",
+    "min_rvol": "2",
+    "max_selected": 10,
+    "entry_window_minutes": 60,
+    "selection_wait_seconds": 2,
+    "signal_ttl_seconds": 10,
+    "relative_strength_enabled": True,
+    "regime_enabled": False,
+    "vwap_enabled": False,
+    "rs_benchmarks": ("SPY", "QQQ"),
+    "rs_comparison": "strictly_greater_than_both",
+    "rs_margin": "0",
+    "etf_tradable": False,
+    "benchmarks_reference_only": True,
+}
 
 
 class StrategyConfig(FrozenModel):
-    version: Literal["ORB_RVOL_v0.1", "ORB_BASE_v0.1"] = "ORB_RVOL_v0.1"
+    version: Literal["ORB_RVOL_v0.1", "ORB_BASE_v0.1", "ORB_RVOL_v1.0"] = "ORB_RVOL_v0.1"
     warmup_sessions: Literal[20] = 20
     opening_range_minutes: Literal[5] = 5
     min_previous_close: Decimal = Field(default=Decimal("10"), ge=0)
@@ -23,9 +45,26 @@ class StrategyConfig(FrozenModel):
     entry_window_minutes: int = Field(default=60, ge=6, le=60)
     selection_wait_seconds: int = Field(default=2, ge=0, le=10)
     signal_ttl_seconds: int = Field(default=10, ge=1, le=10)
-    relative_strength_enabled: Literal[False] = False
+    relative_strength_enabled: bool = Field(default=False, strict=True)
     regime_enabled: Literal[False] = False
     vwap_enabled: Literal[False] = False
+    rs_benchmarks: tuple[Literal["SPY"], Literal["QQQ"]] = ("SPY", "QQQ")
+    rs_comparison: Literal["strictly_greater_than_both"] = "strictly_greater_than_both"
+    rs_margin: Decimal = Field(default=Decimal(0), ge=0, le=0)
+    etf_tradable: Literal[False] = False
+    benchmarks_reference_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def version_contract(self) -> Self:
+        if self.version == "ORB_RVOL_v1.0":
+            for key, value in V1_STRATEGY_VALUES.items():
+                actual = getattr(self, key)
+                expected = Decimal(str(value)) if isinstance(actual, Decimal) else value
+                if actual != expected:
+                    raise ValueError(f"STRATEGY_V1_FROZEN_PARAMETER: {key}")
+        elif self.relative_strength_enabled:
+            raise ValueError("RS_REQUIRES_STRATEGY_V1")
+        return self
 
 
 class Candidate(FrozenModel):
@@ -68,7 +107,44 @@ class ORBStrategy:
     """Point-in-time selection; decisions use first finalized arrival, never revisions."""
 
     def __init__(self, config: StrategyConfig | None = None) -> None:
-        self.config = config or StrategyConfig()
+        # Revalidate even model_copy/model_construct callers at the strategy boundary.
+        self.config = StrategyConfig.model_validate((config or StrategyConfig()).model_dump())
+
+    @staticmethod
+    def _rs_reason(
+        bundle: DataBundle,
+        grouped: dict[tuple[str, date], dict[datetime, Bar]],
+        stock_open: Bar,
+        candidate: Bar,
+    ) -> str | None:
+        """Exact event-time match and receipt by the original ORB decision; no waiting."""
+        for symbol in ("SPY", "QQQ"):
+            identities = [item for item in bundle.instruments if item.symbol == symbol]
+            if len(identities) != 1 or identities[0].asset_class != "etf":
+                return "RS_BENCHMARK_IDENTITY_INVALID"
+            bars = grouped.get((symbol, candidate.session_date), {})
+            opening = bars.get(session(candidate.session_date).open)
+            current = bars.get(candidate.event_time)
+            if opening is None or current is None:
+                return "RS_SYNCHRONIZED_DATA_MISSING"
+            for bar in (opening, current):
+                if (
+                    bar.instrument != identities[0]
+                    or bar.instrument.currency != "USD"
+                    or bar.source != candidate.source
+                    or bar.available_at > candidate.available_at
+                    or bar.received_at > candidate.available_at
+                    or not bar.final
+                    or bar.revision != 0
+                    or bar.volume <= 0
+                ):
+                    return "RS_BENCHMARK_INVALID_OR_UNAVAILABLE"
+            if (
+                relative_strength(stock_open.open, candidate.close, opening.open, current.close)
+                <= 0
+            ):
+                return "RS_NOT_STRONGER_THAN_BOTH"
+        return None
 
     @staticmethod
     def opening_metrics(opening: list[Bar], previous_volumes: list[Decimal]) -> OpeningMetrics:
@@ -177,7 +253,7 @@ class ORBStrategy:
             evaluable.append(symbol)
             metrics = self.opening_metrics(opening, opening_means)
             rvol = metrics.rvol
-            if config.version == "ORB_RVOL_v0.1" and rvol < config.min_rvol:
+            if config.version != "ORB_BASE_v0.1" and rvol < config.min_rvol:
                 reject(symbol, "RVOL_BELOW_THRESHOLD")
                 continue
             candidates.append(
@@ -197,7 +273,7 @@ class ORBStrategy:
         # Base comparison ranks by the same liquidity universe without RVOL selection.
         candidates.sort(
             key=lambda item: (
-                -item.rvol if config.version == "ORB_RVOL_v0.1" else Decimal(0),
+                -item.rvol if config.version != "ORB_BASE_v0.1" else Decimal(0),
                 -item.average_dollar_volume,
                 item.instrument.symbol,
             )
@@ -223,6 +299,13 @@ class ORBStrategy:
                     continue
                 if bar.close <= candidate.or_high:
                     continue
+                if config.relative_strength_enabled:
+                    stock_open = grouped[(symbol, day)][market.open]
+                    reason = self._rs_reason(bundle, grouped, stock_open, bar)
+                    if reason:
+                        reject(symbol, reason, bar.available_at)
+                        # The existing first ORB candidate is terminal; no later retry.
+                        break
                 # Signal expires against original availability, even if an event loop is late.
                 signal_id = hashlib.sha256(f"{config.version}|{day}|{symbol}".encode()).hexdigest()[
                     :24

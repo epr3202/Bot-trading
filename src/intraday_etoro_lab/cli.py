@@ -8,7 +8,6 @@ import secrets
 import sys
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
 
 import httpx
 import uvicorn
@@ -16,8 +15,7 @@ from pydantic import ValidationError
 
 from intraday_etoro_lab.api.app import ControlSettings, create_app
 from intraday_etoro_lab.brokers.authorization import BrokerBlocked
-from intraday_etoro_lab.brokers.etoro_demo import perform_preflight
-from intraday_etoro_lab.brokers.transport import Credentials, GuardedTransport
+from intraday_etoro_lab.brokers.preflight import run_demo_preflight
 from intraday_etoro_lab.config import AppConfig, Mode, load_config
 from intraday_etoro_lab.data.importer import audit_bundle
 from intraday_etoro_lab.observability.logging import JsonFormatter
@@ -59,6 +57,10 @@ def parser() -> argparse.ArgumentParser:
     preflight = etoro.add_parser("preflight")
     preflight.add_argument("--read-only", action="store_true", required=True)
     preflight.add_argument("--config", type=Path, default=Path("configs/offline.yaml"))
+    preflight.add_argument(
+        "--instrument-manifest", type=Path, default=Path("docs/massive-a2-manifest.json")
+    )
+    preflight.add_argument("--evidence", type=Path)
     for name in ("arm-demo", "flatten-owned-demo"):
         command = sub.add_parser(name)
         command.add_argument("--confirm", required=True, choices=["DEMO_ONLY"])
@@ -210,34 +212,15 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "dashboard":
             run_dashboard(config, args.host, args.port)
         elif args.command == "etoro":
-            transport = GuardedTransport(
-                Credentials.from_environment(),
-                mode="shadow",
-                session_id=str(uuid4()),
-                config_hash=config.config_hash,
-            )
-            try:
-                evidence = perform_preflight(transport)
-                # No CID, personal profile or complete portfolio is printed or saved.
-                emit(
-                    {
-                        "broker": "DEMO_READ_VERIFIED",
-                        "verified_at": evidence.verified_at,
-                        "entries_armed": False,
-                        "scope_count": len(evidence.scopes),
-                        "writes": 0,
-                        "external_mutations": "DISABLED",
-                        "connectivity": "VERIFIED",
-                        "authentication": "VERIFIED",
-                        "demo_identity": "VERIFIED",
-                        "market_data": "NOT_CHECKED",
-                        "etoro_demo_write": "NOT_TESTED",
-                        "operational_permission": "BLOCKED",
-                        "scope": "Identidad mínima y lectura de portafolio virtual",
-                    }
-                )
-            finally:
-                transport.close()
+            result = run_demo_preflight(config, args.instrument_manifest)
+            if args.evidence is not None:
+                args.evidence.parent.mkdir(parents=True, exist_ok=True)
+                # Exclusive creation preserves previous evidence.
+                with args.evidence.open("x", encoding="utf-8") as output:
+                    json.dump(result, output, ensure_ascii=False, indent=2)
+                    output.write("\n")
+            emit(result)
+            return 0 if result["overall"] == "PASS" else 2
         elif args.command == "run" and config.mode in {Mode.SHADOW, Mode.ETORO_DEMO}:
             raise BrokerBlocked(
                 "DEMO_SESSION_RUNNER_NOT_VALIDATED: no se sustituye conexión por fixtures"

@@ -8,6 +8,7 @@ from typing import Any
 from pydantic import Field
 
 from intraday_etoro_lab.backtesting.metrics import portfolio_metrics, session_block_bootstrap
+from intraday_etoro_lab.backtesting.replay import ReplayAsOf
 from intraday_etoro_lab.data.calendar import calendar_version, session
 from intraday_etoro_lab.data.providers import DataBundle
 from intraday_etoro_lab.domain import Bar, Signal
@@ -56,6 +57,7 @@ class BacktestResult(FrozenModel):
     metrics: dict[str, Any]
     bootstrap: dict[str, Any]
     assumptions: tuple[str, ...]
+    run_metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 @dataclass
@@ -83,11 +85,15 @@ def run_backtest(
     costs: CostConfig | None = None,
     *,
     commit: str = "UNRECORDED_WORKTREE",
+    replay: ReplayAsOf | None = None,
+    code_hash: str | None = None,
 ) -> BacktestResult:
     strategy_config = strategy_config or StrategyConfig()
     config = backtest_config or BacktestConfig()
     risk_policy = risk_policy or RiskConfig(allocated_capital=config.starting_capital)
     costs = costs or CostConfig()
+    if replay is not None and replay.original is not bundle:
+        raise ValueError("REPLAY_DATASET_IDENTITY_MISMATCH")
     if config.starting_capital != risk_policy.allocated_capital:
         raise ValueError("BACKTEST_CAPITAL_MUST_MATCH_RISK_ALLOCATION")
     if not costs.known:
@@ -100,10 +106,14 @@ def run_backtest(
         model.model_dump(mode="json") for model in (strategy_config, config, risk_policy, costs)
     ]
     config_hash = hashlib.sha256(json.dumps(config_payload, sort_keys=True).encode()).hexdigest()
-    run_id = hashlib.sha256(
-        f"{bundle.manifest.sha256}|{config_hash}|{calendar_version()}|{commit}".encode()
-    ).hexdigest()[:20]
-    decisions = tuple(strategy.process_session(bundle, day) for day in bundle.evaluation_sessions)
+    identity = f"{bundle.manifest.sha256}|{config_hash}|{calendar_version()}|{commit}"
+    if replay is not None:
+        identity += "|" + json.dumps(replay.metadata(), sort_keys=True) + "|" + str(code_hash)
+    run_id = hashlib.sha256(identity.encode()).hexdigest()[:20]
+    decisions = tuple(
+        replay.process_session(strategy, day) if replay else strategy.process_session(bundle, day)
+        for day in bundle.evaluation_sessions
+    )
     signals = tuple(signal for decision in decisions for signal in decision.signals)
     cash = config.starting_capital
     pending: dict[str, Pending] = {}
@@ -180,7 +190,9 @@ def run_backtest(
                 first_bars.setdefault((bar.instrument.symbol, bar.event_time), bar)
         for bar in first_bars.values():
             events.append((bar.event_time, 1, 0, bar.instrument.symbol, ("open", bar)))
-            events.append((bar.end_time, 0, 0, bar.instrument.symbol, ("close", bar)))
+            closed_at = replay.available_at(bar) if replay else bar.end_time
+            if not replay or closed_at <= market.close:
+                events.append((closed_at, 0, 0, bar.instrument.symbol, ("close", bar)))
         for signal in decision.signals:
             submitted = signal.available_at + timedelta(milliseconds=config.latency_ms)
             events.append((submitted, 2, signal.rank, signal.instrument.symbol, ("signal", signal)))
@@ -365,14 +377,19 @@ def run_backtest(
     return BacktestResult(
         run_id=run_id,
         label=label,
-        research_status="RESEARCH_BLOCKED_DATA"
-        if bundle.manifest.synthetic or bundle.manifest.availability_kind != "observed"
-        else "EXPLORATORY",
+        research_status=(
+            "EXPLORATORY_REPLAY_AS_OF"
+            if replay
+            else "RESEARCH_BLOCKED_DATA"
+            if bundle.manifest.synthetic or bundle.manifest.availability_kind != "observed"
+            else "EXPLORATORY"
+        ),
         data_manifest=bundle.manifest.model_dump(mode="json"),
         config_hash=config_hash,
         calendar_version=calendar_version(),
         commit=commit,
         seed=config.seed,
+        run_metadata=replay.metadata() if replay else {},
         decisions=decisions,
         signals=signals,
         trades=tuple(trades),

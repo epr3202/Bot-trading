@@ -47,7 +47,9 @@ class MassiveHistoricalProvider:
     def _load(self) -> DataBundle:
         capture = read_document(self.directory / "capture.json")
         self.capture = capture
-        request = MassiveHistoricalRequest(date.fromisoformat(capture["target"]))
+        request = MassiveHistoricalRequest(
+            date.fromisoformat(capture["target"]), capture.get("symbol", "AAPL")
+        )
         if (
             capture["schema_version"] != "massive-capture-v1"
             or capture["provider"] != "massive"
@@ -67,7 +69,10 @@ class MassiveHistoricalProvider:
             "sources"
         ) == list(SOURCES)
         instrument = Instrument(
-            symbol="AAPL", exchange="XNAS", currency="USD", asset_class="common_stock"
+            symbol=request.symbol,
+            exchange="ARCX" if request.symbol == "SPY" else "XNAS",
+            currency="USD",
+            asset_class="common_stock" if request.symbol == "AAPL" else "etf",
         )
         bars: dict[datetime, Bar] = {}
         duplicates: set[datetime] = set()
@@ -89,7 +94,7 @@ class MassiveHistoricalProvider:
             if sha256(path) != page["sha256"]:
                 raise MassiveDataError("RAW_CHECKSUM_MISMATCH")
             doc = read_document(path)
-            validate_page(doc)
+            validate_page(doc, request.symbol)
             expected_url = doc.get("next_url")
             if expected_url is not None:
                 request.validate_url(expected_url)
@@ -193,7 +198,7 @@ class MassiveHistoricalProvider:
         self.audit = {
             "provider": "massive",
             "endpoint": request.endpoint,
-            "symbol": "AAPL",
+            "symbol": request.symbol,
             "plan_observed": None,
             "access_observed": "CONTRACT_TEST" if synthetic else "HISTORICAL_AGGREGATES_HTTP_200",
             "coverage": "100_percent_market" if semantics and not synthetic else None,

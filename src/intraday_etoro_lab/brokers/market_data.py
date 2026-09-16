@@ -1,7 +1,7 @@
 """Documented eToro reads. Candle volume/finality are not research-validated."""
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any, NoReturn
 
@@ -42,12 +42,23 @@ class EtoroMarketDataProvider:
         document = self.transport.request(
             "GET", RATES, params={"instrumentIds": ",".join(map(str, instrument_ids))}
         )
-        now = self.transport.now()
+        now = self.transport.response_received_at
+        if now is None or now.tzinfo is None or now.utcoffset() is None:
+            raise BrokerBlocked("QUOTE_RECEPTION_TIME_INVALID")
+        now = now.astimezone(UTC)
         result: list[BrokerQuote] = []
         try:
             for row in document["results"]:
                 bid, ask = Decimal(str(row["bid"])), Decimal(str(row["ask"]))
-                event_time = datetime.fromisoformat(row["date"].replace("Z", "+00:00"))
+                stamp = row["date"]
+                if not isinstance(stamp, str) or "T" not in stamp:
+                    raise ValueError
+                event_time = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+                # getRates specifies UTC; the provider also emits UTC without a suffix.
+                # Preserve the event time, never substitute reception time for freshness.
+                if event_time.tzinfo is None:
+                    event_time = event_time.replace(tzinfo=UTC)
+                event_time = event_time.astimezone(UTC)
                 if not bid.is_finite() or not ask.is_finite() or not 0 < bid <= ask:
                     raise ValueError
                 if row["quoteType"] not in {"realtime", "delayed"} or event_time.tzinfo is None:

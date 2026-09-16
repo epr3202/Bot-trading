@@ -4,62 +4,72 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
+from functools import wraps
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
-from intraday_etoro_lab.brokers.authorization import BrokerBlocked, PreflightEvidence
+from intraday_etoro_lab.brokers.authorization import (
+    BrokerBlocked,
+    MutationPermit,
+    PreflightEvidence,
+    RejectedBeforeSend,
+)
 from intraday_etoro_lab.brokers.market_data import BrokerQuote, EtoroMarketDataProvider
 from intraday_etoro_lab.brokers.transport import (
     COSTS,
     ELIGIBILITY,
     LOOKUP,
-    ME,
     ORDERS,
-    PORTFOLIO,
     BrokerHTTPError,
     GuardedTransport,
 )
 from intraday_etoro_lab.domain.models import Instrument
-from intraday_etoro_lab.execution.models import BrokerOrder, OrderIntent, OrderState, Position
+from intraday_etoro_lab.execution.models import (
+    BrokerOrder,
+    OrderIntent,
+    OrderState,
+    Position,
+    PreparedSubmission,
+)
 
 
 def perform_preflight(transport: GuardedTransport) -> PreflightEvidence:
     """Explicitly invoked account reads; never called by constructor or offline boot."""
-    identity = transport.request("GET", ME, priority=True)
-    account = identity.get("demoCid")
-    scopes = identity.get("scopes")
-    if type(account) is not int or account <= 0 or not isinstance(scopes, list):
-        raise BrokerBlocked("DEMO_IDENTITY_OR_SCOPES_UNVERIFIED")
-    if not scopes or any(not isinstance(scope, str) for scope in scopes):
-        raise BrokerBlocked("DEMO_SCOPE_UNVERIFIED_FOR_KEYS")
-    if any("real" in scope.lower() or "*" in scope for scope in scopes):
-        raise BrokerBlocked("NON_DEMO_SCOPE_DETECTED")
-    if not set(scopes) & {
-        "etoro-public:demo:read",
-        "etoro-public:demo:write",
-        "etoro-public:trade.demo:read",
-        "etoro-public:trade.demo:write",
-    }:
-        raise BrokerBlocked("DEMO_SCOPE_INSUFFICIENT")
-    portfolio = transport.request("GET", PORTFOLIO, priority=True)
+    transport.restrict_to_preflight()
+    return transport.observe_demo()
+
+
+def normalize_costs(document: dict[str, Any], instrument_id: int) -> dict[str, Any]:
+    """Normalize documented amount and observed value without inventing fees."""
     try:
-        client = portfolio["clientPortfolio"]
-        cash = Decimal(str(client["credit"]))
-        if not cash.is_finite() or cash < 0:
+        if document.get("instrumentId") != instrument_id:
             raise ValueError
-        # Successful access to the Demo-specific route plus matching IDs when
-        # present proves this read's environment. An empty portfolio has no CID.
-        for name in ("positions", "orders", "mirrors", "ordersForOpen", "ordersForClose"):
-            if not isinstance(client[name], list):
+        rows = document["costs"]
+        if not isinstance(rows, list) or not rows:
+            raise ValueError
+        normalized = []
+        for row in rows:
+            if not isinstance(row, dict) or row.get("currency") != "USD":
                 raise ValueError
-            for row in client[name]:
-                if "CID" in row and row["CID"] != account:
-                    raise ValueError
+            if row.get("costType") not in {
+                "transactionFee",
+                "markup",
+                "marketSpread",
+                "overnightFee",
+                "overWeekendFee",
+                "sdrt",
+            }:
+                raise ValueError
+            values = [Decimal(str(row[key])) for key in ("amount", "value") if key in row]
+            if not values or any(not value.is_finite() for value in values):
+                raise ValueError
+            if any(value != values[0] for value in values):
+                raise ValueError
+            normalized.append({key: value for key, value in row.items() if key != "value"})
+            normalized[-1]["amount"] = values[0]
+        return {**document, "costs": normalized}
     except (KeyError, TypeError, ValueError, ArithmeticError):
-        raise BrokerBlocked("DEMO_PORTFOLIO_UNVERIFIED") from None
-    return PreflightEvidence(
-        account, frozenset(scopes), cash, transport.now(), transport.credentials.fingerprint
-    )
+        raise BrokerBlocked("COSTS_UNVERIFIED") from None
 
 
 @dataclass(frozen=True)
@@ -84,6 +94,21 @@ _STATUSES = {
     11: OrderState.ACKNOWLEDGED,
     12: OrderState.ACKNOWLEDGED,
 }
+
+
+def _classify_pre_send[T](method: Callable[..., T]) -> Callable[..., T]:
+    @wraps(method)
+    def guarded(self: "EtoroDemoAdapter", *args: Any, **kwargs: Any) -> T:
+        attempted = self.transport.mutation_attempts
+        try:
+            return method(self, *args, **kwargs)
+        except Exception as exc:
+            if self.transport.mutation_attempts != attempted:
+                raise  # A response error after dispatch is still externally ambiguous.
+            reason = str(exc) if isinstance(exc, BrokerBlocked) else "PRE_SEND_PREPARATION_FAILED"
+            raise RejectedBeforeSend(reason) from None
+
+    return guarded
 
 
 class EtoroDemoAdapter:
@@ -134,6 +159,7 @@ class EtoroDemoAdapter:
             credential_fingerprint=self.transport.credentials.fingerprint,
             now=self.transport.now(),
         )
+        self.transport.verify_mutation_identity(permit)
         return permit
 
     def _owned(self, position_id: str) -> tuple[Position, OrderIntent]:
@@ -149,9 +175,39 @@ class EtoroDemoAdapter:
             raise BrokerBlocked("POSITION_BROKER_OWNERSHIP_UNPROVEN")
         return position, opening
 
+    @_classify_pre_send
     def submit(self, intent: OrderIntent) -> BrokerOrder:
         self._persisted(intent)
-        permit = self._authorization()
+        payload, permit = self._prepare_entry(intent)
+        return self._submit_prepared(intent, payload, permit)
+
+    @_classify_pre_send
+    def prepare(self, intent: OrderIntent) -> PreparedSubmission:
+        if intent.state != OrderState.APPROVED or self.intent_loader(intent.intent_id) != intent:
+            raise BrokerBlocked("PERSISTED_PREPARED_INTENT_REQUIRED")
+        if intent.mode != "etoro_demo" or intent.session_id != self.transport.session_id:
+            raise BrokerBlocked("INTENT_DEMO_SESSION_MISMATCH")
+        payload, permit = self._prepare_entry(intent)
+
+        def send(submitting: OrderIntent) -> BrokerOrder:
+            if submitting.model_copy(update={"state": OrderState.APPROVED}) != intent:
+                raise RejectedBeforeSend("PREPARED_INTENT_CHANGED")
+            return self._submit_prepared(submitting, payload, permit)
+
+        return PreparedSubmission(
+            send,
+            {
+                "instrument_id": str(payload["instrumentId"]),
+                "units": str(intent.units),
+                "direction": "buy",
+                "reference_id": intent.intent_id,
+                "created_at": intent.created_at.isoformat(),
+                "mode": "etoro_demo",
+            },
+        )
+
+    def _prepare_entry(self, intent: OrderIntent) -> tuple[dict[str, Any], MutationPermit]:
+        self.transport.require_contract_transport()
         if self.entry_review is None:
             raise BrokerBlocked("DEMO_SESSION_RUNNER_NOT_VALIDATED")
         if intent.kind != "entry" or intent.position_id is not None:
@@ -173,6 +229,7 @@ class EtoroDemoAdapter:
             raise BrokerBlocked("COMMON_STOCK_IDENTITY_UNVERIFIED")
         if intent.units != intent.units.to_integral_value():
             raise BrokerBlocked("FRACTIONAL_PRECISION_UNVERIFIED")
+        permit = self._authorization()
         payload: dict[str, Any] = {
             "action": "open",
             "transaction": "buy",
@@ -199,11 +256,19 @@ class EtoroDemoAdapter:
         self._check_eligibility(eligibility, intent, asset.broker_id, quote)
         # Costs, sizing/reservations, session calendar, source discrepancy and all
         # risk checks are rerun by the reviewed orchestrator callback.
-        if costs.get("instrumentId") != asset.broker_id or not isinstance(costs.get("costs"), list):
-            raise BrokerBlocked("COSTS_UNVERIFIED")
+        costs = normalize_costs(costs, asset.broker_id)
         if not review.review(intent, eligibility, costs, quote):
             raise BrokerBlocked("FINAL_RISK_REVALIDATION_FAILED")
         if self.transport.now() - intent.created_at > timedelta(seconds=10):
+            raise BrokerBlocked("SIGNAL_EXPIRED_DURING_PREFLIGHT")
+        return payload, permit
+
+    @_classify_pre_send
+    def _submit_prepared(
+        self, intent: OrderIntent, payload: dict[str, Any], permit: MutationPermit
+    ) -> BrokerOrder:
+        self._persisted(intent)
+        if not timedelta(0) <= self.transport.now() - intent.created_at <= timedelta(seconds=10):
             raise BrokerBlocked("SIGNAL_EXPIRED_DURING_PREFLIGHT")
         response = self.transport.request(
             "POST", ORDERS, body=payload, permit=permit, request_id=intent.intent_id
@@ -236,7 +301,7 @@ class EtoroDemoAdapter:
                 and item["allowStopLossTakeProfit"] is True
             ]
             if (
-                document["currency"] != "USD"
+                document["currency"] not in {"USD", "usd"}
                 or not row["allowOpenPosition"]
                 or not configs
                 or row["allowedOrderQuantityType"] not in {"all", "unitsOnly"}
@@ -442,14 +507,16 @@ class EtoroDemoAdapter:
         )
         return order.model_copy(update={"state": OrderState.CANCEL_PENDING})
 
+    @_classify_pre_send
     def close(self, intent: OrderIntent) -> BrokerOrder:
         self._persisted(intent)
-        permit = self._authorization(management=True)
+        self.transport.require_contract_transport()
         if intent.kind != "close" or intent.position_id is None:
             raise BrokerBlocked("CLOSE_REQUIRES_POSITION")
         position, opening = self._owned(intent.position_id)
         if intent.units > position.units:
             raise BrokerBlocked("CLOSE_EXCEEDS_OWNED_UNITS")
+        permit = self._authorization(management=True)
         snapshot = self.transport.request(
             "GET", LOOKUP, params={"referenceId": opening.intent_id}, priority=True
         )
@@ -478,10 +545,11 @@ class EtoroDemoAdapter:
             raise BrokerBlocked("CLOSE_RESPONSE_UNKNOWN_RECONCILE") from None
 
     def protect(self, position_id: str, stop_price: Decimal) -> bool:
-        permit = self._authorization(management=True)
+        self.transport.require_contract_transport()
         position, opening = self._owned(position_id)
         if not stop_price.is_finite() or stop_price <= 0 or stop_price < position.stop_price:
             raise BrokerBlocked("STOP_CANNOT_BE_WIDENED")
+        permit = self._authorization(management=True)
         reference = str(uuid5(NAMESPACE_URL, f"protect:{position_id}:{stop_price}"))
         self.transport.request(
             "PATCH",

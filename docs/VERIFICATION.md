@@ -1,4 +1,471 @@
+## A7 WebSocket: verificacion final del spike (2026-09-16)
+
+23 tests del spike PASS; 165 focales WebSocket/A6/A7 PASS (5 warnings).
+Suite completa: 905 passed, 7 warnings, cero fallos/errors/skips; 16/16 gates
+PASS con scripts/verify.py y codigo inmutable durante checks. Secret scan:
+193 archivos, 0 hallazgos; git diff --check exit 0; inspector Strategy 1 PASS.
+52 archivos src/configs/lock/snapshot/pyproject preservados contra baseline.
+El primer gate detecto dos fallos del aislamiento monkeypatch del test nuevo;
+se corrigieron y se repitieron focales y todos los gates. Evidencia inicial
+se conserva, evidencia final: runtime/a7-websocket/verification.json.
+No demuestra viabilidad WebSocket: handshake HTTP 403 del proxy EPM, cero
+eventos y cero mutaciones; A7 PARTIAL/BLOCKED. Detalle: A7_WEBSOCKET.md.
+
 # Evidencia de verificación local
+
+Validacion final de esta auditoria: 861 tests PASS, 7 warnings; 16/16 gates PASS.
+142 focales A7/A6 PASS; secret scan 187 archivos / 0 hallazgos; diff check 0.
+Strategy 1/riesgo/runner A6/config/lock preservados por hashes. Evidencia exacta
+en runtime/a7-quote-audit/verification.json y acceptance.json.
+
+## A7 — auditoria UTC/costes, PARTIAL/BLOCKED (2026-09-16)
+
+La evidencia anterior era 81.588043 s, no 81588 s; ambiguedad de coma decimal.
+Dos GET rates nuevos confirmaron retrasos de 35.860831 y 75.107782 s.
+Recepcion HTTP registrada antes del parseo, UTC aware; limite 3 s intacto.
+Costes value/amount normalizados dentro del adapter; fixture real sanitizado.
+142 pruebas focales A7/A6 PASS. Gate externo QUOTE_STALE_OR_DELAYED;
+cero ordenes/mutaciones; identidad DEMO y parser de costes PASS.
+No se habilita el vertical de trading mientras falle frescura. No A8.
+Detalle, cambios, comandos y evidencia: [auditoria A7](A7_QUOTE_COST_AUDIT.md).
+
+
+## A7 — continuación verificada, 2026-09-16T14:45:18.340310+00:00
+
+Estado A7 PARTIAL/BLOCKED; cero mutaciones. Lecturas externas sí observadas:
+Demo/scopes/elegibilidad/what-if; quote obsoleta 81.588043s >3s impidió el envío.
+No confundir diagnóstico con aceptación open/reconcile/close/reconcile.
+
+- Baseline: `.\scripts\uv.ps1 run --frozen pytest tests/test_demo_only_identity.py tests/test_demo_session.py tests/test_etoro_adapter.py tests/test_etoro_transport.py tests/test_execution_engine.py tests/test_persistence_recovery.py -q`:
+  exit 0, 383 passed, 5 warnings, 27.64s. Repetición tras preparación: 383 passed,
+  5 warnings, 25.32s; cero fallos/skips en ambas.
+- `.\scripts\uv.ps1 run --frozen pytest tests/test_demo_pre_send.py -q`:
+  exit 0, 20 passed, 3.15s. Rechazos y reservas, errores ambiguos/no retry,
+  crash/restart/correlación, quote UTC y previews confinados.
+- `.\scripts\uv.ps1 run --frozen python scripts/verify.py`: exit 0,
+  **16/16 PASS**, 842 passed, 7 warnings in 158.10s (0:02:38). Cero errores/fallos/skips; 39 A6 y 84 A7 PASS.
+  Ruff check/format, mypy 47 fuentes, build, cobertura, secretos y recorridos
+  offline PASS. Las CLI conectadas conservan rechazo esperado exit 2.
+- Código estable durante los gates: true; SHA-256 `ca0a4fa44392bda3fcfb565895cceac804038273015c51afaae1b2a0a7c29b31`.
+- Cobertura total 91.520566%; transporte 98.879552%, autorización 99.206349%,
+  ejecución 94.767442%, modelos 100%; todos los módulos críticos >=90.
+- `.\scripts\uv.ps1 run --frozen python scripts/inspect_strategy_v1.py`: PASS,
+  source_hashes_match=true; Strategy 1 conserva
+  `e751eb0db5be3f07950d5da5ccda0def4aeee6c03b0da83912ac38ed6beed7cb`.
+- Secret scan: 184 candidatos, cero hallazgos. git diff --check exit 0.
+
+Evidencia cruda de gates: runtime/a7-completion/verification.json. Evidencia
+combinada actualizada: runtime/a7/verification.json, con A7_acceptance=BLOCKED
+y provider IDs null. Versión anterior preservada en prior-verification.json.
+Detalles de estados, red, contratos y límites: [continuación](A7_COMPLETION_ATTEMPT.md).
+Sin cambios .env, Strategy 1, riesgo, A6, schema SQLite, configuración o lock;
+sin commits/publicación. La preparación del ejecutor sí cambió, explícitamente.
+
+## A7 — validación final parcial, 2026-09-16T14:11:45.950641+00:00
+
+Estado funcional: PARTIAL / ejecución externa BLOCKED. No DEMO_WRITE_VERIFIED.
+
+- Baseline antes de editar: `.\scripts\uv.ps1 run --frozen pytest tests/test_demo_session.py tests/test_etoro_adapter.py tests/test_etoro_transport.py tests/test_execution_engine.py tests/test_persistence_recovery.py tests/test_risk_engine.py -q`:
+  exit 0, 364 passed, 5 warnings, 29.95s, cero fallos.
+- Incremento bróker/preflight: `.\scripts\uv.ps1 run --frozen pytest tests/test_etoro_adapter.py tests/test_etoro_transport.py tests/test_demo_preflight.py tests/test_phase2_broker.py -q`:
+  exit 0, 235 passed, 1 warning, 4.83s. Cinco fallos introducidos por adelantar
+  lecturas a validaciones locales se corrigieron en código; no se relajaron asserts.
+- Nuevas pruebas aisladas antes de los tres últimos casos de IDs ambiguos:
+  `.\scripts\uv.ps1 run --frozen pytest tests/test_demo_only_identity.py -q`:
+  exit 0, 61 passed, 1 warning, 4.42s. Total final A7 en suite completa: 64 PASS.
+- Gate final `.\scripts\uv.ps1 run --frozen python scripts/verify.py`: exit 0,
+  **16/16 PASS**; 822 passed, 7 warnings in 158.17s (0:02:38). Cero errores/fallos/skips. A6: 39 PASS.
+  Incluye contratos unitarios, integración local SQLite/Executor/RiskEngine/adapter,
+  regresiones, Ruff check/format, mypy 47 fuentes, cobertura, secretos, build,
+  recorridos offline y CLI conectada bloqueada con sus exits esperados.
+- Primera ejecución del colector: 15/16, fallo de formato por finales de línea
+  mixtos; árbol editado durante esa ronda. NO se usa como evidencia final.
+  Se conserva en runtime/a7/verification-first-pass.json; formato corregido y
+  colector completo repetido sobre código estable.
+- Código final sin cambios durante checks: true; SHA-256 `9ebb719c4cd3e3406105007fce35a0fc8f6df976513de78bc3b93f0d2fb558d7`.
+- Cobertura total 91.493740%; identity.py 99%, transport.py 98.837209%,
+  session.py 95.180723%. Gate crítico >=90 PASS; transporte antes A6 99.34%,
+  se informa la variación, no se afirma ausencia de descenso de cobertura.
+- `.\scripts\uv.ps1 run --frozen python scripts/inspect_strategy_v1.py`:
+  PASS, source_hashes_match=true, hash de estrategia
+  `e751eb0db5be3f07950d5da5ccda0def4aeee6c03b0da83912ac38ed6beed7cb`.
+- Escaneo final: 182 candidatos, cero secretos; git diff --check exit 0.
+  Comparación inicial/final de 19 archivos core/config/lock: todos idénticos.
+
+Evidencia: runtime/a7/verification.json, baseline-tests.json, preserved-core.json
+y final-review.json. Sin consultas de cuenta, mutaciones externas, credenciales
+nuevas, cambios .env, commits ni publicación. Contratos oficiales consultados
+solo como documentación; [alcance/DoD/bloqueos](A7_DEMO_ONLY.md).
+
+## A6 — gates, recorridos locales y revisión, 2026-09-16
+
+**PASS / SIMULATED_ONLY**. Python 3.12.12 y lock preservados. Verificación completa
+terminada a 2026-09-16T13:23:34.554154+00:00; código estable durante checks.
+SHA-256 efectivo `1821516c468340c9cade64b2fd96b5e6c61fb97e640715955354a300db667e3c`.
+Evidencia exacta conservada en runtime/a6/verification.json, runtime/test-results.xml
+(y cobertura en runtime/coverage.json). No commit/publicación.
+
+| Comando/check | Resultado exacto |
+|---|---|
+| `.\scripts\uv.ps1 run --frozen pytest -q tests/test_demo_session.py` | Primera fase: 28 passed, 5 warnings, 16.65s; exit 0 |
+| `.\scripts\uv.ps1 run --frozen pytest -q tests/test_demo_session.py tests/test_execution_engine.py tests/test_persistence_recovery.py tests/test_risk_engine.py tests/test_strategy_v1.py --junitxml=runtime/a6/focal.xml` | Focal/regresión: 276 passed, 5 warnings, 30.50s; exit 0. Después se añadió el caso de presupuesto virtual insuficiente, incluido en la suite completa |
+| `.\scripts\uv.ps1 run --frozen python scripts/verify.py` | Exit 0, 16/16 gates PASS; credenciales retiradas de hijos |
+| pytest dentro de verify.py, cobertura y JUnit | 758 passed, 7 warnings, 192.75s; cero errores/fallos/skips; 39 casos A6 incluidos |
+| Ruff check / format --check / mypy src | Exit 0 / 0 / 0, 46 módulos fuente |
+| Cobertura total líneas+ramas | 91.411683%; session.py 95.18%, session_inputs.py y session_fixture.py 100% |
+| Cobertura crítica | riesgo 100%, transporte 99.34%, autorización 99.20%, ejecución 95.31%, modelos 100%, persistencia 95.27% |
+| scan_secrets.py | Exit 0, cero hallazgos |
+| doctor / data validate / demo-offline / backtest | Exit 0; offline |
+| preflight sin claves / run etoro_demo / run live | Exit 2 esperado; bloqueos conservados |
+| uv sync --frozen --offline / build --offline / sintaxis JS | Exit 0 |
+| `.\scripts\uv.ps1 run --frozen python scripts/inspect_strategy_v1.py` | Exit 0, PASS, source_hashes_match=true |
+
+Recorridos de CLI A6 ejecutados, todos exit 0:
+
+```powershell
+.\scripts\uv.ps1 run --frozen python scripts/run_a6.py --database runtime/a6/accepted-1.sqlite --report runtime/a6/accepted-1.json
+.\scripts\uv.ps1 run --frozen python scripts/run_a6.py --database runtime/a6/accepted-2.sqlite --report runtime/a6/accepted-2.json
+.\scripts\uv.ps1 run --frozen python scripts/run_a6.py --scenario no-signal --database runtime/a6/no-signal.sqlite --report runtime/a6/no-signal.json
+.\scripts\uv.ps1 run --frozen python scripts/run_a6.py --database runtime/a6/accepted-1.sqlite --report runtime/a6/accepted-1-retry.json
+```
+
+Aceptados: 1 señal, 2 intenciones (entrada+cierre), flat=true, reconciled=true,
+entries_armed=false. Sin señal: 0 señales/0 intenciones, flat/reconciled=true.
+Comparación funcional, órdenes y todas las tablas durables salvo audit coinciden
+entre bases independientes; el retry conserva resultado y órdenes. Audit mantiene
+sus timestamps operativos: no son datos financieros ni tiempos de señales.
+Seis comprobaciones PASS en runtime/a6/comparison.json. Cero IO externo; todos los
+resultados etiquetados SIMULATED, A7 NOT_IMPLEMENTED. No beneficios reales atribuidos.
+
+Revisión de cambios: cinco nuevos archivos código/tests; huella de todos los archivos
+previos exactamente igual a la de A5. Evidencia runtime/a6/prior-work-review.json.
+Escaneo final tras documentación: 179 candidatos, cero hallazgos; git diff --check
+exit 0. Revisión propia de fronteras, UNKNOWN/reservas, orden durable y causalidad.
+Sin cambios a Strategy 1, riesgo, ejecutor, store, eToro, datos A2–A4, configs o lock.
+El diff global conserva trabajo previo sin commit; no se atribuye todo a A6.
+Diseño, siete casos y riesgos externos pendientes en [A6_SESSION](A6_SESSION.md).
+
+## A5 continuación — carga .env y PASS externo, 2026-09-16
+
+Corrección exclusivamente operacional/documental: uv --env-file .env antes del
+proceso Python. Ambas claves PRESENT; .env preservado, sin código/dependencias
+nuevos. CLI real no instrumentada a las 12:55:35.171934Z: exit 0, overall PASS,
+identidad Demo, 16 scopes, credit virtual y AAPL/1001. Tres GET, HTTP 200/200/200,
+ninguna mutación. Evidence: runtime/a5-preflight/demo-read-verified.json.
+Comando exacto:
+
+```powershell
+.\scripts\uv.ps1 run --frozen --env-file .env bot etoro preflight --read-only --config configs/strategy-1-v1.yaml --evidence runtime/a5-preflight/demo-read-verified.json
+```
+
+Antes, el comando pedido con UV_ENV_FILE=.env en el lanzador produjo
+ETORO_READ_UNAVAILABLE, exit Python 2 (wrapper 1), tres intentos GET y ningún HTTP.
+La instrumentación diagnóstica posterior conservó solo clases/códigos de error:
+ConnectError/ConnectionRefusedError, WinError 10061. Con ejecución externa
+autorizada, el mismo servicio pasó; después se confirmó con CLI sin instrumentación.
+TLS y CA local conservados. Sin cambios de proxy, ajustes globales ni .env.
+
+| Check de esta continuación | Resultado |
+|---|---|
+| `.\scripts\uv.ps1 run --frozen pytest -q tests/test_demo_preflight.py tests/test_etoro_adapter.py tests/test_etoro_transport.py tests/test_corporate_network.py tests/test_e2e_http.py --junitxml=runtime/a5-preflight/env-followup-tests.xml` | 202 passed, 7 warnings, 8.35s; exit 0; cero fallos/errores/skips |
+| Ruff check . / Ruff format --check . | Exit 0 / 0 |
+| mypy src | Exit 0 |
+| scripts/inspect_strategy_v1.py | Exit 0; PASS y source_hashes_match=true |
+
+Resultados exactos en runtime/a5-preflight/env-followup-checks.json y JUnit.
+No se repitió la suite completa porque no cambió código; se conserva evidencia
+anterior de 719 passed y 16/16 gates. No se presenta un mock como conexión real.
+Escaneo final: 173 candidatos Git, cero hallazgos; comparación exacta contra ambas
+claves también cero, tanto en candidatos como en el reporte final. Diff revisado y
+git diff --check exit 0. Huella de código/configuración/tests/scripts idéntica a la
+suite completa anterior (code_unchanged_since_full_gates=true). Revisión local:
+runtime/a5-preflight/final-followup-review.json. Sin staging, commit o publicación.
+Detalle de nueve comprobaciones de carga y criterios: [A5](A5_PREFLIGHT.md).
+Las notas A5 pendiente inferiores son antecedentes superados por este PASS.
+
+## A5 — preflight Demo read-only, 2026-09-16
+
+Estado: software local verificado; A5 pendiente de PASS externo con claves propias.
+Python 3.12.12, uv.lock conservado. Código estable durante todos los checks.
+SHA-256 efectivo: `e28c776d913edb6db91a04b70a2045c63de99bf18e14fd19510fb5bc13f938ec`.
+Evidencia exacta local: runtime/a5-preflight/verification-20260916.json,
+runtime/test-results.xml y runtime/coverage.json. Sin commit nuevo.
+
+| Comando | Resultado exacto |
+|---|---|
+| `.\scripts\uv.ps1 run --frozen pytest -q tests/test_demo_preflight.py tests/test_etoro_adapter.py tests/test_etoro_transport.py tests/test_e2e_http.py` | Primer pase: 193 passed, 7 warnings, 18.01s; exit 0. Después se añadió el caso JSON duplicado, incluido en la suite completa |
+| `.\scripts\uv.ps1 run --frozen python scripts/verify.py` | Exit 0; 16/16 PASS; credenciales retiradas de procesos hijos |
+| pytest con cobertura y JUnit, dentro de verify.py | 719 passed, 7 warnings, 127.99s; 0 fallos/errores/skips; incluye 61 casos A5 nuevos |
+| Ruff check / format --check / mypy src | Todos exit 0; mypy 43 archivos |
+| Cobertura de líneas y ramas | Total 91.131387%; crítica: riesgo 100%, transporte 99.34%, autorización 99.20%, ejecución 95.31%, modelos 100%, persistencia 95.27% |
+| scan_secrets.py | Exit 0, ningún hallazgo |
+| doctor / data validate / demo-offline / backtest | Exit 0, recorridos offline |
+| preflight sin claves / run etoro_demo / run live | Exit 2 esperado, bloqueos preservados |
+| uv sync --frozen --offline / build --offline / sintaxis JS | Exit 0 |
+| `.\scripts\uv.ps1 run --frozen python scripts/inspect_strategy_v1.py` | Exit 0, PASS; source_hashes_match=true, Strategy 1 congelada preservada |
+| Escaneo final tras documentación / `git diff --check` | Exit 0; 173 archivos candidatos, cero secretos; diff sin errores de whitespace |
+
+Preflight con entorno real: ambas variables ETORO_API_KEY/ETORO_USER_KEY ausentes.
+2026-09-16T12:38:58.942252+00:00, exit Python 2,
+CREDENTIALS_MISSING_OR_INVALID, cero solicitudes y cero mutaciones. Resultado en
+runtime/a5-preflight/process-evidence-20260916.json; comando y exit capturados en
+process-result-20260916.json. El wrapper PowerShell del primer intento reportó 1;
+se registró por separado el exit real del proceso Python, 2. Ningún PASS externo.
+
+Comando para completar la validación, con ambas claves Demo Read en el entorno y
+un archivo de evidencia nuevo:
+
+```powershell
+.\scripts\uv.ps1 run --frozen bot etoro preflight --read-only --config configs/strategy-1-v1.yaml --evidence runtime/a5-preflight/demo-read.json
+```
+
+Revisión propia: allowlist de tres GET antes del transporte, REAL/UNKNOWN fallan,
+redirecciones/JSON ambiguo rechazados; sin rutas reales, órdenes ni A6. No hubo
+staging, commit o publicación. El diff global contiene cambios anteriores A2–A4;
+la entrega A5 añade únicamente servicio/preflight, transporte, CLI, tests y docs.
+Diseño, contrato y limitaciones: [A5_PREFLIGHT](A5_PREFLIGHT.md).
+
+## A4 — replay_as_of_v1 y reproducción real, 2026-09-15
+
+Autorización temporal explícita del responsable aplicada en el boundary, sin
+modificar Strategy 1. Base HEAD ed456c32355bea05b5c6e04bc4b889ce8bce8ef3;
+SHA-256 de código/configuración/tests/scripts/lock efectivo:
+5b9fefc95ee1b319425f3172ef7be5418365ce2c734d416e968f092051d25db6.
+Python 3.12.12. No se creó commit ni se atribuye el árbol actual solo a HEAD.
+
+### Checks por fases anteriores a ejecutar A4 real
+
+| Comando | Resultado |
+|---|---|
+| `.\scripts\uv.ps1 run --frozen pytest -q tests/test_replay_as_of.py tests/test_backtest_replay.py tests/test_strategy_a3_audit.py` | Exit 0; primer boundary 20 passed, 5 warnings, 53.10s; log temporal-tests.log |
+| Mismo comando con `--junitxml=runtime/a4-readiness/phase2-tests.xml` | Exit 0; persistencia/comparación 24 passed, 5 warnings, 66.02s; phase2-tests.log |
+| `.\scripts\uv.ps1 run --frozen pytest -q tests/test_replay_as_of.py --junitxml=runtime/a4-readiness/boundary-final.xml` | Exit 0; 13 passed, 5 warnings, 64.24s; boundary-final.log |
+| `.\scripts\uv.ps1 run --frozen ruff check .` | Exit 0, PASS |
+| `.\scripts\uv.ps1 run --frozen ruff format --check .` | Exit 0, 146 archivos formateados |
+| `.\scripts\uv.ps1 run --frozen mypy src` | Exit 0, 42 archivos fuente |
+
+Los logs focales están en runtime/a4-readiness. Las 13 pruebas nuevas cubren
+visibilidad inclusiva, ausencia de leakage lógico, fuentes preservadas,
+publicación explícita prioritaria, contrato ausente, orden, rechazo terminal RS,
+futuras publicaciones fuera de sesión, trades no vacíos y persistencia/igualdad.
+Inputs fabricados únicamente para contratos; las capturas A2 no se copian a fixtures.
+Durante desarrollo Ruff detectó tres líneas largas y luego una firma larga/orden
+de imports en el test; corregidos antes de la batería final y los runs reales.
+
+### Dos ejecuciones reales consecutivas
+
+```powershell
+.\scripts\uv.ps1 run --frozen python scripts/run_a4.py run --output runtime/a4-replay/run-1
+.\scripts\uv.ps1 run --frozen python scripts/run_a4.py run --output runtime/a4-replay/run-2
+.\scripts\uv.ps1 run --frozen python scripts/run_a4.py compare runtime/a4-replay/run-1/1d21808255a75077d902.json runtime/a4-replay/run-2/1d21808255a75077d902.json --output runtime/a4-replay/comparison.json
+.\scripts\uv.ps1 run --frozen python runtime/a4-replay/check_preservation.py
+```
+
+Todos exit 0. Comparación PASS: trades ordenados, summary y resultado funcional
+completo iguales. Solo se excluyen started_at/finished_at de metadata de ejecución.
+La configuración/código/dataset no cambió entre runs; la preservación final confirma
+que el código entregado coincide con ambos manifests. A2/A3/raw y fuentes congeladas
+intactos. Entre fuentes existentes solo cambia backtesting/engine.py; se añaden
+backtesting/replay.py y a4.py. Transporte, bróker, reservas, propiedad, recuperación,
+riesgo y modelos no se modifican. Revisión propia; no se delegó.
+
+Una sesión AAPL evaluable, cero operaciones por RVOL_BELOW_THRESHOLD. SPY/QQQ
+reference-only; ningún OBSERVED_AVAILABILITY_REQUIRED. Artefactos/hashes y límites
+en [A4_READINESS](A4_READINESS.md), contrato en [REPLAY_AS_OF_V1](REPLAY_AS_OF_V1.md).
+No hay nueva adquisición externa o mutación de cuentas; provenance sigue histórico.
+
+### Verificación global de entrega
+
+**PASS: 8/8 checks**, código sin cambios durante la batería. Suite completa:
+**658 passed**, siete warnings de deprecación, cero errores/fallos/skips,
+391.89s. Ruff check/format, mypy (42 fuentes), inspector A3, secret scan
+(170 candidatos, cero hallazgos), demo-offline y backtest legacy: exit 0.
+Cobertura total líneas+ramas 90.64141035258815%; los seis módulos críticos
+conservan exactamente su cobertura A3: riesgo 100%, transporte 99.267399%,
+autorización 98.4%, ejecución 95.3125%, modelos 100%, persistencia 95.270270%.
+
+Salida estructurada: runtime/a4-replay/validation/verification.json, checks.json,
+coverage.json, tests.xml y logs individuales. No se atribuye la batería de ocho
+checks a los dieciséis del script global histórico; se ejecutaron los checks
+pertinentes y las rutas offline en estado nuevo, sin preflights de cuentas o build.
+
+Comando: `.\scripts\uv.ps1 run --frozen python runtime/a4-replay/validate_delivery.py`.
+El script registra comandos exactos, salidas, tiempos, cobertura y huella en
+runtime/a4-replay/validation. Retira credenciales de todos los procesos hijos.
+Usa estado/reportes nuevos para demo-offline y backtest de regresión v0.1;
+esa simulación fabricada está separada de los dos runs A4 reales.
+
+Equivalentes reproducibles con el lanzador local; el colector usó el intérprete
+3.12.12 del entorno frozen y registra sus comandos literales en checks.json:
+
+```powershell
+.\scripts\uv.ps1 run --frozen pytest -q --cov=intraday_etoro_lab --cov-branch --cov-report=json:runtime/a4-replay/validation/coverage.json --junitxml=runtime/a4-replay/validation/tests.xml
+.\scripts\uv.ps1 run --frozen bot demo-offline --config runtime/a4-replay/validation/offline.yaml
+.\scripts\uv.ps1 run --frozen bot backtest --config runtime/a4-replay/validation/offline.yaml
+```
+
+El colector ejecutó los módulos equivalentes con sys.executable, retirando las
+credenciales y registrando la ruta absoluta/argumentos exactos en checks.json.
+La configuración local de regresión cambia solo rutas de estado/reportes v0.1;
+no es la configuración de los runs A4 ni altera el YAML congelado.
+
+## A4 — diagnóstico BLOCKED, 2026-09-15
+
+Base HEAD ed456c32355bea05b5c6e04bc4b889ce8bce8ef3; cambios previos A2/A3
+preservados. No hay implementación productiva A4 ni dos runs de backtest.
+Python 3.12.12, uv local, lock congelado. Informe: [A4_READINESS](A4_READINESS.md).
+
+| Comando exacto | Resultado |
+|---|---|
+| `.\scripts\uv.ps1 run --frozen python runtime/a4-readiness/check_readiness.py` | Exit 0; hashes A2 y congelación A3 PASS; A4_BLOCKED_AVAILABILITY_CONTRACT |
+| `.\scripts\uv.ps1 run --frozen pytest -q tests/test_backtest_replay.py tests/test_strategy_v1.py tests/test_strategy_a3_audit.py tests/test_massive_a2.py --junitxml=runtime/a4-readiness/tests.xml` | Exit 0; 63 passed, 5 warnings, 24.06s; cero fallos/errores/skips |
+| `.\scripts\uv.ps1 run --frozen python runtime/a4-readiness/check_preservation.py` | Exit 0; 45 archivos fuente/config/dependencias, snapshots A2/A3 y raw sin cambios |
+| `.\scripts\uv.ps1 run --frozen python scripts/scan_secrets.py` | Exit 0; 165 candidatos, cero hallazgos |
+| `git diff --check` | Exit 0; avisos CRLF/LF existentes, sin errores de whitespace |
+
+Evidencia local ignorada: runtime/a4-readiness/evidence.json, preservation.json,
+tests.log y tests.xml. El log de pytest se guardó redirigiendo stdout/stderr.
+Huella del código/configuración/dependencias verificados:
+`bbc6b300f0952b942953dc09b4865c8b393a4ff18027d75619f2f90026ecf904`.
+No es un commit ni una certificación de reproducibilidad de operaciones.
+
+Los tests del motor usan fixtures como regresión, nunca como evidencia del mercado
+A4. El diagnóstico usa exclusivamente las capturas reales A2 en lectura offline;
+verifica por separado el rechazo de AAPL/SPY/QQQ en Strategy 1 congelada.
+No se ejecutan brokers, red, capturas nuevas, tuning o comparación de variantes.
+No se atribuyen checks globales Ruff/mypy/verify de fases anteriores a esta entrega
+documental. No se añaden tests de funciones A4 que no se implementaron.
+
+Incidencias de herramientas: primer diagnóstico llamado inspect.py falló por
+colisión de nombre con stdlib antes de cargar datos; renombrado y corregido.
+Un intento de preservación por stdin a uv.ps1 no ejecutó el código (no generó
+artefacto); se sustituyó por check_preservation.py y se verificó su salida PASS.
+No se ocultan esos intentos ni se contabilizan como comprobaciones aprobadas.
+
+## A3 definitivo — ORB_RVOL_v1.0, 2026-09-15
+
+Base y HEAD: `ed456c32355bea05b5c6e04bc4b889ce8bce8ef3`, working tree A2/A3
+conservado; sin commit nuevo. Python 3.12.12, uv local y lock congelado.
+Config: configs/strategy-1-v1.yaml; hash exclusivo strategy/risk/costs:
+`e751eb0db5be3f07950d5da5ccda0def4aeee6c03b0da83912ac38ed6beed7cb`.
+
+Todos los comandos Python siguientes usan `.\scripts\uv.ps1 run --frozen`.
+
+| Comando | Resultado |
+|---|---|
+| `pytest -q --cov=intraday_etoro_lab --cov-branch --cov-report=json:runtime/a3-freeze/coverage.json --junitxml=runtime/a3-freeze/tests.xml` | exit 0; 645 passed, 0 fallos/errores/skips, 7 warnings; 151.03s |
+| `pytest tests/test_strategy_v1.py tests/test_strategy_a3_audit.py tests/test_strategy_orb.py tests/test_config_api.py tests/test_risk_engine.py -q --junitxml=runtime/a3-freeze/focal-final.xml` | exit 0; 116 passed, 0 fallos/errores/skips, 7 warnings; 25.80s |
+| `ruff check .` | exit 0, PASS |
+| `ruff format --check .` | exit 0, 140 archivos, PASS |
+| `mypy src` | exit 0, 40 archivos, PASS |
+| `python scripts/inspect_strategy_v1.py` | exit 0, configuración efectiva/hash/fuentes PASS; inspection.json |
+| `python scripts/scan_secrets.py` | exit 0, 164 candidatos, cero hallazgos |
+| `git diff --check` (sin prefijo uv) | exit 0, PASS |
+
+Cobertura total **91.30871136089924%**; los seis módulos críticos mantienen
+exactamente su cobertura previa y superan 90%. Comparación en checks.json.
+Huella de código/configs/scripts/tests de esta batería:
+`1d4dfc4cd5bdee48db566bfd52a2f08d85a78d5647871e28542e3a0fc518daad`.
+42 casos nuevos v1 más los cinco A3 previos conservados. Suite completa también
+incluye regresión A1/A2; no equivale a una ejecución del alcance A4.
+
+La batería focal inicial detectó un hash anterior a una corrección de tipos; se
+regeneró el snapshot tras revisar esa corrección y la batería final pasó completa.
+No se relajó el test ni la comparación de hashes. Regeneración de documentación
+mediante scripts/document_config.py: exit 0, dos warnings Pydantic de defaults Path
+no serializables; los defaults de estrategia/riesgo/costes están explícitos en YAML.
+
+Se preservaron byte a byte 35 rutas protegidas de datos/riesgo/ejecución/bróker/
+backtesting/persistencia, uv.lock y YAML offline anterior respecto a before.json.
+Los únicos cambios nuevos de producción están en config.py y strategies/orb.py.
+Evidencia local: runtime/a3-freeze (before.json, prior-audit.*, preservation.json,
+focal-final.log/xml e inspection.json). Las pruebas son unitarias/contrato con datos
+sintéticos; no representan una ejecución de A4 ni acceso de trading.
+El gate histórico observed sigue probado y no se ejecutó scripts/verify.py ni CLI
+backtest/demo-offline. No se añaden permisos ni rutas de cuenta.
+
+## A3 — investigación histórica B1–B4, 2026-09-15
+
+Base sin cambio: `ed456c32355bea05b5c6e04bc4b889ce8bce8ef3`.
+Incremento exclusivamente documental/snapshot; producción, configuración y tests
+son idénticos byte a byte a la partida de esta iteración. No se repiten Ruff/mypy
+ni suite global: no hay cambios ejecutables. Resultados previos se conservan abajo.
+
+| Comprobación | Resultado |
+|---|---|
+| `.\scripts\uv.ps1 run --frozen pytest tests/test_strategy_a3_audit.py -q --junitxml=runtime/a3-history/tests.xml` | exit 0; 5 passed, 0 fallos/errores/skips, 1 warning; 12.37s |
+| `.\scripts\uv.ps1 run --frozen python scripts/scan_secrets.py` | exit 0; 161 candidatos, cero hallazgos |
+| `git diff --check` | exit 0, PASS |
+| SHA-256 de todas las fuentes del snapshot | PASS; valores y hashes previos intactos |
+| Comparación contra runtime/a3-history/before.json | PASS; solo ocho documentos/snapshot previos y un documento nuevo dentro del alcance |
+| `git rev-parse HEAD` y `git status --short` | Base intacta; A2/A3 previos preservados, sin commit/staging |
+
+Evidencia: runtime/a3-history/tests.log, tests.xml, before.json, preservation.json;
+commits.txt, consultas *-pickaxe.txt, historiales *-history.patch y
+all-history-matches.json. Revisados 15 commits alcanzables y 65 pares únicos
+archivo/texto de búsqueda multitémino; consultas y hallazgos explicados en
+[auditoría](STRATEGY_1_A3_AUDIT.md). No hubo fetch o modificaciones de ramas.
+
+Resultado: A3 BLOCKED, B1–B4 PENDIENTE; E1 de políticas iniciales, E2 de soporte
+técnico, E3 de reglas completas solicitadas. [Propuestas](A3_PENDING_DECISIONS.md)
+sin aprobación ni implementación. A4, backtest, optimización y consultas de cuenta
+no ejecutados. Solo documentación pública Massive para el análisis de metadata ETF.
+
+## A3 — auditoría bloqueada, 2026-09-15
+
+Base Git `ed456c32355bea05b5c6e04bc4b889ce8bce8ef3`, con cambios A2 sin commit.
+Sin cambios de producción/configuración en A3. Se añadieron cinco casos de prueba
+que verifican la configuración existente; no acreditan una congelación final.
+
+Prefijo de comandos: `.\scripts\uv.ps1 run --frozen` (Python 3.12.12 y lock existente).
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_strategy_a3_audit.py tests/test_strategy_orb.py tests/test_config_api.py tests/test_risk_engine.py -q --junitxml=runtime/a3-audit/tests.xml` | exit 0; 74 passed, 0 fallos/errores/skips, 7 warnings; 24.53s |
+| `ruff check .` | exit 0, PASS |
+| `ruff format --check .` | exit 0, PASS |
+| `mypy src` | exit 0, 40 archivos, PASS |
+| `python scripts/scan_secrets.py` | exit 0, 160 candidatos, cero hallazgos |
+| `git diff --check` (sin prefijo uv) | exit 0, PASS |
+
+Log/JUnit: runtime/a3-audit/tests.log y tests.xml. Snapshot efectivo y hashes:
+[strategy-1-a3-audit.json](strategy-1-a3-audit.json); inventario y reproducción:
+[STRATEGY_1_A3_AUDIT](STRATEGY_1_A3_AUDIT.md). Sin suite global repetida porque
+el incremento solo añade auditoría/documentación/tests; no se atribuye a A3 una
+nueva medición de cobertura. No se ejecutó verify.py, replay, optimización ni A4.
+
+## A2 — datos Massive reales, 2026-09-15
+
+Python 3.12.12; uv local, --frozen; lock intacto. Huella del código probado:
+`d36e98d5b142fd94b2c8276b8f1433197e2f0397ced0b1b153b0b50fab8a18bd`.
+
+| Comando (prefijo `.\scripts\uv.ps1 run --frozen`) | Resultado |
+|---|---|
+| `pytest -q --cov=intraday_etoro_lab --cov-branch --cov-report=json:runtime/a2-massive/coverage.json --junitxml=runtime/a2-massive/tests.xml` | exit 0; 598 passed, 0 fallos/errores/skips, 7 warnings; 170.07s |
+| `ruff check .` | exit 0, PASS |
+| `ruff format --check .` | exit 0, 134 archivos, PASS |
+| `mypy src` | exit 0, 40 archivos, PASS |
+| `python scripts/scan_secrets.py` | exit 0, cero hallazgos |
+| `python scripts/validate_massive_a2.py` con rutas de MASSIVE_A2.md | exit 0, siete criterios PASS, offline-final.json |
+
+Suite previa focal: 82 passed, 5 warnings, exit 0 (antes de añadir el último test
+de aritmética/alineación del manifiesto; la suite final incluye los nueve nuevos).
+Los fixtures de pruebas no son evidencia de acceso real.
+Logs: runtime/a2-massive/pytest.log, tests.xml y coverage.json.
+Cobertura total 91.14285714285714%; seis módulos críticos sin reducción y >=90%,
+comparación exacta contra prior-coverage.json en checks.json. `git diff --check` PASS.
+
+Capturas nuevas reales: SPY/QQQ, dos GET HTTP 200; AAPL reutilizada sin alteración.
+Primer intento restringido CONNECTIVITY_FAILED registrado, segundo PASS.
+Manifiesto portable: [massive-a2-manifest.json](massive-a2-manifest.json).
+Reproducción, fórmulas, evidencia y límites: [MASSIVE_A2](MASSIVE_A2.md).
+
+No se ejecutó el colector completo scripts/verify.py: incluye backtest, demo-offline
+y comandos eToro que están fuera del alcance A2 solicitado. No se afirma 16/16
+gates en esta fase. Se ejecutó la suite automatizada con su frontera offline y
+credenciales retiradas por conftest. Ningún backtest de rendimiento o simulación
+de órdenes fue lanzado como recorrido operativo; tests de regresión sí conservados.
+Sin cambios de estrategia, riesgo, ejecución, lock, rutas de cuenta o autorización.
 
 ## A1 — selección Massive y batería focal final, 2026-09-15
 

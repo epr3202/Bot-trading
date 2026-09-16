@@ -11,6 +11,10 @@ class BrokerBlocked(RuntimeError):
     """Public error containing only a static reason, never broker response text."""
 
 
+class RejectedBeforeSend(BrokerBlocked):
+    """The adapter proved that this invocation never attempted a trading mutation."""
+
+
 @dataclass(frozen=True)
 class PreflightEvidence:
     account_id: int = field(repr=False)

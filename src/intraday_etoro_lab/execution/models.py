@@ -1,9 +1,11 @@
 """Local order identifiers and lifecycle are independent of broker enums."""
 
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
-from typing import Literal, Protocol
+from typing import Literal, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -34,7 +36,12 @@ ACTIVE_STATES = {
 TERMINAL_STATES = {OrderState.FILLED, OrderState.CANCELLED, OrderState.REJECTED, OrderState.EXPIRED}
 TRANSITIONS: dict[OrderState, set[OrderState]] = {
     OrderState.CREATED: {OrderState.APPROVED, OrderState.REJECTED, OrderState.EXPIRED},
-    OrderState.APPROVED: {OrderState.SUBMITTING, OrderState.EXPIRED, OrderState.CANCELLED},
+    OrderState.APPROVED: {
+        OrderState.SUBMITTING,
+        OrderState.EXPIRED,
+        OrderState.CANCELLED,
+        OrderState.REJECTED,
+    },
     OrderState.SUBMITTING: {
         OrderState.ACKNOWLEDGED,
         OrderState.PARTIALLY_FILLED,
@@ -182,3 +189,16 @@ class ExecutionBroker(Protocol):
     def cancel(self, intent: OrderIntent) -> BrokerOrder: ...
     def close(self, intent: OrderIntent) -> BrokerOrder: ...
     def protect(self, position_id: str, stop_price: Decimal) -> bool: ...
+
+
+@dataclass(frozen=True)
+class PreparedSubmission:
+    """Ephemeral send capability plus safe durable correlation metadata."""
+
+    send: Callable[[OrderIntent], BrokerOrder]
+    metadata: dict[str, str]
+
+
+@runtime_checkable
+class PreparingBroker(Protocol):
+    def prepare(self, intent: OrderIntent) -> PreparedSubmission: ...

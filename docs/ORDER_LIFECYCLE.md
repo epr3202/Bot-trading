@@ -1,5 +1,14 @@
 # Órdenes y recuperación
 
+## A7 — preparación opcional previa a SUBMITTING
+
+Executor usa PreparingBroker cuando está disponible: APPROVED/reserva → prepare
+sin mutaciones → metadata durable → SUBMITTING → envío. RejectedBeforeSend
+solo representa ausencia demostrada de intento, termina REJECTED y libera
+reserva. Excepciones posteriores conservan UNKNOWN. Crash durante prepare expira
+APPROVED; el intervalo SUBMITTING/HTTP no es atómico y conserva incertidumbre.
+No se altera SimulatorBroker ni se infiere cierre externo. [Detalle](A7_COMPLETION_ATTEMPT.md).
+
 Fuente: `execution/models.py`, `execution/engine.py`, `persistence/store.py`.
 La estrategia produce Signal; RiskEngine decide; Executor persiste OrderIntent y
 reservas antes de SUBMITTING y de tocar BrokerAdapter. UUIDv5 estable separa intención

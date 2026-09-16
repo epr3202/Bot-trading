@@ -1,5 +1,27 @@
 # Auditoría eToro
 
+## A7 — auditoria UTC/costes, PARTIAL/BLOCKED (2026-09-16)
+
+La evidencia anterior era 81.588043 s, no 81588 s; ambiguedad de coma decimal.
+Dos GET rates nuevos confirmaron retrasos de 35.860831 y 75.107782 s.
+Recepcion HTTP registrada antes del parseo, UTC aware; limite 3 s intacto.
+Costes value/amount normalizados dentro del adapter; fixture real sanitizado.
+142 pruebas focales A7/A6 PASS. Gate externo QUOTE_STALE_OR_DELAYED;
+cero ordenes/mutaciones; identidad DEMO y parser de costes PASS.
+No se habilita el vertical de trading mientras falle frescura. No A8.
+Detalle, cambios, comandos y evidencia: [auditoria A7](A7_QUOTE_COST_AUDIT.md).
+
+
+## A7 — observaciones 2026-09-16, catálogo v1.379.0
+
+Identidad Demo, write scope, instrumento AAPL/1001, elegibilidad y what-if de
+apertura observados con claves del repositorio. GET y POST de lectura, cero
+mutaciones. Eligibility devuelve currency=usd; getRates devuelve fecha UTC sin
+sufijo, normalizada sin retrofechar; antigüedad 81.588043s, gate de 3s BLOCKED.
+CostBreakdown observado usa value, mientras OpenAPI publica amount. No se
+inventan importes ausentes. Contratos de cierre revalidados sin enum statusID
+ni contabilidad final suficiente. [Evidencia y límites](A7_COMPLETION_ATTEMPT.md).
+
 Market Data 2026-09-14: catálogo API v1.376.0 / 1.20.0 y siete GET reales de Market
 Data auditados; sin rutas de cuenta/trading. Evidencia de volumen, historia y
 timestamps en [ETORO_MARKET_DATA_VALIDATION](ETORO_MARKET_DATA_VALIDATION.md).

@@ -148,7 +148,7 @@ def build_adapter(order_intent=None, responses=None, with_review=True):
         return httpx.Response(200, json=defaults.get(path, {}))
 
     transport = make_transport(handler)
-    arm(transport)
+    arm(transport, identity_reads=False)
     asset = Instrument(symbol="TEST", broker_id=123, stable_id="synthetic-test-only")
     store = {item.intent_id: item}
     positions = {}

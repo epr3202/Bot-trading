@@ -1,0 +1,44 @@
+# Frozen A3 hypothesis. Data selection is separate; fixtures lack RS benchmarks and fail closed.
+mode: offline
+order_submission_enabled: false
+data:
+  provider: fixtures
+strategy:
+  version: ORB_RVOL_v1.0
+  warmup_sessions: 20
+  opening_range_minutes: 5
+  min_previous_close: '10'
+  min_average_dollar_volume: '50000000'
+  min_rvol: '2'
+  max_selected: 10
+  entry_window_minutes: 60
+  selection_wait_seconds: 2
+  signal_ttl_seconds: 10
+  relative_strength_enabled: true
+  rs_benchmarks: [SPY, QQQ]
+  rs_comparison: strictly_greater_than_both
+  rs_margin: '0'
+  regime_enabled: false
+  vwap_enabled: false
+  etf_tradable: false
+  benchmarks_reference_only: true
+risk:
+  allocated_capital: '10000'
+  risk_fraction: '0.001'
+  daily_loss_fraction: '0.005'
+  max_positions: 2
+  max_gross_fraction: '1'
+  max_position_fraction: '0.60'
+  max_spread_fraction: '0.003'
+  max_price_deviation: '0.005'
+  max_source_divergence: '0.005'
+  max_quote_age_seconds: 3
+  signal_ttl_seconds: 10
+costs:
+  known: true
+  fixed_per_side: '0'
+  minimum_per_side: '0'
+  per_unit_per_side: '0.005'
+  notional_rate_per_side: '0'
+  slippage_per_unit: '0.02'
+  quadratic_impact: '0'

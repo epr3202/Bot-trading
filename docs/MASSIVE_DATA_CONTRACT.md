@@ -138,7 +138,9 @@ cuerpo exitoso que refleje la clave también se rechaza antes de persistirlo.
 TLS obligatorio, proxy del proceso y CA local `certs/epm-root.cer` o
 `REQUESTS_CA_BUNDLE`; sin desactivar certificados ni cambiar opciones globales.
 
-Solo GET, host api.massive.com, AAPL y range/1/minute. No hay rutas de cuenta,
+Solo GET, host api.massive.com, AAPL/SPY/QQQ y range/1/minute (ampliación A2).
+La CLI A1 conserva AAPL por defecto; [A2](MASSIVE_A2.md) documenta benchmarks.
+No hay rutas de cuenta,
 órdenes, WebSocket ni URL arbitraria. Las páginas pueden avanzar el inicio dentro
 de la ventana pero no cambiar el final, símbolo, host, granularidad, sort o ajuste.
 Cursores opacos solo se siguen tras validar URL/query; redirecciones se rechazan.

@@ -1,3 +1,93 @@
+## Revision de proxy/TLS y motivo de bloqueo: 2026-09-21
+
+Cambio acotado al helper TLS y pruebas del spike. Se ancla ruta al proyecto y
+se combinan CA del sistema, certifi y EPM; falta/corrupcion de CA falla cerrado.
+Pruebas PEM/DER independientes del cwd, confianza publica preservada y TLS estricto.
+
+```powershell
+.\scripts\uv.ps1 run --offline --frozen pytest -q tests/test_etoro_websocket_probe.py
+.\scripts\uv.ps1 run --offline --frozen ruff check .
+.\scripts\uv.ps1 run --offline --frozen ruff format --check .
+.\scripts\uv.ps1 run --offline --frozen mypy src
+.\scripts\uv.ps1 run --offline --frozen python scripts/inspect_strategy_v1.py
+.\scripts\uv.ps1 run --offline --frozen python scripts/scan_secrets.py
+git diff --check
+```
+
+34 focales PASS en 3.02 s; Ruff check/format PASS (168 archivos), mypy PASS
+(47 fuentes), inspector A3 PASS. Secret scan y diff check PASS.
+La suite 912/16 gates inferior corresponde al incremento de proxy anterior;
+no se atribuye una repeticion completa a este ajuste TLS del diagnostico aislado.
+
+Auditoria externa passthrough sin respuestas fabricadas: los cuatro parametros
+proxy coinciden con Growatt; auth llega intacta a websocket-client 1.8.0;
+CONNECT y TLSv1.3 PASS. Upgrade retorna 403 con texto saneado explicito:
+"WebSocket Block / Upgrade to WebSocket is blocked." Certificado EPM local
+presente, cargado, vigente y validando hostname/cadena; 0 eventos/mutaciones.
+Evidencia: runtime/a7-websocket/tls-policy-20260921/{summary,network-stages}.json;
+observacion anterior independiente en tls-review-20260921. No A7 DONE.
+
+## Proxy autenticado del spike: 2026-09-21
+
+Se configuro el proxy solicitado en .env ignorado y se adapto exclusivamente
+scripts/probe_etoro_websocket.py. Variables y limites en A7_WEBSOCKET.md.
+Se amplio .env.example sin valores privados, scan_secrets.py para detectar
+ETORO_PROXY_PASSWORD y verify.py para retirar las cuatro variables proxy.
+
+Comandos y resultados actuales:
+
+```powershell
+.\scripts\uv.ps1 run --offline --frozen pytest -q tests/test_etoro_websocket_probe.py
+.\scripts\uv.ps1 run --offline --frozen python scripts/verify.py
+.\scripts\uv.ps1 run --offline --frozen python scripts/inspect_strategy_v1.py
+.\scripts\uv.ps1 run --offline --frozen python scripts/scan_secrets.py
+git check-ignore .env
+git diff --check
+```
+
+30 tests focales PASS; 912 completos PASS, cero errores/fallos/skips.
+16/16 gates PASS, exit 0; codigo inmutable durante checks. Inspector A3 PASS;
+src/configs/pyproject/lock/snapshot sin diferencias. Secret scan: 193 archivos,
+0 hallazgos. .env ignorado; round-trip de los cuatro valores con uv --env-file
+PASS, sin mostrar valores. Comparacion privada de credenciales reales, formas
+URL/Base64 contra archivos modificados y reporte del probe: PASS, sin filtraciones.
+No son pruebas de autenticacion aceptada por el proxy.
+
+Probe externo explicito: HTTP 403 EPM antes de Authenticate, cero eventos/mutaciones.
+Evidencia local nueva: runtime/a7-websocket/proxy-auth-20260921/summary.json y
+verification.json. Se conserva la evidencia anterior en recheck-20260921-network.
+La suite previa de 905 corresponde al codigo anterior al ajuste de proxy.
+
+## A7 WebSocket: reobservacion y regresion 2026-09-21
+
+Sin cambios de software; solamente STATUS, HANDOFF, A7_WEBSOCKET y este documento.
+Comandos ejecutados desde la raiz:
+
+```powershell
+.\scripts\uv.ps1 run --offline --frozen pytest -q tests/test_etoro_websocket_probe.py tests/test_demo_session.py tests/test_demo_only_identity.py tests/test_demo_quote_cost_audit.py tests/test_etoro_adapter.py tests/test_etoro_transport.py
+.\scripts\uv.ps1 run --offline --frozen python scripts/verify.py
+.\scripts\uv.ps1 run --offline --frozen python scripts/inspect_strategy_v1.py
+git diff --exit-code -- src configs uv.lock pyproject.toml docs/strategy-1-a3-audit.json scripts tests
+git diff --check
+.\scripts\uv.ps1 run --offline --frozen python scripts/scan_secrets.py
+```
+
+Focales WebSocket/A6/A7/transporte: 274 passed, 5 warnings, exit 0.
+Verificador: 16/16 gates PASS, exit 0, Python 3.12.12; suite completa
+905 passed, 7 warnings en 238.04 s; cero failures/errors/skips.
+Codigo inmutable durante checks; credenciales retiradas en procesos de gates.
+Ruff check/format, mypy, cobertura, CLI offline, bloqueos conectados, build y JS PASS.
+Secret scan: 193 candidatos, 0 hallazgos. Inspector Strategy 1 PASS,
+source_hashes_match=true; limite 3 s intacto, snapshot no regenerado.
+Diff de codigo/config/lock/tests/scripts vacio; diff check exit 0.
+
+Evidencia exacta preservada en
+`runtime/a7-websocket/recheck-20260921-network/verification.json`.
+Los probes separados (comando en A7_WEBSOCKET.md) terminaron con conexion
+rechazada en sandbox y HTTP 403 Proxy WebGateway | EPM fuera de esa restriccion,
+antes de autenticar. 0 eventos y 0 mutaciones; no evidencia de viabilidad ni
+fixture real. Estas pruebas locales no acreditan conexion WebSocket ni A7 DONE.
+
 ## A7 WebSocket: verificacion final del spike (2026-09-16)
 
 23 tests del spike PASS; 165 focales WebSocket/A6/A7 PASS (5 warnings).

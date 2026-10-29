@@ -1,3 +1,29 @@
+## A7 WebSocket: reobservacion 2026-09-21
+
+Revision 15:47 UTC: valores proxy identicos a Growatt; certificado local presente
+y valido. Corregida carga TLS: ruta estable y confianza sistema+certifi+EPM.
+Evidencia real: CONNECT PASS, TLSv1.3 PASS, upgrade 403; pagina EPM declara
+"WebSocket Block / Upgrade to WebSocket is blocked." Regla de gateway bloquea
+upgrade; no fallo de ruta/carga del certificado. 34 focales PASS; no nuevo ciclo
+completo atribuido a este ajuste. Cero eventos/ordenes; A7 PARTIAL/BLOCKED.
+
+Actualizacion proxy: configuracion autenticada de growatt.py trasladada al .env
+local por solicitud del usuario; spike usa ETORO_PROXY_HOST/PORT/USER/PASSWORD.
+Prueba explicita 15:33 UTC: HTTP 403 Proxy WebGateway EPM antes de Authenticate;
+0 eventos/ordenes. No equivale a autenticacion proxy aceptada. A7 sigue bloqueado.
+Evidencia nueva: runtime/a7-websocket/proxy-auth-20260921/summary.json.
+Validacion del ajuste: 30 focales, 912 completos, 16/16 gates PASS; inspector A3
+y secretos PASS. Evidencia en la misma carpeta, verification.json.
+
+Contrato eToro, no REST obligatorio, reconfirmado. Spike existente sin cambios.
+Nuevo intento fuera del entorno restringido: HTTP 403, Proxy WebGateway | EPM,
+antes de Authenticate; 0 eventos, 0 mutaciones, frescura no medible.
+Migracion NOT_INTEGRATED; A7 PARTIAL/BLOCKED. Red debe permitir el upgrade
+antes de validar mensajes/frescura e integrar el runner. Evidencia nueva:
+runtime/a7-websocket/recheck-20260921-network/summary.json.
+Detalle en docs/A7_WEBSOCKET.md; checks actuales en docs/VERIFICATION.md.
+274 focales y 905 completos PASS; 16/16 gates, inspector/hash A3 y secretos PASS.
+
 ## A7 WebSocket: verificacion final del spike (2026-09-16)
 
 23 tests del spike PASS; 165 focales WebSocket/A6/A7 PASS (5 warnings).

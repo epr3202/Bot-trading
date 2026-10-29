@@ -12,7 +12,7 @@ PATTERNS = (
     re.compile(r"(?:ghp_|github_pat_|sk-proj-)[A-Za-z0-9_]{20,}"),
     re.compile(
         r"(?im)^[ \t]*(?:ETORO_API_KEY|ETORO_USER_KEY|ALPACA_API_KEY|ALPACA_API_SECRET"
-        r"|MASSIVE_API_KEY)"
+        r"|MASSIVE_API_KEY|ETORO_PROXY_PASSWORD)"
         r"[ \t]*=[ \t]*[^\s#]{12,}[ \t]*$"
     ),
 )

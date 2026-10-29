@@ -1,0 +1,58 @@
+[
+  {
+    "path": "runtime/a7-websocket/verification-initial.json",
+    "verified_at_utc": "2026-09-16T20:15:31.742698+00:00",
+    "code_fingerprint": {
+      "sha256": "4dfca6056b4b5fead081eebde14ccb6d7d976676056ad3f43fead2224750ca57",
+      "lockfile_sha256": "d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f"
+    },
+    "code_unchanged_during_checks": false,
+    "test_summaries": [
+      "2 failed, 903 passed, 7 warnings in 164.15s (0:02:44)"
+    ],
+    "result_count": 16,
+    "attribution": "historical record, not rerun or current-tree proof"
+  },
+  {
+    "path": "runtime/a7-websocket/verification.json",
+    "verified_at_utc": "2026-09-16T20:19:26.645670+00:00",
+    "code_fingerprint": {
+      "sha256": "190c4976613b7b267e01acb723b04ff7a3d6e90d16040d434f8422f992a2af80",
+      "lockfile_sha256": "d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f"
+    },
+    "code_unchanged_during_checks": true,
+    "test_summaries": [
+      "905 passed, 7 warnings in 154.55s (0:02:34)"
+    ],
+    "result_count": 16,
+    "attribution": "historical record, not rerun or current-tree proof"
+  },
+  {
+    "path": "runtime/a7-websocket/proxy-auth-20260921/verification.json",
+    "verified_at_utc": "2026-09-21T15:39:51.029559+00:00",
+    "code_fingerprint": {
+      "sha256": "0b5efbdb4b89bf99c60d0fff9f42e97c365ad6a3eab5c9b081929bc7baf3c42f",
+      "lockfile_sha256": "d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f"
+    },
+    "code_unchanged_during_checks": true,
+    "test_summaries": [
+      "912 passed, 7 warnings in 255.17s (0:04:15)"
+    ],
+    "result_count": 16,
+    "attribution": "historical record, not rerun or current-tree proof"
+  },
+  {
+    "path": "runtime/a7-websocket/recheck-20260921-network/verification.json",
+    "verified_at_utc": "2026-09-21T15:20:20.066667+00:00",
+    "code_fingerprint": {
+      "sha256": "190c4976613b7b267e01acb723b04ff7a3d6e90d16040d434f8422f992a2af80",
+      "lockfile_sha256": "d4d45c705053eb37a857e7ef737cbf206b3fe92f04605151fdc0a86159956e9f"
+    },
+    "code_unchanged_during_checks": true,
+    "test_summaries": [
+      "905 passed, 7 warnings in 238.04s (0:03:58)"
+    ],
+    "result_count": 16,
+    "attribution": "historical record, not rerun or current-tree proof"
+  }
+]

@@ -1,6 +1,7 @@
 """Isolated A7 read-only spike; no runner, account reads or trading capability."""
 
 import argparse
+import base64
 import importlib
 import json
 import os
@@ -10,12 +11,69 @@ import time
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
+from urllib.parse import quote
 from uuid import uuid4
+
+import certifi
 
 from intraday_etoro_lab.brokers.transport import Credentials
 
 ORIGIN = "wss://ws.etoro.com/ws"
 TOPIC = "instrument:1001"  # AAPL resolved in the existing A5/A7 evidence.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def tls_context() -> tuple[ssl.SSLContext, dict]:
+    """Preserve system/public trust and explicitly require the project EPM CA."""
+    certificate = PROJECT_ROOT / "certs" / "epm-root.cer"
+    if not certificate.is_file():
+        raise ValueError("PROXY_CA_MISSING")
+    context = ssl.create_default_context()
+    context.load_verify_locations(cafile=certifi.where())
+    data = certificate.read_bytes()
+    context.load_verify_locations(
+        cadata=data.decode("utf-8-sig") if b"-----BEGIN CERTIFICATE-----" in data else data
+    )
+    return context, {
+        "certificate": "certs/epm-root.cer",
+        "certificate_loaded": True,
+        "trust_sources": ["system", "certifi", "epm"],
+        "trusted_ca_count": context.cert_store_stats()["x509_ca"],
+        "hostname_check": context.check_hostname,
+        "certificate_verification_required": context.verify_mode == ssl.CERT_REQUIRED,
+    }
+
+
+def proxy_options() -> dict:
+    """Explicit project proxy; incomplete authentication never falls back."""
+    names = ("ETORO_PROXY_HOST", "ETORO_PROXY_PORT", "ETORO_PROXY_USER", "ETORO_PROXY_PASSWORD")
+    host, port, user, password = (os.getenv(name, "") for name in names)
+    if not any((host, port, user, password)):
+        return {}
+    if host != "proxy.epm.com.co" or port != "8080":
+        raise ValueError("PROXY_DESTINATION_INVALID")
+    if not user or not password or ":" in user or any(c in user + password for c in "\r\n\x00"):
+        raise ValueError("PROXY_CREDENTIALS_INVALID")
+    return {
+        "http_proxy_host": host,
+        "http_proxy_port": int(port),
+        "http_proxy_auth": (user, password),
+        "proxy_type": "http",
+        # Explicit proxy cannot be bypassed by an inherited NO_PROXY setting.
+        "http_no_proxy": ["localhost", "127.0.0.1"],
+    }
+
+
+def redact(text: str) -> str:
+    names = ("ETORO_API_KEY", "ETORO_USER_KEY", "ETORO_PROXY_USER", "ETORO_PROXY_PASSWORD")
+    secrets = [os.getenv(name, "") for name in names]
+    user, password = secrets[-2:]
+    if user and password:
+        secrets.append(base64.b64encode(f"{user}:{password}".encode()).decode())
+    variants = {value for secret in secrets if secret for value in (secret, quote(secret, safe=""))}
+    for value in sorted(variants, key=len, reverse=True):
+        text = text.replace(value, "[REDACTED]")
+    return text
 
 
 def decode(text: str) -> dict:
@@ -92,17 +150,16 @@ def main() -> int:
     previous = None
     try:
         credentials = Credentials.from_environment()
+        options = proxy_options()
+        report["proxy_mode"] = "EXPLICIT_AUTHENTICATED" if options else "ENVIRONMENT"
         report["ETORO_API_KEY"] = "PRESENT"
         report["ETORO_USER_KEY"] = "PRESENT"
         # Optional diagnostic dependency, isolated with uv --with; frozen lock unchanged.
         ws = importlib.import_module("websocket")
-        ca = Path("certs/epm-root.cer")
-        context = ssl.create_default_context(
-            cafile=str(ca) if ca.exists() else os.getenv("REQUESTS_CA_BUNDLE")
-        )
+        context, report["tls"] = tls_context()
         report["state"] = "CONNECTING"
         socket = ws.create_connection(
-            ORIGIN, timeout=10, redirect_limit=0, sslopt={"context": context}
+            ORIGIN, timeout=10, redirect_limit=0, sslopt={"context": context}, **options
         )
         if socket.getstatus() != 101:
             raise ValueError("UPGRADE_REQUIRED")
@@ -189,9 +246,7 @@ def main() -> int:
                 ages.append(row["quote_age"])
                 if not duplicate and not out_of_order:
                     previous = (stamp, row["price_rate_id"])
-                safe = json.dumps(row)
-                for secret in (credentials.api_key, credentials.user_key):
-                    safe = safe.replace(secret, "[REDACTED]")
+                safe = redact(json.dumps(row))
                 with (args.output / "events.jsonl").open("a", encoding="utf-8") as stream:
                     stream.write(safe + "\n")
         report["stop_reason"] = "OBSERVATION_COMPLETE"
@@ -236,11 +291,7 @@ def main() -> int:
             if word in body.lower()
         ]
         if not report["authenticated"] and report["state"] == "CONNECTING":
-            safe_body = body
-            for name in ("ETORO_API_KEY", "ETORO_USER_KEY"):
-                secret = os.getenv(name)
-                if secret:
-                    safe_body = safe_body.replace(secret, "[REDACTED]")
+            safe_body = redact(body)
             safe_body = re.sub(r"https?://\S+", "[URL_REMOVED]", safe_body)
             safe_body = re.sub(r"[\w.+-]+@[\w.-]+", "[EMAIL_REMOVED]", safe_body)
             safe_body = re.sub(r"[A-Za-z0-9_./+=-]{24,}", "[IDENTIFIER_REMOVED]", safe_body)
@@ -253,6 +304,9 @@ def main() -> int:
             "UPGRADE_REQUIRED",
             "SUBSCRIBE_REJECTED",
             "DISCONNECTED",
+            "PROXY_DESTINATION_INVALID",
+            "PROXY_CREDENTIALS_INVALID",
+            "PROXY_CA_MISSING",
         }
         report["stop_reason"] = str(exc) if str(exc) in allowed else "READ_ONLY_PROBE_FAILED"
     finally:

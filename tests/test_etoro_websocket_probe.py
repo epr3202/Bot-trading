@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import ssl
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -13,6 +14,93 @@ assert spec and spec.loader
 probe = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(probe)
 NOW = datetime(2026, 9, 16, 19, 0, tzinfo=UTC)
+
+
+@pytest.fixture(autouse=True)
+def isolated_proxy(monkeypatch):
+    for name in ("HOST", "PORT", "USER", "PASSWORD"):
+        monkeypatch.delenv(f"ETORO_PROXY_{name}", raising=False)
+
+
+def configure_proxy(monkeypatch):
+    for name, value in {
+        "HOST": "proxy.epm.com.co",
+        "PORT": "8080",
+        "USER": "example-domain\\example-user",
+        "PASSWORD": "example:p@ss#word",
+    }.items():
+        monkeypatch.setenv(f"ETORO_PROXY_{name}", value)
+
+
+def test_proxy_auth_separate_from_destination_and_no_bypass(monkeypatch):
+    configure_proxy(monkeypatch)
+    monkeypatch.setenv("NO_PROXY", "*")
+    options = probe.proxy_options()
+    assert options["http_proxy_auth"] == ("example-domain\\example-user", "example:p@ss#word")
+    assert options["http_proxy_host"] == "proxy.epm.com.co"
+    assert options["http_proxy_port"] == 8080
+    assert options["http_no_proxy"] == ["localhost", "127.0.0.1"]
+    assert options["proxy_type"] == "http"
+
+
+@pytest.mark.parametrize("name", ["HOST", "PORT", "USER", "PASSWORD"])
+def test_partial_proxy_configuration_fails_closed(monkeypatch, name):
+    configure_proxy(monkeypatch)
+    monkeypatch.delenv(f"ETORO_PROXY_{name}")
+    with pytest.raises(ValueError, match="PROXY_"):
+        probe.proxy_options()
+
+
+def test_unconfigured_proxy_keeps_existing_environment_behavior():
+    assert probe.proxy_options() == {}
+
+
+def test_proxy_secrets_redacted_in_all_supported_forms(monkeypatch):
+    configure_proxy(monkeypatch)
+    user, password = probe.proxy_options()["http_proxy_auth"]
+    encoded = probe.base64.b64encode(f"{user}:{password}".encode()).decode()
+    escaped = probe.quote(password, safe="")
+    assert probe.redact(f"{user} {password} {encoded} {escaped}") == " ".join(["[REDACTED]"] * 4)
+
+
+@pytest.mark.parametrize("encoding", ["PEM", "DER"])
+def test_tls_loads_ca_independent_of_cwd_and_preserves_public_trust(
+    monkeypatch, tmp_path, encoding
+):
+    public = Path(probe.certifi.where()).read_text()
+    start = public.index("-----BEGIN CERTIFICATE-----")
+    end = public.index("-----END CERTIFICATE-----", start) + len("-----END CERTIFICATE-----")
+    pem = public[start:end]
+    data = pem.encode() if encoding == "PEM" else ssl.PEM_cert_to_DER_cert(pem)
+    (tmp_path / "certs").mkdir()
+    (tmp_path / "certs" / "epm-root.cer").write_bytes(data)
+    monkeypatch.setattr(probe, "PROJECT_ROOT", tmp_path)
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    context, report = probe.tls_context()
+    public_context = ssl.create_default_context(cafile=probe.certifi.where())
+    assert set(public_context.get_ca_certs(binary_form=True)) <= set(
+        context.get_ca_certs(binary_form=True)
+    )
+    assert context.check_hostname
+    assert context.verify_mode == ssl.CERT_REQUIRED
+    assert report["certificate_loaded"]
+
+
+def test_missing_corporate_ca_never_silently_falls_back(monkeypatch, tmp_path):
+    monkeypatch.setattr(probe, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setenv("REQUESTS_CA_BUNDLE", probe.certifi.where())
+    with pytest.raises(ValueError, match="PROXY_CA_MISSING"):
+        probe.tls_context()
+
+
+def test_invalid_corporate_ca_rejected(monkeypatch, tmp_path):
+    (tmp_path / "certs").mkdir()
+    (tmp_path / "certs" / "epm-root.cer").write_bytes(b"invalid certificate")
+    monkeypatch.setattr(probe, "PROJECT_ROOT", tmp_path)
+    with pytest.raises(ssl.SSLError):
+        probe.tls_context()
 
 
 def message(**changes):
@@ -112,9 +200,16 @@ def test_auth_ack_and_no_trading(monkeypatch, tmp_path, success):
         def create_connection(url, **kwargs):
             assert url == "wss://ws.etoro.com/ws"
             assert kwargs["redirect_limit"] == 0
+            assert kwargs["http_proxy_auth"] == (
+                "example-domain\\example-user",
+                "example:p@ss#word",
+            )
+            assert kwargs["sslopt"]["context"].check_hostname
             return socket
 
     socket = Socket()
+    configure_proxy(monkeypatch)
+    monkeypatch.setattr(probe, "tls_context", lambda: (ssl.create_default_context(), {}))
     ticks = iter([0, 121])
     monkeypatch.setattr(probe, "time", SimpleNamespace(monotonic=lambda: next(ticks)))
     monkeypatch.setattr(probe, "importlib", SimpleNamespace(import_module=lambda _: Library))

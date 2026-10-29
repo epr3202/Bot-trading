@@ -1,0 +1,320 @@
+{
+  "initial-inventory": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "cwd": "<repo>",
+      "utc": "2026-10-29T14:04:39.702019+00:00",
+      "exit_code": 0,
+      "stdout": "<repo>\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "<repo>",
+      "utc": "2026-10-29T14:04:39.893661+00:00",
+      "exit_code": 0,
+      "stdout": "575216da1fe94e147ed5ec32420d9feec3bec8f6\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--short",
+        "--branch",
+        "--untracked-files=all"
+      ],
+      "cwd": "<repo>",
+      "utc": "2026-10-29T14:04:40.243234+00:00",
+      "exit_code": 0,
+      "stdout": "## feat/phase3-readonly-evidence...origin/main\n M .env.example\n M HANDOFF.md\n M STATUS.md\n M docs/A7_WEBSOCKET.md\n M docs/VERIFICATION.md\n M scripts/probe_etoro_websocket.py\n M scripts/scan_secrets.py\n M scripts/verify.py\n M tests/test_etoro_websocket_probe.py\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--name-status"
+      ],
+      "cwd": "<repo>",
+      "utc": "2026-10-29T14:04:40.554834+00:00",
+      "exit_code": 0,
+      "stdout": "M\t.env.example\nM\tHANDOFF.md\nM\tSTATUS.md\nM\tdocs/A7_WEBSOCKET.md\nM\tdocs/VERIFICATION.md\nM\tscripts/probe_etoro_websocket.py\nM\tscripts/scan_secrets.py\nM\tscripts/verify.py\nM\ttests/test_etoro_websocket_probe.py\n",
+      "stderr": "warning: in the working copy of 'HANDOFF.md', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'STATUS.md', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'docs/VERIFICATION.md', CRLF will be replaced by LF the next time Git touches it\n"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--name-status"
+      ],
+      "cwd": "<repo>",
+      "utc": "2026-10-29T14:04:40.776633+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+      ],
+      "cwd": "<repo>",
+      "utc": "2026-10-29T14:04:40.984772+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "for-each-ref",
+        "--format=%(refname):%(objectname)",
+        "refs/remotes"
+      ],
+      "cwd": "<repo>",
+      "utc": "2026-10-29T14:04:41.189661+00:00",
+      "exit_code": 0,
+      "stdout": "refs/remotes/origin/HEAD:575216da1fe94e147ed5ec32420d9feec3bec8f6\nrefs/remotes/origin/main:575216da1fe94e147ed5ec32420d9feec3bec8f6\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "@{upstream}..HEAD"
+      ],
+      "cwd": "<repo>",
+      "utc": "2026-10-29T14:04:41.425160+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "fetch": {
+    "utc": "2026-10-29T14:04:57.279793+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "git",
+      "fetch",
+      "origin"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 255,
+    "stdout": "",
+    "stderr": "error: cannot open '.git/FETCH_HEAD': Permission denied\n"
+  },
+  "fetch-authorized": {
+    "utc": "2026-10-29T14:05:14.031836+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "git",
+      "fetch",
+      "origin"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "remote-refs": {
+    "utc": "2026-10-29T14:05:33.629102+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "git",
+      "ls-remote",
+      "origin"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 128,
+    "stdout": "",
+    "stderr": "fatal: unable to access 'https://github.com/epr3202/Bot-trading.git/': Failed to connect to github.com port 443 via 127.0.0.1 after 2071 ms: Could not connect to server\n"
+  },
+  "remote-refs-authorized": {
+    "utc": "2026-10-29T14:06:15.990503+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "git",
+      "ls-remote",
+      "origin"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "575216da1fe94e147ed5ec32420d9feec3bec8f6\tHEAD\n575216da1fe94e147ed5ec32420d9feec3bec8f6\trefs/heads/main\n",
+    "stderr": ""
+  },
+  "outgoing": {
+    "utc": "2026-10-29T14:05:34.769369+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "git",
+      "log",
+      "--oneline",
+      "HEAD",
+      "--not",
+      "--remotes=origin"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "refs-after-fetch": {
+    "utc": "2026-10-29T14:08:04.591844+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "git",
+      "for-each-ref",
+      "--format=%(refname):%(objectname)",
+      "refs/remotes"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "refs/remotes/origin/HEAD:575216da1fe94e147ed5ec32420d9feec3bec8f6\nrefs/remotes/origin/main:575216da1fe94e147ed5ec32420d9feec3bec8f6\n",
+    "stderr": ""
+  },
+  "focal": {
+    "utc": "2026-10-29T14:06:25.690576+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "powershell",
+      "-NoProfile",
+      "-File",
+      "runtime/a7-local-audit-20261029/focal.ps1"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "........................................................................ [ 37%]\n........................................................................ [ 75%]\n..............................................                           [100%]\n============================== warnings summary ===============================\n.venv\\Lib\\site-packages\\exchange_calendars\\exchange_calendar.py:65\n  <repo>\\.venv\\Lib\\site-packages\\exchange_calendars\\exchange_calendar.py:65: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`). Please use a specific unit instead.\n    ONE_HOUR = pd.Timedelta(\"1h\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n190 passed, 1 warning in 13.98s\n",
+    "stderr": ""
+  },
+  "barrier": {
+    "utc": "2026-10-29T14:08:26.573830+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "powershell",
+      "-NoProfile",
+      "-File",
+      "runtime/a7-local-audit-20261029/barrier.ps1"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": ".......                                                                  [100%]\n7 passed in 1.39s\n",
+    "stderr": ""
+  },
+  "scanner-self-test-run": {
+    "utc": "2026-10-29T14:07:22.761052+00:00",
+    "cwd": "<repo>",
+    "command": [
+      ".venv\\Scripts\\python.exe",
+      "runtime/a7-local-audit-20261029/scanner_check.py"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "Secret scan: 193 candidate files, 0 findings\n{\"utc\": \"2026-10-29T14:07:21.126427+00:00\", \"self_test\": \"PASS\", \"scope\": \"tracked and untracked nonignored working files; exact outgoing blobs scanned separately\", \"limitations\": \"regex detection, not proof of absence; binary content skipped by existing scanner; no .env values read\", \"exit_code\": 0}\n",
+    "stderr": ""
+  },
+  "focal-format": {
+    "utc": "2026-10-29T14:07:28.217554+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "powershell",
+      "-NoProfile",
+      "-File",
+      "scripts/uv.ps1",
+      "run",
+      "--offline",
+      "--frozen",
+      "ruff",
+      "format",
+      "--check",
+      "scripts/probe_etoro_websocket.py",
+      "scripts/scan_secrets.py",
+      "scripts/verify.py",
+      "tests/test_etoro_websocket_probe.py"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "4 files already formatted\n",
+    "stderr": ""
+  },
+  "focal-lint": {
+    "utc": "2026-10-29T14:07:43.430651+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "powershell",
+      "-NoProfile",
+      "-File",
+      "scripts/uv.ps1",
+      "run",
+      "--offline",
+      "--frozen",
+      "ruff",
+      "check",
+      "scripts/probe_etoro_websocket.py",
+      "scripts/scan_secrets.py",
+      "scripts/verify.py",
+      "tests/test_etoro_websocket_probe.py"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "All checks passed!\n",
+    "stderr": ""
+  },
+  "diff-check": {
+    "utc": "2026-10-29T14:06:56.731165+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "warning: in the working copy of 'HANDOFF.md', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'STATUS.md', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'docs/VERIFICATION.md', CRLF will be replaced by LF the next time Git touches it\n"
+  },
+  "test_isolation": {
+    "reviewed": "tests/conftest.py plus selected tests and imported fixtures; HTTP MockTransport/NetworkSpy and fake WebSocket library",
+    "focal_wrapper": "$ErrorActionPreference = 'Stop'\nGet-ChildItem Env: | Where-Object { $_.Name -match '(?i)(ETORO|ALPACA|MASSIVE|POLYGON|TOKEN|SECRET|PASSWORD|CREDENTIAL|API_KEY|PROXY|UV_ENV|PYTEST_ADDOPTS|PYTHONPATH)' } | ForEach-Object { Remove-Item -LiteralPath ('Env:' + $_.Name) }\n$env:BOT_MODE = 'offline'\n$env:ORDER_SUBMISSION_ENABLED = 'false'\n$env:UV_NO_ENV_FILE = '1'\n$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD = '1'\n& .\\scripts\\uv.ps1 run --offline --frozen pytest -q tests/test_demo_only_identity.py tests/test_demo_pre_send.py tests/test_etoro_transport.py tests/test_etoro_websocket_probe.py\nexit $LASTEXITCODE\n",
+    "barrier_wrapper": "$ErrorActionPreference = 'Stop'\nGet-ChildItem Env: | Where-Object { $_.Name -match '(?i)(ETORO|ALPACA|MASSIVE|POLYGON|TOKEN|SECRET|PASSWORD|CREDENTIAL|API_KEY|PROXY|UV_ENV|PYTEST_ADDOPTS|PYTHONPATH)' } | ForEach-Object { Remove-Item -LiteralPath ('Env:' + $_.Name) }\n$env:BOT_MODE = 'offline'\n$env:ORDER_SUBMISSION_ENABLED = 'false'\n$env:UV_NO_ENV_FILE = '1'\n$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD = '1'\n& .\\scripts\\uv.ps1 run --offline --frozen pytest -q tests/test_phase2_broker.py::test_network_mutations_blocked_even_with_valid_old_authorization tests/test_phase2_broker.py::test_v1_closed_units_are_not_remaining_exposure_or_final_accounting\nexit $LASTEXITCODE\n\n",
+    "no_dotenv": true,
+    "provider_credentials_removed_in_child": true,
+    "global_environment_changed": false
+  },
+  "tooling_attempts": [
+    {
+      "command": ".venv/Scripts/python.exe runtime/a7-local-audit-20261029/record.py secret-scan .venv/Scripts/python.exe scripts/scan_secrets.py",
+      "outcome": "Windows CreateProcess WinError 2 before scan, no scan PASS; retried with backslash path successfully",
+      "utc_approx": "2026-10-29T14:06:56Z"
+    },
+    {
+      "command": "git for-each-ref --format=%(refname):%(objectname) refs/remotes via PowerShell",
+      "outcome": "Unquoted format parsed by PowerShell, command not run; quoted retry succeeded",
+      "utc_approx": "2026-10-29T14:07:43Z"
+    }
+  ]
+}

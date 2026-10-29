@@ -1,3 +1,34 @@
+## A7 WebSocket: continuidad 2026-09-21
+
+Revision 15:47 UTC identifica bloqueo: EPM/McAfee muestra "WebSocket Block / Upgrade
+to WebSocket is blocked." CONNECT y TLSv1.3 verificados con credenciales iguales
+a Growatt y CA local; ajustada carga de CA a ruta de proyecto y confianza combinada.
+Proximo paso: habilitacion de upgrade ws.etoro.com:443/ws por politica del gateway,
+no mas cambios de clave/CA sin evidencia. Evidencia: runtime/a7-websocket/
+tls-policy-20260921/network-stages.json. 34 focales PASS; ver VERIFICATION.
+
+Actualizacion solicitada: proxy autenticado explicito en el spike, valores en
+.env ignorado, cuatro variables ETORO_PROXY_HOST/PORT/USER/PASSWORD. Se reviso
+growatt.py y se copio solo la configuracion proxy sin modificar la fuente.
+Nuevo probe 15:33 UTC sigue HTTP 403 EPM; no asumir que aportar credenciales
+resuelve la politica ni declarar autenticacion proxy verificada. TLS intacto.
+Detalle y pruebas actuales: docs/A7_WEBSOCKET.md y docs/VERIFICATION.md.
+Proxy: 30 focales, 912 completos y 16/16 gates PASS; A3/secretos PASS.
+Verificacion preservada en runtime/a7-websocket/proxy-auth-20260921/verification.json.
+
+Reobservacion autorizada realizada con el spike existente, sin cambios productivos.
+Fuera del entorno restringido persiste HTTP 403 de Proxy WebGateway | EPM antes
+de Authenticate. No hay mensajes reales ni prueba de frescura; cero mutaciones.
+No repetir integracion ni activar Demo sobre mocks. Dependencia externa: permitir
+upgrade WebSocket a ws.etoro.com:443/ws en la politica de red; luego observar
+mercado abierto y validar contrato real/frescura sostenida antes de continuar.
+No cambiar proxy/TLS para sortear el bloqueo. No nuevo fixture real disponible.
+Evidencia: runtime/a7-websocket/recheck-20260921-network/summary.json.
+Contrato eToro sin exigencia REST reconfirmado; Strategy 1/riesgo/lock intactos.
+Checks de esta sesion en docs/VERIFICATION.md. A7 PARTIAL/BLOCKED.
+274 focales, 905 completos y 16/16 gates PASS; inspector A3 PASS. Evidencia exacta
+en runtime/a7-websocket/recheck-20260921-network/verification.json.
+
 ## A7 WebSocket: verificacion final del spike (2026-09-16)
 
 23 tests del spike PASS; 165 focales WebSocket/A6/A7 PASS (5 warnings).

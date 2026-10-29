@@ -1,5 +1,114 @@
 # A7 — WebSocket: spike bloqueado antes de autenticacion
 
+## Reobservacion 2026-09-21
+
+### Revision de funciones y certificado (15:46-15:47 UTC)
+
+Se compararon nuevamente los valores efectivos cargados por uv --env-file con
+el usuario literal de get_proxies y el orden de busqueda/normalizacion de clave
+de growatt.py: usuario, contrasena, host y puerto coinciden (solo booleanos
+registrados). websocket-client 1.8.0 recibe la tupla sin cambios y genera
+Proxy-Authorization Basic para CONNECT, no para el destino eToro.
+
+El certificado existe en `certs/epm-root.cer` dentro del proyecto, PEM, 1580 bytes,
+CA Empresas Publicas de Medellin, vigencia 2024-04-16 a 2044-04-11.
+SHA-256: 5fa9781a648a17dc435ffa15721b2b35e0192efcbe35e555d4721b36949ac684.
+La configuracion Growatt referencia E:\certs\epm-root.cer, ausente en esta maquina;
+no se afirma identidad binaria con ese archivo inaccesible. La CA local si
+valida el certificado presentado por el gateway en la conexion observada.
+
+Diferencias corregidas en tls_context del spike: ruta anclada al proyecto,
+independiente del cwd; confianza combinada sistema + certifi (el bundle publico
+usado por Requests) + EPM; acepta PEM/DER y falla explicitamente si falta la CA.
+Antes solo se cargaba la CA corporativa y habia fallback implicito si faltaba.
+No se modifico el certificado, .env, sistema global, src ni lock; certifi ya
+pertenece al lock existente. Se mantienen CERT_REQUIRED y check_hostname.
+
+Dos observaciones read-only con instrumentacion passthrough de la biblioteca:
+CONNECT aprobado (la biblioteca exige HTTP 200), TLSv1.3 verificado, issuer EPM,
+161 autoridades de confianza cargadas. El rechazo HTTP 403 ocurre despues,
+durante el upgrade WebSocket. La pagina declara literalmente:
+**WebSocket Block — Upgrade to WebSocket is blocked.** Generada por McAfee Web
+Gateway EPM. Esto identifica la causa observada; no afirma que el proxy haya
+validado la identidad del usuario, aunque acepto el tunel con sus credenciales.
+
+Evidencia local sanitizada, ambas con 0 eventos y 0 mutaciones:
+`runtime/a7-websocket/tls-review-20260921/{summary,network-stages}.json` y
+`runtime/a7-websocket/tls-policy-20260921/{summary,network-stages}.json`.
+No se simularon respuestas: los wrappers observaron retornos reales de CONNECT,
+TLS y la excepcion de upgrade. No se activo trace ni guardaron headers secretos.
+Siguiente paso externo: permitir WebSocket upgrade para ws.etoro.com:443/ws en
+la politica del gateway; despues repetir el probe. No sortear la politica.
+34 pruebas focales PASS; detalle y limites de validacion en VERIFICATION.md.
+
+### Proxy autenticado explicito (15:33 UTC)
+
+Por solicitud del usuario se reviso `growatt.py` del directorio de red indicado.
+Usa proxy HTTP EPM con usuario/contrasena; no usa NTLM en ese mecanismo.
+Se trasladaron exclusivamente esos valores al .env local ignorado por Git,
+sin mostrarlos ni modificar el origen. Variables: ETORO_PROXY_HOST,
+ETORO_PROXY_PORT, ETORO_PROXY_USER y ETORO_PROXY_PASSWORD; ejemplo sin valores
+en .env.example. Cargar deliberadamente con `uv --env-file .env`.
+
+El spike usa http_proxy_host/port y http_proxy_auth=(usuario, contrasena),
+con host/puerto permitidos proxy.epm.com.co:8080. No introduce credenciales
+en la URL eToro ni headers WebSocket. Configuracion parcial falla antes de
+conectar; NO_PROXY heredado no evita el proxy explicito. Sin valores dedicados,
+se conserva el comportamiento previo de configuracion heredada del entorno.
+TLS/CA, origen eToro, prohibicion de redirects y ausencia de trading intactos.
+Redaccion cubre usuario, contrasena, representacion URL y Basic base64;
+verify.py retira estas variables de los procesos de checks.
+
+Referencia del mecanismo de la biblioteca:
+[proxy autenticado](https://websocket-client.readthedocs.io/en/latest/examples.html#connecting-through-a-proxy).
+No se cambiaron dependencias ni hashes A3. El mecanismo solo aplica al spike;
+no se ha integrado al transporte REST o al runner.
+
+Prueba externa con configuracion explicita: HTTP 403, pagina Proxy WebGateway
+EPM, antes de Authenticate; 0 eventos y 0 mutaciones. No acredita autenticacion
+aceptada del proxy ni validez de las claves eToro. Sigue pendiente identificar
+la regla de red. Evidencia: runtime/a7-websocket/proxy-auth-20260921/summary.json.
+Comando: el mismo probe con --offline --frozen --env-file .env y
+--output runtime/a7-websocket/proxy-auth-20260921. Python exit 2 / launcher 1.
+
+### Observacion previa al ajuste de proxy (15:14 UTC)
+
+Contrato y ADR revisados nuevamente, incluido historial Git: se exige eToro,
+no REST rates como origen obligatorio de quote_at. Documentacion oficial de
+Authenticate y Topics consultada nuevamente; no se implementa un schema supuesto.
+El spike existente se conserva sin cambios y no se integra al runner.
+
+El intento con resolucion online de uv fallo al acceder a PyPI (conexion 10061),
+antes de ejecutar el probe. Se reutilizo websocket-client==1.8.0 desde cache
+con `--offline`, sin modificar pyproject, lock ni configuracion global.
+El primer probe termino con ConnectionRefusedError en el entorno restringido.
+El segundo, fuera de esa restriccion y conservando proxy/TLS, recibio HTTP 403
+con pagina **Proxy WebGateway | EPM**, a las 15:14:13 UTC, antes de Authenticate.
+No se atribuye el rechazo a credenciales invalidas ni a permisos eToro.
+
+Evidencia nueva, sin sobrescribir capturas anteriores:
+`runtime/a7-websocket/recheck-20260921/summary.json` y
+`runtime/a7-websocket/recheck-20260921-network/summary.json`.
+Ambas claves PRESENT; autenticacion y suscripcion no alcanzadas; 0 eventos,
+0 eventos frescos, 0 reconexiones automaticas y 0 mutaciones. Edades, bid/ask,
+spread y frescura al decidir no medibles; duplicados/out-of-order sin muestra.
+No hay fixture real, migracion PASS ni vertical slice externo.
+
+Comando del segundo probe (exit Python 2 / launcher 1):
+
+```powershell
+.\scripts\uv.ps1 run --offline --frozen --env-file .env --with websocket-client==1.8.0 python scripts/probe_etoro_websocket.py --output runtime/a7-websocket/recheck-20260921-network
+```
+
+Se detiene la integracion en el gate externo solicitado. Siguiente dependencia:
+la red debe permitir el upgrade a ws.etoro.com:443/ws; luego repetir observacion
+durante mercado abierto antes de implementar cache/reconnect e inyeccion al runner.
+No se cambia el proxy para eludir la denegacion. Sin fallback REST permisivo,
+sin ordenes, sin cambios en Strategy 1, RiskEngine, Massive o hashes A3.
+Checks de esta reobservacion: docs/VERIFICATION.md.
+
+A7 PARTIAL/BLOCKED: HTTP 403 del proxy EPM antes de Authenticate; sin quotes reales.
+
 2026-09-16. **Migracion NOT_INTEGRATED; A7 PARTIAL/BLOCKED.**
 
 ## Revision contractual

@@ -1,0 +1,208 @@
+{
+  "commit": {
+    "utc": "2026-10-29T14:16:43.980390+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "git",
+      "commit",
+      "-m",
+      "WIP A7: preserve existing WebSocket diagnostics and local audit"
+    ],
+    "head": "683331a5c2543d9d380c18c1635368bdcfd4a17d",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "[audit/a7-local-20261029T140900Z 683331a] WIP A7: preserve existing WebSocket diagnostics and local audit\n 15 files changed, 1364 insertions(+), 14 deletions(-)\n create mode 100644 docs/A7_LOCAL_AUDIT_20261029.md\n create mode 100644 docs/audits/a7-local-20261029/checks.json\n create mode 100644 docs/audits/a7-local-20261029/historical-sanitized.json\n create mode 100644 docs/audits/a7-local-20261029/historical-tests-sanitized.json\n create mode 100644 docs/audits/a7-local-20261029/manifest.json\n create mode 100644 docs/audits/a7-local-20261029/preservation.json\n",
+    "stderr": ""
+  },
+  "push": {
+    "utc": "2026-10-29T14:17:20.939260+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "git",
+      "push",
+      "-u",
+      "origin",
+      "audit/a7-local-20261029T140900Z"
+    ],
+    "head": "683331a5c2543d9d380c18c1635368bdcfd4a17d",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "branch 'audit/a7-local-20261029T140900Z' set up to track 'origin/audit/a7-local-20261029T140900Z'.\n",
+    "stderr": "remote: \nremote: Create a pull request for 'audit/a7-local-20261029T140900Z' on GitHub by visiting:        \nremote:      https://github.com/epr3202/Bot-trading/pull/new/audit/a7-local-20261029T140900Z        \nremote: \nTo https://github.com/epr3202/Bot-trading.git\n * [new branch]      audit/a7-local-20261029T140900Z -> audit/a7-local-20261029T140900Z\n"
+  },
+  "published-ref": {
+    "utc": "2026-10-29T14:17:31.294547+00:00",
+    "cwd": "<repo>",
+    "command": [
+      "git",
+      "ls-remote",
+      "origin",
+      "refs/heads/audit/a7-local-20261029T140900Z",
+      "refs/heads/main"
+    ],
+    "head": "683331a5c2543d9d380c18c1635368bdcfd4a17d",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "683331a5c2543d9d380c18c1635368bdcfd4a17d\trefs/heads/audit/a7-local-20261029T140900Z\n575216da1fe94e147ed5ec32420d9feec3bec8f6\trefs/heads/main\n",
+    "stderr": ""
+  },
+  "staged-blobs": {
+    "utc": "2026-10-29T14:16:09.249489+00:00",
+    "mode": "staged",
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "blob_count": 15,
+    "entries": [
+      [
+        ".env.example",
+        "2a37788adb7e2382758b5698890e251863baff65"
+      ],
+      [
+        "HANDOFF.md",
+        "1ca8655d96a5104a82069c1038cff7af625accfd"
+      ],
+      [
+        "STATUS.md",
+        "d166706c5b0d1b99c4c13184fcd36884f88ae8b6"
+      ],
+      [
+        "docs/A7_LOCAL_AUDIT_20261029.md",
+        "6ca6fff9bc9f40c1c762fab947b0b4662fa9009c"
+      ],
+      [
+        "docs/A7_WEBSOCKET.md",
+        "c6787d9bbba01f395677bd7fa79b02555b5b1c2c"
+      ],
+      [
+        "docs/VERIFICATION.md",
+        "3873e2ad6b39ff55d3aff42b6056ccdca7b13a1f"
+      ],
+      [
+        "docs/audits/a7-local-20261029/checks.json",
+        "2fdd1517504bd1c55952f2cd17399602c4caeb11"
+      ],
+      [
+        "docs/audits/a7-local-20261029/historical-sanitized.json",
+        "68caa7ab34cad7dc9522fa857af7156a72e6d728"
+      ],
+      [
+        "docs/audits/a7-local-20261029/historical-tests-sanitized.json",
+        "2b1549139ab534a6da3b8f71f422f21d4453060d"
+      ],
+      [
+        "docs/audits/a7-local-20261029/manifest.json",
+        "3413566f6d89e01c6736a9fe92b14236bf574f65"
+      ],
+      [
+        "docs/audits/a7-local-20261029/preservation.json",
+        "427f6c4cf32060cdafe48c99562f9cb7a7f1305a"
+      ],
+      [
+        "scripts/probe_etoro_websocket.py",
+        "076113e9631a82a29071b4f10904750269766667"
+      ],
+      [
+        "scripts/scan_secrets.py",
+        "dbcf7b638f0ac4bb40b174ec785cc7320959825f"
+      ],
+      [
+        "scripts/verify.py",
+        "e30ce80b4cb524b7c5d186d225ad5903872f8bde"
+      ],
+      [
+        "tests/test_etoro_websocket_probe.py",
+        "3d892b00b63e091d5323b586c3d0bd14f1752e80"
+      ]
+    ],
+    "findings": [],
+    "exit_code": 0
+  },
+  "outgoing-blobs": {
+    "utc": "2026-10-29T14:16:54.765473+00:00",
+    "mode": "outgoing",
+    "head": "683331a5c2543d9d380c18c1635368bdcfd4a17d",
+    "blob_count": 15,
+    "entries": [
+      [
+        ".env.example",
+        "2a37788adb7e2382758b5698890e251863baff65"
+      ],
+      [
+        "HANDOFF.md",
+        "1ca8655d96a5104a82069c1038cff7af625accfd"
+      ],
+      [
+        "STATUS.md",
+        "d166706c5b0d1b99c4c13184fcd36884f88ae8b6"
+      ],
+      [
+        "docs/A7_LOCAL_AUDIT_20261029.md",
+        "6ca6fff9bc9f40c1c762fab947b0b4662fa9009c"
+      ],
+      [
+        "docs/A7_WEBSOCKET.md",
+        "c6787d9bbba01f395677bd7fa79b02555b5b1c2c"
+      ],
+      [
+        "docs/VERIFICATION.md",
+        "3873e2ad6b39ff55d3aff42b6056ccdca7b13a1f"
+      ],
+      [
+        "docs/audits/a7-local-20261029/checks.json",
+        "2fdd1517504bd1c55952f2cd17399602c4caeb11"
+      ],
+      [
+        "docs/audits/a7-local-20261029/historical-sanitized.json",
+        "68caa7ab34cad7dc9522fa857af7156a72e6d728"
+      ],
+      [
+        "docs/audits/a7-local-20261029/historical-tests-sanitized.json",
+        "2b1549139ab534a6da3b8f71f422f21d4453060d"
+      ],
+      [
+        "docs/audits/a7-local-20261029/manifest.json",
+        "3413566f6d89e01c6736a9fe92b14236bf574f65"
+      ],
+      [
+        "docs/audits/a7-local-20261029/preservation.json",
+        "427f6c4cf32060cdafe48c99562f9cb7a7f1305a"
+      ],
+      [
+        "scripts/probe_etoro_websocket.py",
+        "076113e9631a82a29071b4f10904750269766667"
+      ],
+      [
+        "scripts/scan_secrets.py",
+        "dbcf7b638f0ac4bb40b174ec785cc7320959825f"
+      ],
+      [
+        "scripts/verify.py",
+        "e30ce80b4cb524b7c5d186d225ad5903872f8bde"
+      ],
+      [
+        "tests/test_etoro_websocket_probe.py",
+        "3d892b00b63e091d5323b586c3d0bd14f1752e80"
+      ]
+    ],
+    "findings": [],
+    "exit_code": 0
+  },
+  "staged-integrity": {
+    "utc": "2026-10-29T14:16:29.176532+00:00",
+    "cwd": "<repo>",
+    "command": [
+      ".venv\\Scripts\\python.exe",
+      "runtime/a7-local-audit-20261029/staged_integrity.py"
+    ],
+    "head": "575216da1fe94e147ed5ec32420d9feec3bec8f6",
+    "manifest_sha256": "1c1146e86acece296db2f6f794c14abd7c62c7a26385234bc1dcc04f25625d73",
+    "exit_code": 0,
+    "stdout": "193 original files unchanged; 15 staged files match reviewed working bytes modulo Git CRLF normalization; no unstaged changes\n",
+    "stderr": ""
+  },
+  "preservation_after_push": {
+    "utc": "2026-10-29T14:18:30.089594+00:00",
+    "compared": 193,
+    "changed": []
+  },
+  "publication": "VERIFIED"
+}
